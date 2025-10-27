@@ -12,9 +12,9 @@
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0; background:linear-gradient(180deg,#0b1220,#0b1324 40%,#0c1428); color:var(--text); font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, Apple Color Emoji, Segoe UI Emoji}
-    .app{max-width:1100px; margin:0 auto; padding:16px;}
+    .app{max-width:1100px; margin:0 auto; padding:16px; padding-top:80px;}
     .grid{display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px}
-    header{display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:12px}
+    header{position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:100; background:linear-gradient(180deg,#0b1220,#0b1324); box-shadow:0 4px 20px rgba(0,0,0,.5); padding:12px 16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; max-width:1100px; width:100%;}
     .statbar{display:flex; gap:10px; flex-wrap:wrap}
     .chip{background:var(--panel); padding:10px 12px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,.25); display:flex; align-items:center; gap:8px}
     .chip b{font-size:16px}
@@ -475,9 +475,7 @@
         <div class="chip stat-tooltip" id="financialChip" title=""><span>💰 금융</span><b id="financial">0</b><span class="muted">개</span></div>
         <div class="chip stat-tooltip" id="propertyChip" title=""><span>🏢 부동산</span><b id="properties">0</b><span class="muted">채</span></div>
         <div class="chip stat-tooltip" id="rpsChip" title=""><span>📈 초당 수익</span><b id="rps">0</b><span class="muted">₩/s</span></div>
-        <button class="reset-btn" id="resetBtn" aria-label="게임 초기화" onclick="resetGame()">🔄 새로 시작</button>
       </div>
-       <div class="chip"><span class="muted">v2.9.0</span><span class="pill">순차 해금</span></div>
     </header>
 
     <div class="grid">
@@ -630,11 +628,20 @@
     </div>
 
     <footer>
-      <div>
-        ⓘ v2.9.0: 순차 해금 시스템. 예금→적금→주식→빌라→...빌딩 순서로 단계적 해금!
-      </div>
-      <div>
-        <span class="save-status" id="saveStatus">저장됨 · --:--</span>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="margin-bottom:4px;">
+            <span style="color:var(--muted); font-size:12px;">v2.9.0</span>
+            <span style="background:var(--primary); color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">순차 해금</span>
+          </div>
+          <div style="font-size:11px;">
+            ⓘ 예금→적금→주식→빌라→...빌딩 순서로 단계적 해금!
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="reset-btn" id="resetBtn" aria-label="게임 초기화" onclick="resetGame()">🔄 새로 시작</button>
+          <span class="save-status" id="saveStatus">저장됨 · --:--</span>
+        </div>
       </div>
     </footer>
   </div>
