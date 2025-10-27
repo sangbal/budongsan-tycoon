@@ -2540,6 +2540,15 @@
     const elIncomePerBond = document.getElementById('incomePerBond');
     const elBuyBond = document.getElementById('buyBond');
     
+    // 미국주식과 코인 관련
+    const elUsStockCount = document.getElementById('usStockCount');
+    const elIncomePerUsStock = document.getElementById('incomePerUsStock');
+    const elBuyUsStock = document.getElementById('buyUsStock');
+    
+    const elCryptoCount = document.getElementById('cryptoCount');
+    const elIncomePerCrypto = document.getElementById('incomePerCrypto');
+    const elBuyCrypto = document.getElementById('buyCrypto');
+    
     // 구매 수량 선택 시스템
     const elBuyMode = document.getElementById('buyMode');
     const elSellMode = document.getElementById('sellMode');
@@ -3010,21 +3019,8 @@
       elBuyBond.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
       
       // 미국주식과 코인 버튼 상태 업데이트
-      const elBuyUsStock = document.getElementById('buyUsStock');
-      const elBuyCrypto = document.getElementById('buyCrypto');
-      
-      if (elBuyUsStock) {
-        const usStockCost = getFinancialCost('usStock', usStocks, qty);
-        const canBuyUsStock = isBuy && cash >= usStockCost;
-        elBuyUsStock.classList.toggle('affordable', canBuyUsStock);
-        console.log('미국주식 버튼 상태:', { cash, usStockCost, canBuyUsStock, isBuy });
-      }
-      if (elBuyCrypto) {
-        const cryptoCost = getFinancialCost('crypto', cryptos, qty);
-        const canBuyCrypto = isBuy && cash >= cryptoCost;
-        elBuyCrypto.classList.toggle('affordable', canBuyCrypto);
-        console.log('코인 버튼 상태:', { cash, cryptoCost, canBuyCrypto, isBuy });
-      }
+      elBuyUsStock.classList.toggle('affordable', isBuy && cash >= getFinancialCost('usStock', usStocks, qty));
+      elBuyCrypto.classList.toggle('affordable', isBuy && cash >= getFinancialCost('crypto', cryptos, qty));
       
       // 부동산 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
       elBuyVilla.classList.toggle('affordable', isBuy && cash >= getPropertyCost('villa', villas, qty));
@@ -3963,7 +3959,6 @@
     });
 
     // 미국주식 구매 버튼
-    const elBuyUsStock = document.getElementById('buyUsStock');
     elBuyUsStock.addEventListener('click', ()=>{
       if (!isProductUnlocked('usStock')) {
         addLog('❌ 미국주식은 국내주식을 1개 이상 보유해야 해금됩니다.');
@@ -3979,7 +3974,6 @@
     });
 
     // 코인 구매 버튼
-    const elBuyCrypto = document.getElementById('buyCrypto');
     elBuyCrypto.addEventListener('click', ()=>{
       if (!isProductUnlocked('crypto')) {
         addLog('❌ 코인은 미국주식을 1개 이상 보유해야 해금됩니다.');
