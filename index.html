@@ -1187,10 +1187,9 @@
       const baseCost = FINANCIAL_COSTS[type];
       let totalCost = 0;
       for (let i = 0; i < quantity; i++) {
-        let cost = baseCost;
-        for (let j = 0; j < count + i; j++) {
-          cost *= getPriceMultiplier(j);
-        }
+        const currentIndex = count + i;
+        // 첫 번째 아이템(index=0)은 기본 가격, 그 이후부터 배수 적용
+        let cost = baseCost * Math.pow(1.15, currentIndex);
         totalCost += cost;
       }
       return Math.floor(totalCost);
@@ -1213,10 +1212,9 @@
       const baseCost = BASE_COSTS[type];
       let totalCost = 0;
       for (let i = 0; i < quantity; i++) {
-        let cost = baseCost;
-        for (let j = 0; j < count + i; j++) {
-          cost *= getPriceMultiplier(j);
-        }
+        const currentIndex = count + i;
+        // 첫 번째 아이템(index=0)은 기본 가격, 그 이후부터 배수 적용
+        let cost = baseCost * Math.pow(1.15, currentIndex);
         totalCost += cost;
       }
       return Math.floor(totalCost);
