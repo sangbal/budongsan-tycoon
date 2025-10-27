@@ -318,20 +318,26 @@
     /* 해금 애니메이션 */
     .row.just-unlocked {
       animation: unlockGlow 1s ease-out;
+      position: relative;
+      z-index: 100;
+      isolation: isolate;
+      will-change: box-shadow, border-color;
     }
     
     @keyframes unlockGlow {
       0% {
         box-shadow: 0 0 40px var(--good);
-        transform: scale(1.08);
         border-color: var(--good);
+        background-color: rgba(34, 197, 94, 0.1);
       }
       50% {
         box-shadow: 0 0 60px var(--good);
+        background-color: rgba(34, 197, 94, 0.2);
       }
       100% {
         box-shadow: none;
-        transform: scale(1);
+        border-color: transparent;
+        background-color: transparent;
       }
     }
     
