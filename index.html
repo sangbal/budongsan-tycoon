@@ -2827,8 +2827,10 @@
         button.style.background = '';
         button.disabled = cash < price;
       } else {
-        button.style.background = 'var(--bad)';
-        button.disabled = count < qty;
+        // 판매 모드: 판매 가능하면 빨간색, 불가능하면 회색
+        const canSell = count >= qty;
+        button.style.background = canSell ? 'var(--bad)' : 'var(--muted)';
+        button.disabled = !canSell;
       }
     }
 
