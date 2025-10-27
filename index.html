@@ -399,26 +399,27 @@
     
     /* 구매 완료 시 반짝 효과 */
     .purchase-success {
-      animation: sparkle 0.6s ease-out;
-      position: relative;
-      z-index: 10;
+      animation: sparkle 0.6s ease-out !important;
+      position: relative !important;
+      z-index: 1000 !important;
+      isolation: isolate !important;
     }
     
     @keyframes sparkle {
       0% { 
-        background-color: var(--good);
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
-        transform: scale(1);
+        background-color: var(--good) !important;
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7) !important;
+        transform: scale(1) !important;
       }
       50% { 
-        background-color: #ffd700;
-        box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5);
-        transform: scale(1.05);
+        background-color: #ffd700 !important;
+        box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5) !important;
+        transform: scale(1.02) !important;
       }
       100% { 
-        background-color: var(--good);
-        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
-        transform: scale(1);
+        background-color: var(--good) !important;
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0) !important;
+        transform: scale(1) !important;
       }
     }
     
@@ -3003,6 +3004,16 @@
       elBuyDeposit.classList.toggle('affordable', isBuy && cash >= getFinancialCost('deposit', deposits, qty));
       elBuySavings.classList.toggle('affordable', isBuy && cash >= getFinancialCost('savings', savings, qty));
       elBuyBond.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
+      
+      // 미국주식과 코인 버튼 상태 업데이트
+      const elBuyUsStock = document.getElementById('buyUsStock');
+      const elBuyCrypto = document.getElementById('buyCrypto');
+      if (elBuyUsStock) {
+        elBuyUsStock.classList.toggle('affordable', isBuy && cash >= getFinancialCost('usStock', usStocks, qty));
+      }
+      if (elBuyCrypto) {
+        elBuyCrypto.classList.toggle('affordable', isBuy && cash >= getFinancialCost('crypto', cryptos, qty));
+      }
       
       // 부동산 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
       elBuyVilla.classList.toggle('affordable', isBuy && cash >= getPropertyCost('villa', villas, qty));
