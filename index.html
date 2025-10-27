@@ -558,9 +558,9 @@
 
           <div class="row building-item" id="bondItem">
             <div class="meta">
-                <span class="title">📈 채권</span>
-                <span class="desc">• 각 채권이 초당 <b id="incomePerBond">1,400원</b> 생산</span>
-                <span class="desc">• <b id="bondCount">0</b>개 채권이 초당 <b id="bondTotalIncome">0원</b> 생산 (총 수익의 <b id="bondPercent">0%</b>)</span>
+                <span class="title">📈 주식</span>
+                <span class="desc">• 각 주식이 초당 <b id="incomePerBond">1,400원</b> 생산</span>
+                <span class="desc">• <b id="bondCount">0</b>개 주식이 초당 <b id="bondTotalIncome">0원</b> 생산 (총 수익의 <b id="bondPercent">0%</b>)</span>
                 <span class="desc">• 지금까지 <b id="bondLifetimeDisplay">0원</b> 생산</span>
                 <span class="desc">현재가: <b id="bondCurrentPrice">500만</b>원</span>
             </div>
@@ -631,7 +631,7 @@
 
     <footer>
       <div>
-        ⓘ v2.9.0: 순차 해금 시스템. 예금→적금→채권→빌라→...빌딩 순서로 단계적 해금!
+        ⓘ v2.9.0: 순차 해금 시스템. 예금→적금→주식→빌라→...빌딩 순서로 단계적 해금!
       </div>
       <div>
         <span class="save-status" id="saveStatus">저장됨 · --:--</span>
@@ -650,8 +650,8 @@
     A. 순차 해금 체계 ✅
     예금 (항상 가능)
       → 적금 (예금 1개 필요)
-        → 채권 (적금 1개 필요)
-          → 빌라 (채권 1개 필요)
+        → 주식 (적금 1개 필요)
+          → 빌라 (주식 1개 필요)
             → 오피스텔 (빌라 1개 필요)
               → 아파트 (오피스텔 1개 필요)
                 → 상가 (아파트 1개 필요)
@@ -913,7 +913,7 @@
     - 노동: 총 클릭 수 기반 (3개)
     - 예금: 5/25개 보유 시 (2개)
     - 적금: 5/25개 보유 시 (2개)
-    - 채권: 5/25개 보유 시 (2개)
+    - 주식: 5/25개 보유 시 (2개)
     - 빌라: 5/25개 보유 시 (2개)
     - 오피스텔: 5/25개 보유 시 (2개)
     - 아파트: 5/25개 보유 시 (2개)
@@ -938,7 +938,7 @@
     🎯 핵심 철학: "더 큰 자본을 소유할수록 더 높은 수익률"
     
     A. 수익률 재설계 (일관된 상승 곡선) ✅
-    - 예금(0.010%) < 적금(0.015%) < 채권(0.0225%)
+    - 예금(0.010%) < 적금(0.015%) < 주식(0.0225%)
     - 빌라(0.00338%) < 오피스텔(0.00506%) < 아파트(0.00759%)
     - 상가(0.01142%) < 빌딩(0.01713%) 
     - 각 단계 1.5배 체증 구조, 총 171배 효율 차이
@@ -946,7 +946,7 @@
     B. 금융상품 수익 하향 조정 ✅
     - 예금: 10원/초 → 5원/초 (-50%)
     - 적금: 120원/초 → 75원/초 (-37.5%)
-    - 채권: 1,400원/초 → 1,125원/초 (-19.6%)
+    - 주식: 1,400원/초 → 1,125원/초 (-19.6%)
     
     C. 부동산 수익 대폭 상향 ✅
     - 빌라: 250원/초 → 8,438원/초 (+3,275%)
@@ -966,7 +966,7 @@
     - 부동산: 0.1억 단위 반올림
     
     F. 상단 패널 툴팁 추가 ✅
-    - 금융 툴팁: 예금/적금/채권 개수 표시
+    - 금융 툴팁: 예금/적금/주식 개수 표시
     - 부동산 툴팁: 빌라/오피스텔/아파트/상가/빌딩 개수
     - 수익 툴팁: 금융/부동산 수익, 시장배수 상세
     
@@ -1066,7 +1066,7 @@
         const newCount = currentCount + qty;
         const unit = category === 'financial' ? '개' : '채';
         const names = {
-          deposit: '예금', savings: '적금', bond: '채권',
+          deposit: '예금', savings: '적금', bond: '주식',
           villa: '빌라', officetel: '오피스텔',
           apartment: '아파트', shop: '상가', building: '빌딩'
         };
@@ -1089,7 +1089,7 @@
         const newCount = currentCount - qty;
         const unit = category === 'financial' ? '개' : '채';
         const names = {
-          deposit: '예금', savings: '적금', bond: '채권',
+          deposit: '예금', savings: '적금', bond: '주식',
           villa: '빌라', officetel: '오피스텔',
           apartment: '아파트', shop: '상가', building: '빌딩'
         };
@@ -1170,7 +1170,7 @@
     const FINANCIAL_COSTS = {
       deposit: 50000,       // 예금: 5만원
       savings: 500000,      // 적금: 50만원
-      bond: 5000000         // 채권: 500만원
+      bond: 5000000         // 주식: 500만원
     };
     
     // 부동산별 기본 가격
@@ -1238,7 +1238,7 @@
     // 금융상품 보유 수량
     let deposits = 0;     // 예금
     let savings = 0;      // 적금
-    let bonds = 0;        // 채권
+    let bonds = 0;        // 주식
     
     // 금융상품 누적 생산량 (Cookie Clicker 스타일)
     let depositsLifetime = 0;
@@ -1378,10 +1378,10 @@
         purchased: false
       },
       
-      // === 채권 관련 ===
+      // === 주식 관련 ===
       bond_boost_1: {
-        name: "📈 채권 수익률 향상",
-        desc: "채권 수익 2배",
+        name: "📈 주식 수익률 향상",
+        desc: "주식 수익 2배",
         cost: 50000000,
         icon: "📈",
         unlockCondition: () => bonds >= 5,
@@ -1391,8 +1391,8 @@
         purchased: false
       },
       bond_boost_2: {
-        name: "💹 프리미엄 채권",
-        desc: "채권 수익 2배",
+        name: "💹 프리미엄 주식",
+        desc: "주식 수익 2배",
         cost: 500000000,
         icon: "💹",
         unlockCondition: () => bonds >= 25,
@@ -1596,7 +1596,7 @@
     const FINANCIAL_INCOME = {
       deposit: 5,     // 예금: 5원/초 (최저 수익률 - 시작점)
       savings: 75,    // 적금: 75원/초 (1.5배 증가)
-      bond: 1125      // 채권: 1,125원/초 (1.5배 증가)
+      bond: 1125      // 주식: 1,125원/초 (1.5배 증가)
     };
     
     // 부동산별 기본 수익률 (초당) - 자본주의 메시지: 큰 자본일수록 높은 수익률
@@ -1656,7 +1656,7 @@
       { id: "first_click", name: "첫 노동", desc: "첫 번째 클릭을 했다", condition: () => totalClicks >= 1, unlocked: false },
       { id: "first_deposit", name: "첫 예금", desc: "첫 번째 예금을 구입했다", condition: () => deposits >= 1, unlocked: false },
       { id: "first_savings", name: "첫 적금", desc: "첫 번째 적금을 구입했다", condition: () => savings >= 1, unlocked: false },
-      { id: "first_bond", name: "첫 채권", desc: "첫 번째 채권을 구입했다", condition: () => bonds >= 1, unlocked: false },
+      { id: "first_bond", name: "첫 주식", desc: "첫 번째 주식을 구입했다", condition: () => bonds >= 1, unlocked: false },
       { id: "first_property", name: "첫 부동산", desc: "첫 번째 부동산을 구입했다", condition: () => villas + officetels + apartments + shops + buildings >= 1, unlocked: false },
       { id: "financial_expert", name: "금융 전문가", desc: "모든 금융상품을 보유했다", condition: () => deposits > 0 && savings > 0 && bonds > 0, unlocked: false },
       { id: "property_collector", name: "부동산 수집가", desc: "5채의 부동산을 보유했다", condition: () => getTotalProperties() >= 5, unlocked: false },
@@ -1773,7 +1773,7 @@
         'bond': () => savings >= 1, // 적금 1개 필요
         
         // 부동산
-        'villa': () => bonds >= 1, // 채권 1개 필요
+        'villa': () => bonds >= 1, // 주식 1개 필요
         'officetel': () => villas >= 1, // 빌라 1개 필요
         'apartment': () => officetels >= 1, // 오피스텔 1개 필요
         'shop': () => apartments >= 1, // 아파트 1개 필요
@@ -1786,7 +1786,7 @@
     function checkNewUnlocks(productName) {
       const unlockMessages = {
         'deposit': { next: 'savings', msg: '🔓 적금이 해금되었습니다!' },
-        'savings': { next: 'bond', msg: '🔓 채권이 해금되었습니다!' },
+        'savings': { next: 'bond', msg: '🔓 주식이 해금되었습니다!' },
         'bond': { next: 'villa', msg: '🔓 빌라가 해금되었습니다!' },
         'villa': { next: 'officetel', msg: '🔓 오피스텔이 해금되었습니다!' },
         'officetel': { next: 'apartment', msg: '🔓 아파트가 해금되었습니다!' },
@@ -2452,7 +2452,7 @@
       safeText(elFinancial, formatKoreanNumber(totalFinancial));
       const financialChip = document.getElementById('financialChip');
       if (financialChip) {
-        const tooltip = `예금: ${deposits}개\n적금: ${savings}개\n채권: ${bonds}개`;
+        const tooltip = `예금: ${deposits}개\n적금: ${savings}개\n주식: ${bonds}개`;
         financialChip.setAttribute('title', tooltip);
       }
       
@@ -2537,7 +2537,7 @@
         document.getElementById('savingsLifetimeDisplay').textContent = formatCashDisplay(savingsLifetime);
         elSavingsCurrentPrice.textContent = formatFinancialPrice(savingsCost);
         
-        // 채권 업데이트
+        // 주식 업데이트
         const bondCost = getFinancialCost('bond', bonds);
         const bondTotalIncome = bonds * FINANCIAL_INCOME.bond;
         const bondPercent = totalRps > 0 ? ((bondTotalIncome / totalRps) * 100).toFixed(1) : 0;
@@ -2925,7 +2925,7 @@
 
     elBuyBond.addEventListener('click', ()=>{
       if (!isProductUnlocked('bond')) {
-        addLog('❌ 채권은 적금을 1개 이상 보유해야 해금됩니다.');
+        addLog('❌ 주식은 적금을 1개 이상 보유해야 해금됩니다.');
         return;
       }
       const result = handleTransaction('financial', 'bond', bonds);
@@ -2940,7 +2940,7 @@
     // 부동산 거래 이벤트 (구매/판매 통합)
     elBuyVilla.addEventListener('click', ()=>{
       if (!isProductUnlocked('villa')) {
-        addLog('❌ 빌라는 채권을 1개 이상 보유해야 해금됩니다.');
+        addLog('❌ 빌라는 주식을 1개 이상 보유해야 해금됩니다.');
         return;
       }
       const result = handleTransaction('property', 'villa', villas);
@@ -3092,7 +3092,7 @@
     // 판매 시스템 테스트 로그
     console.log('=== 판매 시스템 초기화 완료 ===');
     console.log('✅ 구매/판매 모드 토글 시스템 활성화');
-    console.log('✅ 금융상품 통합 거래 시스템 (예금/적금/채권)');
+    console.log('✅ 금융상품 통합 거래 시스템 (예금/적금/주식)');
     console.log('✅ 부동산 통합 거래 시스템 (빌라/오피스텔/아파트/상가/빌딩)');
     console.log('✅ 판매 가격: 현재가의 80%');
     console.log('✅ 수량 선택: 1개/10개/100개');
