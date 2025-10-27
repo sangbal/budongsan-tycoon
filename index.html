@@ -599,6 +599,62 @@
         font-size: 14px;
       }
     }
+    
+    /* ======= 하단 네비게이션 바 ======= */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #0b1220, #0b1324);
+      box-shadow: 0 -4px 20px rgba(0,0,0,.5);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+    }
+    
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 20px;
+    }
+    
+    .nav-btn span {
+      font-size: 11px;
+      font-weight: 500;
+    }
+    
+    .nav-btn.active {
+      color: var(--accent);
+    }
+    
+    .nav-btn:hover {
+      background: var(--bg2);
+    }
+    
+    /* 탭 컨텐츠 */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* 하단 네비 때문에 여백 추가 */
+    .app {
+      padding-bottom: 80px;
+    }
   </style>
 </head>
 <body>
@@ -612,7 +668,8 @@
       </div>
     </header>
 
-    <div class="grid">
+    <!-- 노동 탭 -->
+    <div id="workTab" class="tab-content active">
       <section class="card">
         <h2>노동하기</h2>
         <div class="work">
@@ -640,8 +697,11 @@
           <div id="log" class="log"></div>
         </div>
       </section>
+    </div>
 
-      <aside>
+    <!-- 상점 탭 -->
+    <div id="shopTab" class="tab-content">
+      <section>
         <div class="card">
           <h2>상점</h2>
           
@@ -758,8 +818,36 @@
             </div>
           </div>
         </div>
-      </aside>
+      </section>
     </div>
+
+    <!-- 통계 탭 -->
+    <div id="statsTab" class="tab-content">
+      <section class="card">
+        <h2>📊 통계</h2>
+        <div style="text-align: center; padding: 60px 20px; color: var(--muted);">
+          <div style="font-size: 48px; margin-bottom: 16px;">📈</div>
+          <div style="font-size: 18px; margin-bottom: 8px;">통계 기능 준비 중</div>
+          <div style="font-size: 14px;">게임 통계와 차트가 곧 추가됩니다!</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 하단 네비게이션 -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="workTab">
+        <div>🛠️</div>
+        <span>노동</span>
+      </button>
+      <button class="nav-btn" data-tab="shopTab">
+        <div>🏪</div>
+        <span>상점</span>
+      </button>
+      <button class="nav-btn" data-tab="statsTab">
+        <div>📊</div>
+        <span>통계</span>
+      </button>
+    </nav>
 
     <footer>
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
@@ -3260,6 +3348,24 @@
     console.log('✅ 판매 가격: 현재가의 80%');
     console.log('✅ 수량 선택: 1개/10개/100개');
     console.log('💡 사용법: 상단 "구매/판매" 버튼으로 모드 전환 후 거래하세요!');
+    
+    // ======= 하단 네비게이션 탭 전환 =======
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        
+        // 모든 탭 비활성화
+        tabContents.forEach(tab => tab.classList.remove('active'));
+        navBtns.forEach(navBtn => navBtn.classList.remove('active'));
+        
+        // 선택한 탭 활성화
+        document.getElementById(targetTab).classList.add('active');
+        btn.classList.add('active');
+      });
+    });
     
     updateUI(); // 초기 UI 업데이트
     
