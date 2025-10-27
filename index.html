@@ -2449,22 +2449,22 @@
     let totalClicks = 0; // 총 클릭 수 추적
     
     const ACHIEVEMENTS = [
-      { id: "first_click", name: "첫 노동", desc: "첫 번째 클릭을 했다", condition: () => totalClicks >= 1, unlocked: false },
-      { id: "first_deposit", name: "첫 예금", desc: "첫 번째 예금을 구입했다", condition: () => deposits >= 1, unlocked: false },
-      { id: "first_savings", name: "첫 적금", desc: "첫 번째 적금을 구입했다", condition: () => savings >= 1, unlocked: false },
-      { id: "first_bond", name: "첫 국내주식", desc: "첫 번째 국내주식을 구입했다", condition: () => bonds >= 1, unlocked: false },
-      { id: "first_us_stock", name: "첫 미국주식", desc: "첫 번째 미국주식을 구입했다", condition: () => usStocks >= 1, unlocked: false },
-      { id: "first_crypto", name: "첫 코인", desc: "첫 번째 코인을 구입했다", condition: () => cryptos >= 1, unlocked: false },
-      { id: "first_property", name: "첫 부동산", desc: "첫 번째 부동산을 구입했다", condition: () => villas + officetels + apartments + shops + buildings >= 1, unlocked: false },
-      { id: "financial_expert", name: "금융 전문가", desc: "모든 금융상품을 보유했다", condition: () => deposits > 0 && savings > 0 && bonds > 0 && usStocks > 0 && cryptos > 0, unlocked: false },
-      { id: "property_collector", name: "부동산 수집가", desc: "5채의 부동산을 보유했다", condition: () => getTotalProperties() >= 5, unlocked: false },
-      { id: "millionaire", name: "백만장자", desc: "총 자산 1억원을 달성했다", condition: () => cash >= 100000000, unlocked: false },
-      { id: "career_starter", name: "직장인", desc: "계약직으로 승진했다", condition: () => careerLevel >= 1, unlocked: false },
-      { id: "employee", name: "정규직", desc: "사원으로 승진했다", condition: () => careerLevel >= 2, unlocked: false },
-      { id: "deputy_director", name: "팀장", desc: "과장으로 승진했다", condition: () => careerLevel >= 4, unlocked: false },
-      { id: "executive", name: "임원", desc: "상무로 승진했다", condition: () => careerLevel >= 7, unlocked: false },
-      { id: "ceo", name: "CEO", desc: "CEO가 되었다", condition: () => careerLevel >= 9, unlocked: false },
-      { id: "property_tycoon", name: "부동산 타이쿤", desc: "모든 부동산 종류를 보유했다", condition: () => villas > 0 && officetels > 0 && apartments > 0 && shops > 0 && buildings > 0, unlocked: false }
+      { id: "first_click", name: "첫 노동", desc: "첫 번째 클릭을 했다", icon: "👆", condition: () => totalClicks >= 1, unlocked: false },
+      { id: "first_deposit", name: "첫 예금", desc: "첫 번째 예금을 구입했다", icon: "💰", condition: () => deposits >= 1, unlocked: false },
+      { id: "first_savings", name: "첫 적금", desc: "첫 번째 적금을 구입했다", icon: "🏦", condition: () => savings >= 1, unlocked: false },
+      { id: "first_bond", name: "첫 국내주식", desc: "첫 번째 국내주식을 구입했다", icon: "📈", condition: () => bonds >= 1, unlocked: false },
+      { id: "first_us_stock", name: "첫 미국주식", desc: "첫 번째 미국주식을 구입했다", icon: "🇺🇸", condition: () => usStocks >= 1, unlocked: false },
+      { id: "first_crypto", name: "첫 코인", desc: "첫 번째 코인을 구입했다", icon: "₿", condition: () => cryptos >= 1, unlocked: false },
+      { id: "first_property", name: "첫 부동산", desc: "첫 번째 부동산을 구입했다", icon: "🏠", condition: () => villas + officetels + apartments + shops + buildings >= 1, unlocked: false },
+      { id: "financial_expert", name: "금융 전문가", desc: "모든 금융상품을 보유했다", icon: "💼", condition: () => deposits > 0 && savings > 0 && bonds > 0 && usStocks > 0 && cryptos > 0, unlocked: false },
+      { id: "property_collector", name: "부동산 수집가", desc: "5채의 부동산을 보유했다", icon: "🏘️", condition: () => getTotalProperties() >= 5, unlocked: false },
+      { id: "millionaire", name: "백만장자", desc: "총 자산 1억원을 달성했다", icon: "💎", condition: () => cash >= 100000000, unlocked: false },
+      { id: "career_starter", name: "직장인", desc: "계약직으로 승진했다", icon: "👔", condition: () => careerLevel >= 1, unlocked: false },
+      { id: "employee", name: "정규직", desc: "사원으로 승진했다", icon: "👨‍💼", condition: () => careerLevel >= 2, unlocked: false },
+      { id: "deputy_director", name: "팀장", desc: "과장으로 승진했다", icon: "👨‍💻", condition: () => careerLevel >= 4, unlocked: false },
+      { id: "executive", name: "임원", desc: "상무로 승진했다", icon: "👨‍🎓", condition: () => careerLevel >= 7, unlocked: false },
+      { id: "ceo", name: "CEO", desc: "CEO가 되었다", icon: "👑", condition: () => careerLevel >= 9, unlocked: false },
+      { id: "property_tycoon", name: "부동산 타이쿤", desc: "모든 부동산 종류를 보유했다", icon: "🏗️", condition: () => villas > 0 && officetels > 0 && apartments > 0 && shops > 0 && buildings > 0, unlocked: false }
     ];
 
     // ======= DOM =======
