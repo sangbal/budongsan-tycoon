@@ -465,6 +465,140 @@
       background: var(--bg2);
       transform: translateY(-2px);
     }
+    
+    /* ======= 모바일 최적화 ======= */
+    @media (max-width: 768px) {
+      /* 그리드를 1열로 변경 */
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      /* 헤더 최적화 */
+      header {
+        padding: 8px 12px;
+      }
+      
+      .statbar {
+        gap: 6px;
+        width: 100%;
+      }
+      
+      .chip {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      
+      .chip b {
+        font-size: 14px;
+      }
+      
+      /* 앱 패딩 조정 */
+      .app {
+        padding: 8px;
+        padding-top: 70px;
+      }
+      
+      /* 버튼 크기 확대 (터치 최적화) */
+      .btn {
+        min-height: 44px;
+        min-width: 44px;
+        font-size: 14px;
+      }
+      
+      .btn-lg {
+        padding: 16px 24px;
+        font-size: 16px;
+      }
+      
+      /* 상점 섹션 */
+      .mode-toggle button,
+      .quantity-selector button {
+        min-height: 40px;
+        min-width: 40px;
+        font-size: 14px;
+      }
+      
+      /* 카드 패딩 조정 */
+      .card {
+        padding: 12px;
+      }
+      
+      /* 노동 버튼 영역 높이 축소 */
+      .work {
+        height: 200px;
+      }
+      
+      /* 건물 아이템 폰트 크기 */
+      .building-item {
+        font-size: 13px;
+      }
+      
+      /* 업그레이드 아이템 */
+      .upgrade-item {
+        font-size: 13px;
+        padding: 10px;
+      }
+      
+      /* 푸터 세로 배치 */
+      footer > div > div:last-child {
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100%;
+      }
+      
+      footer button {
+        width: 100%;
+      }
+      
+      /* 로그 영역 높이 조정 */
+      .log {
+        max-height: 150px;
+      }
+      
+      /* 리셋 버튼 크기 조정 */
+      .reset-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+    
+    /* 소형 모바일 (480px 이하) */
+    @media (max-width: 480px) {
+      body {
+        font-size: 13px;
+      }
+      
+      .app {
+        padding: 4px;
+        padding-top: 65px;
+      }
+      
+      header {
+        padding: 6px 8px;
+      }
+      
+      .chip {
+        padding: 4px 6px;
+        font-size: 11px;
+      }
+      
+      .chip b {
+        font-size: 13px;
+      }
+      
+      .card h2 {
+        font-size: 16px;
+      }
+      
+      .work {
+        height: 180px;
+      }
+      
+      .btn-lg {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
