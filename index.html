@@ -135,6 +135,14 @@
       animation: pulse 2s infinite;
     }
     
+    /* 구매 불가능한 버튼 스타일 */
+    .btn.unaffordable {
+      background: var(--muted) !important;
+      color: var(--text) !important;
+      opacity: 0.7 !important;
+      cursor: not-allowed !important;
+    }
+    
     /* 구매 가능한 버튼 애니메이션 */
     @keyframes pulse {
       0% { transform: scale(1); }
@@ -3013,21 +3021,41 @@
       const qty = purchaseQuantity;
       const isBuy = purchaseMode === 'buy';
       
-      // 금융상품 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
-      elBuyDeposit.classList.toggle('affordable', isBuy && cash >= getFinancialCost('deposit', deposits, qty));
-      elBuySavings.classList.toggle('affordable', isBuy && cash >= getFinancialCost('savings', savings, qty));
-      elBuyBond.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
+      // 금융상품 버튼 상태 업데이트
+      const depositCanBuy = isBuy && cash >= getFinancialCost('deposit', deposits, qty);
+      const savingsCanBuy = isBuy && cash >= getFinancialCost('savings', savings, qty);
+      const bondCanBuy = isBuy && cash >= getFinancialCost('bond', bonds, qty);
+      const usStockCanBuy = isBuy && cash >= getFinancialCost('usStock', usStocks, qty);
+      const cryptoCanBuy = isBuy && cash >= getFinancialCost('crypto', cryptos, qty);
       
-      // 미국주식과 코인 버튼 상태 업데이트
-      elBuyUsStock.classList.toggle('affordable', isBuy && cash >= getFinancialCost('usStock', usStocks, qty));
-      elBuyCrypto.classList.toggle('affordable', isBuy && cash >= getFinancialCost('crypto', cryptos, qty));
+      elBuyDeposit.classList.toggle('affordable', depositCanBuy);
+      elBuyDeposit.classList.toggle('unaffordable', isBuy && !depositCanBuy);
+      elBuySavings.classList.toggle('affordable', savingsCanBuy);
+      elBuySavings.classList.toggle('unaffordable', isBuy && !savingsCanBuy);
+      elBuyBond.classList.toggle('affordable', bondCanBuy);
+      elBuyBond.classList.toggle('unaffordable', isBuy && !bondCanBuy);
+      elBuyUsStock.classList.toggle('affordable', usStockCanBuy);
+      elBuyUsStock.classList.toggle('unaffordable', isBuy && !usStockCanBuy);
+      elBuyCrypto.classList.toggle('affordable', cryptoCanBuy);
+      elBuyCrypto.classList.toggle('unaffordable', isBuy && !cryptoCanBuy);
       
-      // 부동산 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
-      elBuyVilla.classList.toggle('affordable', isBuy && cash >= getPropertyCost('villa', villas, qty));
-      elBuyOfficetel.classList.toggle('affordable', isBuy && cash >= getPropertyCost('officetel', officetels, qty));
-      elBuyApt.classList.toggle('affordable', isBuy && cash >= getPropertyCost('apartment', apartments, qty));
-      elBuyShop.classList.toggle('affordable', isBuy && cash >= getPropertyCost('shop', shops, qty));
-      elBuyBuilding.classList.toggle('affordable', isBuy && cash >= getPropertyCost('building', buildings, qty));
+      // 부동산 버튼 상태 업데이트
+      const villaCanBuy = isBuy && cash >= getPropertyCost('villa', villas, qty);
+      const officetelCanBuy = isBuy && cash >= getPropertyCost('officetel', officetels, qty);
+      const aptCanBuy = isBuy && cash >= getPropertyCost('apartment', apartments, qty);
+      const shopCanBuy = isBuy && cash >= getPropertyCost('shop', shops, qty);
+      const buildingCanBuy = isBuy && cash >= getPropertyCost('building', buildings, qty);
+      
+      elBuyVilla.classList.toggle('affordable', villaCanBuy);
+      elBuyVilla.classList.toggle('unaffordable', isBuy && !villaCanBuy);
+      elBuyOfficetel.classList.toggle('affordable', officetelCanBuy);
+      elBuyOfficetel.classList.toggle('unaffordable', isBuy && !officetelCanBuy);
+      elBuyApt.classList.toggle('affordable', aptCanBuy);
+      elBuyApt.classList.toggle('unaffordable', isBuy && !aptCanBuy);
+      elBuyShop.classList.toggle('affordable', shopCanBuy);
+      elBuyShop.classList.toggle('unaffordable', isBuy && !shopCanBuy);
+      elBuyBuilding.classList.toggle('affordable', buildingCanBuy);
+      elBuyBuilding.classList.toggle('unaffordable', isBuy && !buildingCanBuy);
       
       // 업그레이드 버튼 상태 업데이트 (제거됨 - 새 시스템 사용)
     }
