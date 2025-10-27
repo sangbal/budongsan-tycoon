@@ -143,6 +143,86 @@
       cursor: not-allowed !important;
     }
     
+    /* 리스크 표시 스타일 */
+    .risk-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    .risk-level {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 10px;
+    }
+    
+    .risk-low { 
+      color: #4CAF50; 
+      background: rgba(76, 175, 80, 0.1);
+    }
+    .risk-medium { 
+      color: #FF9800; 
+      background: rgba(255, 152, 0, 0.1);
+    }
+    .risk-high { 
+      color: #F44336; 
+      background: rgba(244, 67, 54, 0.1);
+    }
+    .risk-extreme { 
+      color: #9C27B0; 
+      background: rgba(156, 39, 176, 0.1);
+    }
+    
+    .risk-bar {
+      width: 60px;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-left: 5px;
+    }
+    
+    .risk-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    
+    .risk-fill.low { 
+      width: 20%; 
+      background: #4CAF50; 
+    }
+    .risk-fill.medium { 
+      width: 40%; 
+      background: #FF9800; 
+    }
+    .risk-fill.high { 
+      width: 60%; 
+      background: #F44336; 
+    }
+    .risk-fill.extreme { 
+      width: 80%; 
+      background: #9C27B0; 
+    }
+    
+    /* 업그레이드 아이템에 리스크 정보 추가 */
+    .upgrade-item .risk-info {
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    
+    /* 상품 설명에 리스크 정보 추가 */
+    .product-risk-info {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    
     /* 구매 가능한 버튼 애니메이션 */
     @keyframes pulse {
       0% { transform: scale(1); }
@@ -2112,70 +2192,151 @@
     
     // ======= 업그레이드 시스템 (Cookie Clicker 스타일) =======
     const UPGRADES = {
-      // === 노동 관련 ===
-      labor_boost_1: {
-        name: "⚡ 효율적인 업무 처리",
-        desc: "클릭당 수익 1.5배",
-        cost: 100000,
-        icon: "⚡",
-        unlockCondition: () => totalClicks >= 50,
-        effect: () => { clickMultiplier *= 1.5; },
+      // === 노동 관련 (재밸런싱) ===
+      part_time_job: {
+        name: "🍕 아르바이트 경험",
+        desc: "클릭 수익 1.2배 (안전)",
+        cost: 50000,
+        icon: "🍕",
+        unlockCondition: () => totalClicks >= 20,
+        effect: () => { clickMultiplier *= 1.2; },
         category: "labor",
+        risk: 0,
         unlocked: false,
         purchased: false
       },
-      labor_boost_2: {
+      internship: {
+        name: "📝 인턴십",
+        desc: "클릭 수익 1.3배 (안전)",
+        cost: 200000,
+        icon: "📝",
+        unlockCondition: () => totalClicks >= 50,
+        effect: () => { clickMultiplier *= 1.3; },
+        category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      efficient_work: {
+        name: "⚡ 효율적인 업무 처리",
+        desc: "클릭 수익 1.5배 (안전)",
+        cost: 500000,
+        icon: "⚡",
+        unlockCondition: () => totalClicks >= 100,
+        effect: () => { clickMultiplier *= 1.5; },
+        category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      focus_training: {
         name: "🎯 집중력 강화",
-        desc: "클릭당 수익 1.5배",
-        cost: 1000000,
+        desc: "클릭 수익 1.4배 (안전)",
+        cost: 2000000,
         icon: "🎯",
         unlockCondition: () => totalClicks >= 250,
-        effect: () => { clickMultiplier *= 1.5; },
+        effect: () => { clickMultiplier *= 1.4; },
         category: "labor",
+        risk: 0,
         unlocked: false,
         purchased: false
       },
-      golden_click: {
+      performance_bonus: {
         name: "💰 성과급",
-        desc: "10% 확률로 클릭 수익 6배",
+        desc: "15% 확률로 5배, 85% 확률로 50% 감소 (중간 위험)",
         cost: 10000000,
         icon: "💰",
         unlockCondition: () => totalClicks >= 600,
-        effect: () => { /* 클릭 이벤트에 추가 */ },
+        effect: () => { /* 확률형 효과는 클릭 이벤트에서 처리 */ },
         category: "labor",
+        risk: 3,
         unlocked: false,
         purchased: false
       },
       overtime_work: {
         name: "🔥 초과근무",
-        desc: "클릭당 수익 1.3배",
+        desc: "클릭 수익 +30%, 다른 수익 -10% (낮은 위험)",
         cost: 50000000,
         icon: "🔥",
         unlockCondition: () => totalClicks >= 1200,
-        effect: () => { clickMultiplier *= 1.3; },
+        effect: () => { 
+          clickMultiplier *= 1.3;
+          // 다른 수익 감소는 별도 처리 필요
+        },
         category: "labor",
+        risk: 2,
         unlocked: false,
         purchased: false
       },
       expertise_development: {
         name: "💎 전문성 개발",
-        desc: "클릭당 수익 1.3배",
+        desc: "클릭 수익 1.4배 (안전)",
         cost: 200000000,
         icon: "💎",
         unlockCondition: () => totalClicks >= 2000,
+        effect: () => { clickMultiplier *= 1.4; },
+        category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      teamwork: {
+        name: "🤝 팀워크 향상",
+        desc: "클릭 수익 1.3배 (안전)",
+        cost: 500000000,
+        icon: "🤝",
+        unlockCondition: () => totalClicks >= 3000,
         effect: () => { clickMultiplier *= 1.3; },
         category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      leadership: {
+        name: "👑 리더십",
+        desc: "클릭 수익 1.5배 (안전)",
+        cost: 2000000000,
+        icon: "👑",
+        unlockCondition: () => totalClicks >= 5000,
+        effect: () => { clickMultiplier *= 1.5; },
+        category: "labor",
+        risk: 0,
         unlocked: false,
         purchased: false
       },
       ceo_privilege: {
         name: "👔 CEO 특권",
-        desc: "클릭당 수익 2배",
-        cost: 1000000000,
+        desc: "클릭 수익 1.8배 (안전)",
+        cost: 10000000000,
         icon: "👔",
         unlockCondition: () => careerLevel >= 9,
+        effect: () => { clickMultiplier *= 1.8; },
+        category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      global_experience: {
+        name: "🌍 글로벌 경험",
+        desc: "클릭 수익 2배 (안전)",
+        cost: 50000000000,
+        icon: "🌍",
+        unlockCondition: () => totalClicks >= 20000,
         effect: () => { clickMultiplier *= 2; },
         category: "labor",
+        risk: 0,
+        unlocked: false,
+        purchased: false
+      },
+      entrepreneurship: {
+        name: "🚀 창업",
+        desc: "클릭 수익 2.5배 (안전)",
+        cost: 100000000000,
+        icon: "🚀",
+        unlockCondition: () => totalClicks >= 50000,
+        effect: () => { clickMultiplier *= 2.5; },
+        category: "labor",
+        risk: 0,
         unlocked: false,
         purchased: false
       },
@@ -2451,6 +2612,24 @@
       crypto: 25000   // 코인: 25,000원/초 (4.2배 증가)
     };
     
+    // 금융상품별 리스크 시스템
+    const FINANCIAL_RISK = {
+      deposit: { level: 0, variance: 0, name: "매우 안전", color: "#4CAF50" },      // 0% 리스크
+      savings: { level: 1, variance: 0.05, name: "안전", color: "#4CAF50" },        // 5% 리스크
+      bond: { level: 3, variance: 0.2, name: "중간 위험", color: "#FF9800" },       // 20% 리스크
+      usStock: { level: 4, variance: 0.3, name: "높은 위험", color: "#F44336" },    // 30% 리스크
+      crypto: { level: 5, variance: 0.5, name: "매우 높은 위험", color: "#9C27B0" } // 50% 리스크
+    };
+    
+    // 부동산별 리스크 시스템
+    const PROPERTY_RISK = {
+      villa: { level: 2, variance: 0.1, name: "낮은 위험", color: "#4CAF50" },      // 10% 리스크
+      officetel: { level: 2, variance: 0.1, name: "낮은 위험", color: "#4CAF50" },  // 10% 리스크
+      apartment: { level: 3, variance: 0.15, name: "중간 위험", color: "#FF9800" }, // 15% 리스크
+      shop: { level: 4, variance: 0.25, name: "높은 위험", color: "#F44336" },      // 25% 리스크
+      building: { level: 4, variance: 0.25, name: "높은 위험", color: "#F44336" }   // 25% 리스크
+    };
+    
     // 부동산별 기본 수익률 (초당) - 자본주의 메시지: 큰 자본일수록 높은 수익률
     const BASE_RENT = {
       villa: 8438,     // 빌라: 8,438원/초 (1.5배 증가)
@@ -2494,17 +2673,143 @@
     let marketMultiplier = 1.0; // 시장 수익 배수
     let marketEventEndTime = 0; // 이벤트 종료 시간
     
+    // 시장 이벤트 시스템 (상품별 세분화)
+    let currentMarketEvent = null;
+    let marketEventEndTime = 0;
+    
     const MARKET_EVENTS = [
-      { name: "부동산 호황", effect: 2.0, duration: 30000, color: "#4CAF50" }, // 30초간 2배 수익
-      { name: "금리 인하", effect: 1.5, duration: 60000, color: "#2196F3" },   // 1분간 1.5배 수익
-      { name: "시장 침체", effect: 0.5, duration: 45000, color: "#F44336" },  // 45초간 0.5배 수익
-      { name: "정부 지원", effect: 1.3, duration: 40000, color: "#FF9800" }   // 40초간 1.3배 수익
+      // 부동산 시장 이벤트
+      { 
+        name: "강남 아파트 대박", 
+        duration: 45000, 
+        color: "#4CAF50",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.2, usStock: 1.1, crypto: 1.0 },
+          property: { villa: 1.5, officetel: 1.3, apartment: 3.0, shop: 1.3, building: 1.2 }
+        },
+        description: "강남 아파트 가격이 급등하여 부동산 투자 수익이 크게 증가합니다."
+      },
+      { 
+        name: "전세 대란", 
+        duration: 60000, 
+        color: "#2196F3",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.1, usStock: 1.0, crypto: 1.0 },
+          property: { villa: 2.5, officetel: 2.5, apartment: 2.0, shop: 1.2, building: 1.1 }
+        },
+        description: "전세 수요가 급증하여 빌라와 오피스텔 수익이 크게 증가합니다."
+      },
+      { 
+        name: "상권 활성화", 
+        duration: 40000, 
+        color: "#FF9800",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.1, usStock: 1.0, crypto: 1.0 },
+          property: { villa: 1.2, officetel: 1.2, apartment: 1.3, shop: 2.8, building: 1.5 }
+        },
+        description: "상권이 활성화되어 상가 수익이 크게 증가합니다."
+      },
+      { 
+        name: "오피스 수요 급증", 
+        duration: 50000, 
+        color: "#9C27B0",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.1, usStock: 1.0, crypto: 1.0 },
+          property: { villa: 1.2, officetel: 1.3, apartment: 1.2, shop: 1.4, building: 3.2 }
+        },
+        description: "IT 기업들의 오피스 확장으로 빌딩 수익이 크게 증가합니다."
+      },
+      
+      // 금융 시장 이벤트
+      { 
+        name: "한국은행 금리 인하", 
+        duration: 80000, 
+        color: "#2196F3",
+        effects: {
+          financial: { deposit: 0.7, savings: 0.8, bond: 2.0, usStock: 1.5, crypto: 1.2 },
+          property: { villa: 1.2, officetel: 1.2, apartment: 1.3, shop: 1.2, building: 1.2 }
+        },
+        description: "기준금리 인하로 주식은 호황이지만 예금/적금 수익은 감소합니다."
+      },
+      { 
+        name: "주식시장 대호황", 
+        duration: 60000, 
+        color: "#4CAF50",
+        effects: {
+          financial: { deposit: 1.1, savings: 1.2, bond: 3.5, usStock: 2.0, crypto: 1.5 },
+          property: { villa: 1.1, officetel: 1.1, apartment: 1.2, shop: 1.1, building: 1.1 }
+        },
+        description: "KOSPI 3000 돌파로 주식 투자 수익이 크게 증가합니다."
+      },
+      { 
+        name: "미국 연준 양적완화", 
+        duration: 100000, 
+        color: "#2196F3",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.3, usStock: 2.8, crypto: 1.8 },
+          property: { villa: 1.0, officetel: 1.0, apartment: 1.1, shop: 1.0, building: 1.0 }
+        },
+        description: "달러 유동성 확대로 미국주식과 코인 수익이 크게 증가합니다."
+      },
+      { 
+        name: "비트코인 급등", 
+        duration: 40000, 
+        color: "#FF9800",
+        effects: {
+          financial: { deposit: 1.05, savings: 1.1, bond: 1.3, usStock: 1.5, crypto: 5.0 },
+          property: { villa: 1.0, officetel: 1.0, apartment: 1.0, shop: 1.0, building: 1.0 }
+        },
+        description: "암호화폐 투자 열풍으로 코인 수익이 폭발적으로 증가합니다."
+      },
+      
+      // 부정적 이벤트
+      { 
+        name: "금융위기", 
+        duration: 150000, 
+        color: "#F44336",
+        effects: {
+          financial: { deposit: 0.5, savings: 0.6, bond: 0.2, usStock: 0.3, crypto: 0.1 },
+          property: { villa: 0.8, officetel: 0.8, apartment: 0.7, shop: 0.6, building: 0.5 }
+        },
+        description: "글로벌 금융위기로 모든 투자 상품이 큰 타격을 받습니다."
+      },
+      { 
+        name: "은행 파산 위기", 
+        duration: 120000, 
+        color: "#9C27B0",
+        effects: {
+          financial: { deposit: 0.1, savings: 0.2, bond: 0.5, usStock: 0.7, crypto: 0.3 },
+          property: { villa: 1.0, officetel: 1.0, apartment: 1.0, shop: 1.0, building: 1.0 }
+        },
+        description: "은행 부실 우려로 예금/적금 수익이 급격히 감소합니다."
+      },
+      { 
+        name: "주식시장 폭락", 
+        duration: 90000, 
+        color: "#F44336",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 0.3, usStock: 0.4, crypto: 0.2 },
+          property: { villa: 1.0, officetel: 1.0, apartment: 1.0, shop: 1.0, building: 1.0 }
+        },
+        description: "주식시장 폭락으로 주식과 코인 투자에 큰 손실이 발생합니다."
+      },
+      { 
+        name: "암호화폐 규제", 
+        duration: 180000, 
+        color: "#9C27B0",
+        effects: {
+          financial: { deposit: 1.0, savings: 1.0, bond: 1.0, usStock: 1.0, crypto: 0.1 },
+          property: { villa: 1.0, officetel: 1.0, apartment: 1.0, shop: 1.0, building: 1.0 }
+        },
+        description: "정부의 암호화폐 규제 강화로 코인 투자 수익이 급격히 감소합니다."
+      }
     ];
     
     // 업적 시스템
     let totalClicks = 0; // 총 클릭 수 추적
     
     const ACHIEVEMENTS = [
+      // === 기본 업적 (8개) ===
       { id: "first_click", name: "첫 노동", desc: "첫 번째 클릭을 했다", icon: "👆", condition: () => totalClicks >= 1, unlocked: false },
       { id: "first_deposit", name: "첫 예금", desc: "첫 번째 예금을 구입했다", icon: "💰", condition: () => deposits >= 1, unlocked: false },
       { id: "first_savings", name: "첫 적금", desc: "첫 번째 적금을 구입했다", icon: "🏦", condition: () => savings >= 1, unlocked: false },
@@ -2512,15 +2817,37 @@
       { id: "first_us_stock", name: "첫 미국주식", desc: "첫 번째 미국주식을 구입했다", icon: "🇺🇸", condition: () => usStocks >= 1, unlocked: false },
       { id: "first_crypto", name: "첫 코인", desc: "첫 번째 코인을 구입했다", icon: "₿", condition: () => cryptos >= 1, unlocked: false },
       { id: "first_property", name: "첫 부동산", desc: "첫 번째 부동산을 구입했다", icon: "🏠", condition: () => villas + officetels + apartments + shops + buildings >= 1, unlocked: false },
+      { id: "first_upgrade", name: "첫 업그레이드", desc: "첫 번째 업그레이드를 구입했다", icon: "⚡", condition: () => Object.values(UPGRADES).some(upgrade => upgrade.purchased), unlocked: false },
+      
+      // === 전문가 업적 (8개) ===
       { id: "financial_expert", name: "금융 전문가", desc: "모든 금융상품을 보유했다", icon: "💼", condition: () => deposits > 0 && savings > 0 && bonds > 0 && usStocks > 0 && cryptos > 0, unlocked: false },
       { id: "property_collector", name: "부동산 수집가", desc: "5채의 부동산을 보유했다", icon: "🏘️", condition: () => getTotalProperties() >= 5, unlocked: false },
+      { id: "property_tycoon", name: "부동산 타이쿤", desc: "모든 부동산 종류를 보유했다", icon: "🏗️", condition: () => villas > 0 && officetels > 0 && apartments > 0 && shops > 0 && buildings > 0, unlocked: false },
+      { id: "investment_guru", name: "투자 고수", desc: "모든 업그레이드를 구입했다", icon: "📊", condition: () => Object.values(UPGRADES).every(upgrade => upgrade.purchased), unlocked: false },
+      { id: "gangnam_rich", name: "강남 부자", desc: "강남 부동산 3채를 보유했다", icon: "🏙️", condition: () => apartments >= 3, unlocked: false },
+      { id: "global_investor", name: "글로벌 투자자", desc: "해외 투자 1억원을 달성했다", icon: "🌍", condition: () => usStocks * 1000000 + cryptos * 1000000 >= 100000000, unlocked: false },
+      { id: "crypto_expert", name: "암호화폐 전문가", desc: "코인 투자 5억원을 달성했다", icon: "₿", condition: () => cryptos * 1000000 >= 500000000, unlocked: false },
+      { id: "real_estate_agent", name: "부동산 중개사", desc: "부동산 20채를 보유했다", icon: "🏠", condition: () => getTotalProperties() >= 20, unlocked: false },
+      
+      // === 자산 업적 (8개) ===
       { id: "millionaire", name: "백만장자", desc: "총 자산 1억원을 달성했다", icon: "💎", condition: () => cash >= 100000000, unlocked: false },
+      { id: "ten_millionaire", name: "억만장자", desc: "총 자산 10억원을 달성했다", icon: "💰", condition: () => cash >= 1000000000, unlocked: false },
+      { id: "hundred_millionaire", name: "부자", desc: "총 자산 100억원을 달성했다", icon: "🏆", condition: () => cash >= 10000000000, unlocked: false },
+      { id: "billionaire", name: "대부호", desc: "총 자산 1,000억원을 달성했다", icon: "👑", condition: () => cash >= 100000000000, unlocked: false },
+      { id: "trillionaire", name: "재벌", desc: "총 자산 1조원을 달성했다", icon: "🏰", condition: () => cash >= 1000000000000, unlocked: false },
+      { id: "global_rich", name: "세계적 부자", desc: "총 자산 10조원을 달성했다", icon: "🌍", condition: () => cash >= 10000000000000, unlocked: false },
+      { id: "legendary_rich", name: "전설의 부자", desc: "총 자산 100조원을 달성했다", icon: "⭐", condition: () => cash >= 100000000000000, unlocked: false },
+      { id: "god_rich", name: "신의 부자", desc: "총 자산 1,000조원을 달성했다", icon: "✨", condition: () => cash >= 1000000000000000, unlocked: false },
+      
+      // === 커리어 업적 (8개) ===
       { id: "career_starter", name: "직장인", desc: "계약직으로 승진했다", icon: "👔", condition: () => careerLevel >= 1, unlocked: false },
       { id: "employee", name: "정규직", desc: "사원으로 승진했다", icon: "👨‍💼", condition: () => careerLevel >= 2, unlocked: false },
       { id: "deputy_director", name: "팀장", desc: "과장으로 승진했다", icon: "👨‍💻", condition: () => careerLevel >= 4, unlocked: false },
       { id: "executive", name: "임원", desc: "상무로 승진했다", icon: "👨‍🎓", condition: () => careerLevel >= 7, unlocked: false },
       { id: "ceo", name: "CEO", desc: "CEO가 되었다", icon: "👑", condition: () => careerLevel >= 9, unlocked: false },
-      { id: "property_tycoon", name: "부동산 타이쿤", desc: "모든 부동산 종류를 보유했다", icon: "🏗️", condition: () => villas > 0 && officetels > 0 && apartments > 0 && shops > 0 && buildings > 0, unlocked: false }
+      { id: "chaebol_chairman", name: "재벌 회장", desc: "자산 1조원을 달성했다", icon: "🏆", condition: () => cash >= 1000000000000, unlocked: false },
+      { id: "global_ceo", name: "글로벌 CEO", desc: "해외 진출을 달성했다", icon: "🌍", condition: () => usStocks >= 10 && cryptos >= 10, unlocked: false },
+      { id: "legendary_ceo", name: "전설의 CEO", desc: "모든 목표를 달성했다", icon: "⭐", condition: () => careerLevel >= 9 && cash >= 100000000000000, unlocked: false }
     ];
 
     // ======= DOM =======
@@ -2677,22 +3004,63 @@
       }
     }
     
-    function getRps() {
-      // 금융상품 수익 (rentMultiplier 적용 안됨 - 설계 의도)
-      const financialIncome = 
-        deposits * FINANCIAL_INCOME.deposit +
-        savings * FINANCIAL_INCOME.savings +
-        bonds * FINANCIAL_INCOME.bond +
-        usStocks * FINANCIAL_INCOME.usStock +
-        cryptos * FINANCIAL_INCOME.crypto;
+    // 리스크를 적용한 개별 수익 계산 함수
+    function getFinancialIncomeWithRisk(type, count) {
+      const baseIncome = FINANCIAL_INCOME[type];
+      const risk = FINANCIAL_RISK[type];
       
-      // 부동산 수익 (rentMultiplier 적용됨)
+      let actualIncome = baseIncome * count;
+      
+      // 리스크 적용
+      if (risk.variance > 0) {
+        const randomFactor = (Math.random() * 2 - 1) * risk.variance;
+        const actualMultiplier = 1 + randomFactor;
+        actualIncome *= actualMultiplier;
+      }
+      
+      // 시장 이벤트 효과 적용
+      const marketMultiplier = getMarketEventMultiplier(type, 'financial');
+      actualIncome *= marketMultiplier;
+      
+      return actualIncome;
+    }
+    
+    function getPropertyIncomeWithRisk(type, count) {
+      const baseIncome = BASE_RENT[type];
+      const risk = PROPERTY_RISK[type];
+      
+      let actualIncome = baseIncome * count;
+      
+      // 리스크 적용
+      if (risk.variance > 0) {
+        const randomFactor = (Math.random() * 2 - 1) * risk.variance;
+        const actualMultiplier = 1 + randomFactor;
+        actualIncome *= actualMultiplier;
+      }
+      
+      // 시장 이벤트 효과 적용
+      const marketMultiplier = getMarketEventMultiplier(type, 'property');
+      actualIncome *= marketMultiplier;
+      
+      return actualIncome;
+    }
+
+    function getRps() {
+      // 금융상품 수익 (리스크 적용)
+      const financialIncome = 
+        getFinancialIncomeWithRisk('deposit', deposits) +
+        getFinancialIncomeWithRisk('savings', savings) +
+        getFinancialIncomeWithRisk('bond', bonds) +
+        getFinancialIncomeWithRisk('usStock', usStocks) +
+        getFinancialIncomeWithRisk('crypto', cryptos);
+      
+      // 부동산 수익 (리스크 적용)
       const propertyRent = 
-        villas * BASE_RENT.villa +
-        officetels * BASE_RENT.officetel +
-        apartments * BASE_RENT.apartment +
-        shops * BASE_RENT.shop +
-        buildings * BASE_RENT.building;
+        getPropertyIncomeWithRisk('villa', villas) +
+        getPropertyIncomeWithRisk('officetel', officetels) +
+        getPropertyIncomeWithRisk('apartment', apartments) +
+        getPropertyIncomeWithRisk('shop', shops) +
+        getPropertyIncomeWithRisk('building', buildings);
       
       // 배수 적용 순서: 1) 부동산에 rentMultiplier 적용, 2) 전체에 marketMultiplier 적용
       const totalIncome = financialIncome + (propertyRent * rentMultiplier);
@@ -2702,10 +3070,11 @@
     // 시장 이벤트 시작
     function startMarketEvent() {
       const event = MARKET_EVENTS[Math.floor(Math.random() * MARKET_EVENTS.length)];
-      marketMultiplier = event.effect;
+      currentMarketEvent = event;
       marketEventEndTime = Date.now() + event.duration;
       
-      addLog(`📈 ${event.name} 발생! ${event.duration/1000}초간 수익 ${event.effect}배`);
+      addLog(`📈 ${event.name} 발생! ${event.duration/1000}초간 지속`);
+      addLog(`💡 ${event.description}`);
       showMarketEventNotification(event);
     }
     
@@ -2723,8 +3092,41 @@
         font-weight: bold;
         z-index: 1000;
         animation: slideIn 0.5s ease-out;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       `;
-      notification.textContent = `📈 ${event.name} - 수익 ${event.effect}배!`;
+      
+      // 상품별 효과 표시
+      let effectsText = '';
+      if (event.effects.financial) {
+        const financialEffects = Object.entries(event.effects.financial)
+          .filter(([_, multiplier]) => multiplier !== 1.0)
+          .map(([product, multiplier]) => {
+            const productNames = { deposit: '예금', savings: '적금', bond: '국내주식', usStock: '미국주식', crypto: '코인' };
+            return `${productNames[product]} ${multiplier > 1 ? '+' : ''}${Math.round((multiplier - 1) * 100)}%`;
+          });
+        if (financialEffects.length > 0) {
+          effectsText += `💰 ${financialEffects.join(', ')}\n`;
+        }
+      }
+      
+      if (event.effects.property) {
+        const propertyEffects = Object.entries(event.effects.property)
+          .filter(([_, multiplier]) => multiplier !== 1.0)
+          .map(([product, multiplier]) => {
+            const productNames = { villa: '빌라', officetel: '오피스텔', apartment: '아파트', shop: '상가', building: '빌딩' };
+            return `${productNames[product]} ${multiplier > 1 ? '+' : ''}${Math.round((multiplier - 1) * 100)}%`;
+          });
+        if (propertyEffects.length > 0) {
+          effectsText += `🏠 ${propertyEffects.join(', ')}`;
+        }
+      }
+      
+      notification.innerHTML = `
+        <div style="font-size: 16px; margin-bottom: 8px;">📈 ${event.name}</div>
+        <div style="font-size: 12px; opacity: 0.9;">${event.description}</div>
+        ${effectsText ? `<div style="font-size: 11px; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">${effectsText}</div>` : ''}
+      `;
       
       document.body.appendChild(notification);
       
@@ -2732,16 +3134,109 @@
         if (notification.parentElement) {
           notification.parentElement.removeChild(notification);
         }
-      }, 3000);
+      }, 5000);
     }
     
     // 시장 이벤트 체크
     function checkMarketEvent() {
       if (marketEventEndTime > 0 && Date.now() >= marketEventEndTime) {
-        marketMultiplier = 1.0;
+        currentMarketEvent = null;
         marketEventEndTime = 0;
         addLog('📉 시장 이벤트가 종료되었습니다.');
       }
+    }
+    
+    // 현재 시장 이벤트 효과 적용
+    function getMarketEventMultiplier(type, category) {
+      if (!currentMarketEvent || !currentMarketEvent.effects) {
+        return 1.0;
+      }
+      
+      const effects = currentMarketEvent.effects[category];
+      if (!effects || !effects[type]) {
+        return 1.0;
+      }
+      
+      return effects[type];
+    }
+    
+    // 리스크 레벨에 따른 클래스명 반환
+    function getRiskClass(level) {
+      if (level <= 1) return 'risk-low';
+      if (level <= 2) return 'risk-medium';
+      if (level <= 3) return 'risk-high';
+      return 'risk-extreme';
+    }
+    
+    // 리스크 레벨에 따른 바 클래스명 반환
+    function getRiskBarClass(level) {
+      if (level <= 1) return 'low';
+      if (level <= 2) return 'medium';
+      if (level <= 3) return 'high';
+      return 'extreme';
+    }
+    
+    // 리스크 정보 HTML 생성
+    function createRiskIndicator(level, name) {
+      const riskClass = getRiskClass(level);
+      const barClass = getRiskBarClass(level);
+      
+      return `
+        <div class="risk-indicator">
+          <span class="risk-level ${riskClass}">${name}</span>
+          <div class="risk-bar">
+            <div class="risk-fill ${barClass}"></div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // 금융상품 리스크 정보 업데이트
+    function updateFinancialRiskInfo() {
+      const financialProducts = ['deposit', 'savings', 'bond', 'usStock', 'crypto'];
+      
+      financialProducts.forEach(product => {
+        const risk = FINANCIAL_RISK[product];
+        const productElement = document.getElementById(`${product}Item`);
+        
+        if (productElement) {
+          // 기존 리스크 정보 제거
+          const existingRisk = productElement.querySelector('.product-risk-info');
+          if (existingRisk) {
+            existingRisk.remove();
+          }
+          
+          // 새로운 리스크 정보 추가
+          const riskInfo = document.createElement('div');
+          riskInfo.className = 'product-risk-info';
+          riskInfo.innerHTML = createRiskIndicator(risk.level, risk.name);
+          productElement.appendChild(riskInfo);
+        }
+      });
+    }
+    
+    // 부동산 리스크 정보 업데이트
+    function updatePropertyRiskInfo() {
+      const properties = ['villa', 'officetel', 'apartment', 'shop', 'building'];
+      
+      properties.forEach(property => {
+        const risk = PROPERTY_RISK[property];
+        const propertyElement = document.getElementById(`${property}Item`);
+        
+        if (propertyElement) {
+          // 기존 리스크 정보 제거
+          const existingRisk = propertyElement.querySelector('.product-risk-info');
+          if (existingRisk) {
+            existingRisk.remove();
+          }
+          
+          // 새로운 리스크 정보 추가
+          const riskInfo = document.createElement('div');
+          riskInfo.className = 'product-risk-info';
+          riskInfo.innerHTML = createRiskIndicator(risk.level, risk.name);
+          propertyElement.appendChild(riskInfo);
+        }
+      });
     }
     
     // 업적 체크
@@ -4173,6 +4668,10 @@
     } else {
       addLog('환영합니다! 노동으로 종잣돈을 모아 첫 부동산을 구입해보세요.');
     }
+    
+    // 리스크 정보 초기화
+    updateFinancialRiskInfo();
+    updatePropertyRiskInfo();
     
     // 판매 시스템 테스트 로그
     console.log('=== 판매 시스템 초기화 완료 ===');
