@@ -3041,10 +3041,14 @@
       const depositItem = document.getElementById('depositItem');
       const savingsItem = document.getElementById('savingsItem');
       const bondItem = document.getElementById('bondItem');
+      const usStockItem = document.getElementById('usStockItem');
+      const cryptoItem = document.getElementById('cryptoItem');
       
       depositItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('deposit', deposits, qty));
       savingsItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('savings', savings, qty));
       bondItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
+      usStockItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('usStock', usStocks, qty));
+      cryptoItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('crypto', cryptos, qty));
       
       // 부동산 아이템 상태 업데이트 (구매 모드일 때만 affordable 적용)
       const villaItem = document.getElementById('villaItem');
