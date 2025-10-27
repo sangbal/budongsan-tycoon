@@ -2149,31 +2149,35 @@
     
     // 버튼 상태 업데이트 함수 (Cookie Clicker 스타일)
     function updateButtonStates() {
+      const qty = purchaseQuantity;
+      
       // 금융상품 버튼 상태 업데이트
-      elBuyDeposit.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits));
-      elBuySavings.classList.toggle('affordable', cash >= getFinancialCost('savings', savings));
-      elBuyBond.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds));
+      elBuyDeposit.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits, qty));
+      elBuySavings.classList.toggle('affordable', cash >= getFinancialCost('savings', savings, qty));
+      elBuyBond.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds, qty));
       
       // 부동산 버튼 상태 업데이트
-      elBuyVilla.classList.toggle('affordable', cash >= getPropertyCost('villa', villas));
-      elBuyOfficetel.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels));
-      elBuyApt.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments));
-      elBuyShop.classList.toggle('affordable', cash >= getPropertyCost('shop', shops));
-      elBuyBuilding.classList.toggle('affordable', cash >= getPropertyCost('building', buildings));
+      elBuyVilla.classList.toggle('affordable', cash >= getPropertyCost('villa', villas, qty));
+      elBuyOfficetel.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels, qty));
+      elBuyApt.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments, qty));
+      elBuyShop.classList.toggle('affordable', cash >= getPropertyCost('shop', shops, qty));
+      elBuyBuilding.classList.toggle('affordable', cash >= getPropertyCost('building', buildings, qty));
       
       // 업그레이드 버튼 상태 업데이트 (제거됨 - 새 시스템 사용)
     }
     
     // 건물 목록 색상 업데이트 함수
     function updateBuildingItemStates() {
+      const qty = purchaseQuantity;
+      
       // 금융상품 아이템 상태 업데이트
       const depositItem = document.getElementById('depositItem');
       const savingsItem = document.getElementById('savingsItem');
       const bondItem = document.getElementById('bondItem');
       
-      depositItem.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits));
-      savingsItem.classList.toggle('affordable', cash >= getFinancialCost('savings', savings));
-      bondItem.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds));
+      depositItem.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits, qty));
+      savingsItem.classList.toggle('affordable', cash >= getFinancialCost('savings', savings, qty));
+      bondItem.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds, qty));
       
       // 부동산 아이템 상태 업데이트
       const villaItem = document.getElementById('villaItem');
@@ -2182,11 +2186,11 @@
       const shopItem = document.getElementById('shopItem');
       const buildingItem = document.getElementById('buildingItem');
       
-      villaItem.classList.toggle('affordable', cash >= getPropertyCost('villa', villas));
-      officetelItem.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels));
-      aptItem.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments));
-      shopItem.classList.toggle('affordable', cash >= getPropertyCost('shop', shops));
-      buildingItem.classList.toggle('affordable', cash >= getPropertyCost('building', buildings));
+      villaItem.classList.toggle('affordable', cash >= getPropertyCost('villa', villas, qty));
+      officetelItem.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels, qty));
+      aptItem.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments, qty));
+      shopItem.classList.toggle('affordable', cash >= getPropertyCost('shop', shops, qty));
+      buildingItem.classList.toggle('affordable', cash >= getPropertyCost('building', buildings, qty));
     }
     
     // 업그레이드 그리드 상태 업데이트 함수
@@ -2514,7 +2518,9 @@
         const totalRps = getRps();
         
         // 예금 업데이트
-        const depositCost = getFinancialCost('deposit', deposits);
+        const depositCost = purchaseMode === 'buy' 
+          ? getFinancialCost('deposit', deposits, purchaseQuantity)
+          : getFinancialSellPrice('deposit', deposits, purchaseQuantity);
         const depositTotalIncome = deposits * FINANCIAL_INCOME.deposit;
         const depositPercent = totalRps > 0 ? ((depositTotalIncome / totalRps) * 100).toFixed(1) : 0;
         
@@ -2526,7 +2532,9 @@
         elDepositCurrentPrice.textContent = formatFinancialPrice(depositCost);
         
         // 적금 업데이트
-        const savingsCost = getFinancialCost('savings', savings);
+        const savingsCost = purchaseMode === 'buy'
+          ? getFinancialCost('savings', savings, purchaseQuantity)
+          : getFinancialSellPrice('savings', savings, purchaseQuantity);
         const savingsTotalIncome = savings * FINANCIAL_INCOME.savings;
         const savingsPercent = totalRps > 0 ? ((savingsTotalIncome / totalRps) * 100).toFixed(1) : 0;
         
@@ -2538,7 +2546,9 @@
         elSavingsCurrentPrice.textContent = formatFinancialPrice(savingsCost);
         
         // 주식 업데이트
-        const bondCost = getFinancialCost('bond', bonds);
+        const bondCost = purchaseMode === 'buy'
+          ? getFinancialCost('bond', bonds, purchaseQuantity)
+          : getFinancialSellPrice('bond', bonds, purchaseQuantity);
         const bondTotalIncome = bonds * FINANCIAL_INCOME.bond;
         const bondPercent = totalRps > 0 ? ((bondTotalIncome / totalRps) * 100).toFixed(1) : 0;
         
@@ -2568,7 +2578,9 @@
       const totalRps2 = getRps(); // 부동산용 RPS 계산
       
       // 빌라
-      const villaCost = getPropertyCost('villa', villas);
+      const villaCost = purchaseMode === 'buy'
+        ? getPropertyCost('villa', villas, purchaseQuantity)
+        : getPropertySellPrice('villa', villas, purchaseQuantity);
       const villaTotalIncome = villas * BASE_RENT.villa;
       const villaPercent = totalRps2 > 0 ? ((villaTotalIncome / totalRps2) * 100).toFixed(1) : 0;
       
@@ -2580,7 +2592,9 @@
       elVillaCurrentPrice.textContent = formatPropertyPrice(villaCost);
       
       // 오피스텔
-      const officetelCost = getPropertyCost('officetel', officetels);
+      const officetelCost = purchaseMode === 'buy'
+        ? getPropertyCost('officetel', officetels, purchaseQuantity)
+        : getPropertySellPrice('officetel', officetels, purchaseQuantity);
       const officetelTotalIncome = officetels * BASE_RENT.officetel;
       const officetelPercent = totalRps2 > 0 ? ((officetelTotalIncome / totalRps2) * 100).toFixed(1) : 0;
       
@@ -2592,7 +2606,9 @@
       elOfficetelCurrentPrice.textContent = formatPropertyPrice(officetelCost);
       
       // 아파트
-      const aptCost = getPropertyCost('apartment', apartments);
+      const aptCost = purchaseMode === 'buy'
+        ? getPropertyCost('apartment', apartments, purchaseQuantity)
+        : getPropertySellPrice('apartment', apartments, purchaseQuantity);
       const aptTotalIncome = apartments * BASE_RENT.apartment;
       const aptPercent = totalRps2 > 0 ? ((aptTotalIncome / totalRps2) * 100).toFixed(1) : 0;
       
@@ -2604,7 +2620,9 @@
       elAptCurrentPrice.textContent = formatPropertyPrice(aptCost);
       
       // 상가
-      const shopCost = getPropertyCost('shop', shops);
+      const shopCost = purchaseMode === 'buy'
+        ? getPropertyCost('shop', shops, purchaseQuantity)
+        : getPropertySellPrice('shop', shops, purchaseQuantity);
       const shopTotalIncome = shops * BASE_RENT.shop;
       const shopPercent = totalRps2 > 0 ? ((shopTotalIncome / totalRps2) * 100).toFixed(1) : 0;
       
@@ -2616,7 +2634,9 @@
       elShopCurrentPrice.textContent = formatPropertyPrice(shopCost);
       
       // 빌딩
-      const buildingCost = getPropertyCost('building', buildings);
+      const buildingCost = purchaseMode === 'buy'
+        ? getPropertyCost('building', buildings, purchaseQuantity)
+        : getPropertySellPrice('building', buildings, purchaseQuantity);
       const buildingTotalIncome = buildings * BASE_RENT.building;
       const buildingPercent = totalRps2 > 0 ? ((buildingTotalIncome / totalRps2) * 100).toFixed(1) : 0;
       
