@@ -403,23 +403,21 @@
       position: relative !important;
       z-index: 1000 !important;
       isolation: isolate !important;
+      will-change: background-color, box-shadow !important;
     }
     
     @keyframes sparkle {
       0% { 
         background-color: var(--good) !important;
         box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7) !important;
-        transform: scale(1) !important;
       }
       50% { 
         background-color: #ffd700 !important;
         box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5) !important;
-        transform: scale(1.02) !important;
       }
       100% { 
         background-color: var(--good) !important;
         box-shadow: 0 0 0 0 rgba(255, 215, 0, 0) !important;
-        transform: scale(1) !important;
       }
     }
     
@@ -3008,11 +3006,18 @@
       // 미국주식과 코인 버튼 상태 업데이트
       const elBuyUsStock = document.getElementById('buyUsStock');
       const elBuyCrypto = document.getElementById('buyCrypto');
+      
       if (elBuyUsStock) {
-        elBuyUsStock.classList.toggle('affordable', isBuy && cash >= getFinancialCost('usStock', usStocks, qty));
+        const usStockCost = getFinancialCost('usStock', usStocks, qty);
+        const canBuyUsStock = isBuy && cash >= usStockCost;
+        elBuyUsStock.classList.toggle('affordable', canBuyUsStock);
+        console.log('미국주식 버튼 상태:', { cash, usStockCost, canBuyUsStock, isBuy });
       }
       if (elBuyCrypto) {
-        elBuyCrypto.classList.toggle('affordable', isBuy && cash >= getFinancialCost('crypto', cryptos, qty));
+        const cryptoCost = getFinancialCost('crypto', cryptos, qty);
+        const canBuyCrypto = isBuy && cash >= cryptoCost;
+        elBuyCrypto.classList.toggle('affordable', canBuyCrypto);
+        console.log('코인 버튼 상태:', { cash, cryptoCost, canBuyCrypto, isBuy });
       }
       
       // 부동산 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
@@ -3269,7 +3274,15 @@
     
     // 구매 완료 시 반짝 효과 함수
     function showPurchaseSuccess(element) {
+      // 기존 클래스 제거
+      element.classList.remove('purchase-success');
+      
+      // 강제 리플로우
+      element.offsetHeight;
+      
+      // 새 클래스 추가
       element.classList.add('purchase-success');
+      
       setTimeout(() => {
         element.classList.remove('purchase-success');
       }, 600);
