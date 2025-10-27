@@ -2025,6 +2025,11 @@
     }
     let cash = 0;
     
+    // 누적 플레이시간 시스템 (전역 변수)
+    let totalPlayTime = 0; // 누적 플레이시간 (밀리초)
+    let sessionStartTime = Date.now(); // 현재 세션 시작 시간
+    let gameStartTime = Date.now(); // 게임 시작 시간 (호환성 유지)
+    
     // 금융상품 보유 수량
     let deposits = 0;     // 예금
     let savings = 0;      // 적금
@@ -3159,14 +3164,18 @@
         // 누적 플레이시간 시스템 복원
         if (data.totalPlayTime !== undefined) {
           totalPlayTime = data.totalPlayTime;
+          console.log('🕐 이전 누적 플레이시간 복원:', totalPlayTime, 'ms');
         }
         if (data.sessionStartTime) {
           // 이전 세션의 플레이시간을 누적
           const previousSessionTime = Date.now() - data.sessionStartTime;
           totalPlayTime += previousSessionTime;
+          console.log('🕐 이전 세션 플레이시간 누적:', previousSessionTime, 'ms');
         }
         // 새 세션 시작
         sessionStartTime = Date.now();
+        console.log('🕐 새 세션 시작:', new Date(sessionStartTime).toLocaleString());
+        console.log('🕐 총 누적 플레이시간:', totalPlayTime, 'ms');
         
         console.log('게임 불러오기 완료:', data.saveTime ? new Date(data.saveTime).toLocaleString() : '시간 정보 없음');
         return true;
@@ -4030,10 +4039,6 @@
     console.log('💡 사용법: 상단 "구매/판매" 버튼으로 모드 전환 후 거래하세요!');
     
     // ======= 통계 탭 업데이트 함수 =======
-    // 누적 플레이시간 시스템
-    let totalPlayTime = 0; // 누적 플레이시간 (밀리초)
-    let sessionStartTime = Date.now(); // 현재 세션 시작 시간
-    let gameStartTime = Date.now(); // 게임 시작 시간 (호환성 유지)
     
     function updateStatsTab() {
       try {
@@ -4062,6 +4067,16 @@
         const playTimeText = playTimeHours > 0 
           ? `${playTimeHours}시간 ${remainingMinutes}분` 
           : `${playTimeMinutes}분`;
+        
+        // 디버깅 로그
+        console.log('🕐 플레이시간 계산:', {
+          totalPlayTime: totalPlayTime,
+          currentSessionTime: currentSessionTime,
+          totalPlayTimeMs: totalPlayTimeMs,
+          playTimeMinutes: playTimeMinutes,
+          playTimeText: playTimeText
+        });
+        
         safeText(document.getElementById('playTimeStats'), playTimeText);
         
         // 시간당 수익
