@@ -3529,6 +3529,17 @@
         bondItem.classList.toggle('locked', !isProductUnlocked('bond'));
       }
       
+      // 미국주식과 코인 잠금 상태
+      const usStockItem = document.getElementById('usStockItem');
+      const cryptoItem = document.getElementById('cryptoItem');
+      
+      if (usStockItem) {
+        usStockItem.classList.toggle('locked', !isProductUnlocked('usStock'));
+      }
+      if (cryptoItem) {
+        cryptoItem.classList.toggle('locked', !isProductUnlocked('crypto'));
+      }
+      
       // 부동산 잠금 상태
       const villaItem = document.getElementById('villaItem');
       const officetelItem = document.getElementById('officetelItem');
