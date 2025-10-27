@@ -521,8 +521,8 @@
             </div>
             <div class="quantity-selector">
               <button id="qty1" class="active">1</button>
+              <button id="qty5">5</button>
               <button id="qty10">10</button>
-              <button id="qty100">100</button>
             </div>
           </div>
           
@@ -1696,8 +1696,8 @@
     const elBuyMode = document.getElementById('buyMode');
     const elSellMode = document.getElementById('sellMode');
     const elQty1 = document.getElementById('qty1');
+    const elQty5 = document.getElementById('qty5');
     const elQty10 = document.getElementById('qty10');
-    const elQty100 = document.getElementById('qty100');
     
     // 토글 버튼들
     const elToggleUpgrades = document.getElementById('toggleUpgrades');
@@ -2723,8 +2723,16 @@
     elQty1.addEventListener('click', () => {
       purchaseQuantity = 1;
       elQty1.classList.add('active');
+      elQty5.classList.remove('active');
       elQty10.classList.remove('active');
-      elQty100.classList.remove('active');
+      updateButtonTexts();
+    });
+    
+    elQty5.addEventListener('click', () => {
+      purchaseQuantity = 5;
+      elQty5.classList.add('active');
+      elQty1.classList.remove('active');
+      elQty10.classList.remove('active');
       updateButtonTexts();
     });
     
@@ -2732,15 +2740,7 @@
       purchaseQuantity = 10;
       elQty10.classList.add('active');
       elQty1.classList.remove('active');
-      elQty100.classList.remove('active');
-      updateButtonTexts();
-    });
-    
-    elQty100.addEventListener('click', () => {
-      purchaseQuantity = 100;
-      elQty100.classList.add('active');
-      elQty1.classList.remove('active');
-      elQty10.classList.remove('active');
+      elQty5.classList.remove('active');
       updateButtonTexts();
     });
     
