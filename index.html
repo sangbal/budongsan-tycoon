@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>서울 역세권 타이쿤 — v2.10.1</title>
+    <title>서울 역세권 타이쿤 — v2.11.0</title>
   <style>
     :root {
       --bg:#0b1220; --panel:#121a2b; --accent:#5eead4; --muted:#94a3b8; --text:#e5e7eb; --btn:#1f2a44; --btn2:#192238; --good:#34d399; --bad:#fb7185;
@@ -608,7 +608,7 @@
     /* PC에서 grid 레이아웃 컨테이너 */
     .tab-wrapper {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.1fr 0.9fr 1.0fr; /* 3열: 노동 + 상점 + 통계 */
       gap: 16px;
     }
     
@@ -617,9 +617,30 @@
       display: block;
     }
     
-    /* 통계 탭은 PC에서 숨김 */
+    /* 통계 탭은 PC에서도 표시 */
     #statsTab {
-      display: none;
+      display: block;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    
+    /* 통계 탭 컴팩트 스타일 (PC용) */
+    #statsTab .stats-section {
+      margin-bottom: 16px;
+      padding: 12px;
+    }
+    
+    #statsTab .stat-value {
+      font-size: 16px;
+    }
+    
+    #statsTab h2 {
+      font-size: 16px;
+    }
+    
+    #statsTab h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
     }
     
     /* 통계 탭 스타일 */
@@ -843,6 +864,30 @@
     
     .achievement-icon:hover {
       transform: scale(1.1);
+    }
+    
+    /* 태블릿: 2열 그리드 (노동 + 상점), 통계는 하단 */
+    @media (max-width: 1366px) {
+      .tab-wrapper {
+        grid-template-columns: 1.1fr 0.9fr; /* 2열로 변경 */
+        grid-template-rows: auto auto;
+      }
+      
+      #workTab {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      
+      #shopTab {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      
+      #statsTab {
+        grid-column: 1 / -1; /* 전체 너비 */
+        grid-row: 2;
+        max-height: 60vh;
+      }
     }
     
     /* 모바일에서만 하단 네비와 탭 시스템 활성화 */
@@ -1316,7 +1361,7 @@
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
         <div>
           <div style="margin-bottom:4px;">
-            <span style="color:var(--muted); font-size:12px;">v2.10.1</span>
+            <span style="color:var(--muted); font-size:12px;">v2.11.0</span>
             <span style="background:var(--primary); color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">순차 해금</span>
           </div>
           <div style="font-size:11px;">
@@ -1334,6 +1379,17 @@
   <script>
     /*
     ============================================
+    CHANGELOG v2.11.0 - PC 버전 통계 탭 추가 및 반응형 개선
+    ============================================
+    [새 기능]
+    • 📊 PC 버전에 통계 탭 상시 표시 (3열 그리드)
+    • 🖥️ 화면 크기별 반응형 레이아웃
+      - 1367px 이상: 3열 (노동 + 상점 + 통계)
+      - 769px~1366px: 2열 + 통계 하단
+      - 768px 이하: 모바일 탭 네비게이션
+    • 📐 통계 탭 컴팩트 스타일링 (PC 최적화)
+    • 📜 자동 스크롤 지원 (max-height: 85vh)
+    
     CHANGELOG v2.10.1 - 업그레이드 효과 중복 적용 버그 수정
     ============================================
     [버그 수정]
