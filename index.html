@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>서울 역세권 타이쿤 — v2.9.0</title>
+    <title>서울 역세권 타이쿤 — v2.10.0</title>
   <style>
     :root {
       --bg:#0b1220; --panel:#121a2b; --accent:#5eead4; --muted:#94a3b8; --text:#e5e7eb; --btn:#1f2a44; --btn2:#192238; --good:#34d399; --bad:#fb7185;
@@ -622,6 +622,229 @@
       display: none;
     }
     
+    /* 통계 탭 스타일 */
+    .stats-section {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--bg2);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    
+    .stats-section h3 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      color: var(--accent);
+    }
+    
+    /* 통계 그리드 */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px;
+      background: var(--panel);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.04);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    /* 수익 구조 바 */
+    .income-breakdown {
+      margin-top: 8px;
+    }
+    
+    .income-bar {
+      display: flex;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--bg3);
+      margin-bottom: 12px;
+    }
+    
+    .income-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s;
+      min-width: 2%;
+    }
+    
+    .income-segment.labor {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    
+    .income-segment.financial {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+    
+    .income-segment.property {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    
+    .income-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    
+    .legend-color.labor {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    
+    .legend-color.financial {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+    
+    .legend-color.property {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    
+    /* 자산 상세 */
+    .asset-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .asset-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: var(--panel);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.04);
+    }
+    
+    .asset-icon {
+      font-size: 24px;
+      min-width: 32px;
+      text-align: center;
+    }
+    
+    .asset-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .asset-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .asset-name span {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 12px;
+    }
+    
+    .asset-production {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .asset-production b {
+      color: var(--good);
+    }
+    
+    /* 효율 분석 */
+    .efficiency-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .efficiency-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--panel);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.04);
+    }
+    
+    .efficiency-item.best {
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 15px rgba(94, 234, 212, 0.3);
+    }
+    
+    .rank {
+      font-size: 20px;
+    }
+    
+    /* 업적 그리드 */
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+      gap: 8px;
+    }
+    
+    .achievement-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: var(--panel);
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .achievement-icon.unlocked {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(94, 234, 212, 0.5);
+    }
+    
+    .achievement-icon.locked {
+      opacity: 0.3;
+      filter: grayscale(100%);
+    }
+    
+    .achievement-icon:hover {
+      transform: scale(1.1);
+    }
+    
     /* 모바일에서만 하단 네비와 탭 시스템 활성화 */
     @media (max-width: 768px) {
       /* Grid 레이아웃 해제 */
@@ -693,6 +916,33 @@
       /* 하단 네비 때문에 여백 추가 */
       .app {
         padding-bottom: 80px;
+      }
+      
+      /* 통계 탭 모바일 최적화 */
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stat-item {
+        padding: 10px;
+      }
+      
+      .stat-value {
+        font-size: 16px;
+      }
+      
+      .income-bar {
+        height: 50px;
+      }
+      
+      .achievement-grid {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      }
+      
+      .achievement-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
       }
     }
   </style>
@@ -865,12 +1115,183 @@
     <!-- 통계 탭 -->
     <div id="statsTab" class="tab-content">
       <section class="card">
-        <h2>📊 통계</h2>
-        <div style="text-align: center; padding: 60px 20px; color: var(--muted);">
-          <div style="font-size: 48px; margin-bottom: 16px;">📈</div>
-          <div style="font-size: 18px; margin-bottom: 8px;">통계 기능 준비 중</div>
-          <div style="font-size: 14px;">게임 통계와 차트가 곧 추가됩니다!</div>
+        <h2>📊 게임 통계</h2>
+        
+        <!-- 1. 핵심 지표 -->
+        <div class="stats-section">
+          <h3>💰 전체 수익</h3>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-label">총 자산</span>
+              <span class="stat-value" id="totalAssets">0원</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">총 누적 수익</span>
+              <span class="stat-value" id="totalEarnings">0원</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">초당 수익</span>
+              <span class="stat-value" id="rpsStats">0원/초</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">클릭당 수익</span>
+              <span class="stat-value" id="clickIncomeStats">0원</span>
+            </div>
+          </div>
         </div>
+
+        <!-- 2. 플레이 정보 -->
+        <div class="stats-section">
+          <h3>⏱️ 플레이 정보</h3>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-label">총 클릭 횟수</span>
+              <span class="stat-value" id="totalClicksStats">0회</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">노동 수익</span>
+              <span class="stat-value" id="laborIncomeStats">0원</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">플레이 시간</span>
+              <span class="stat-value" id="playTimeStats">0분</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">시간당 수익</span>
+              <span class="stat-value" id="hourlyRate">0원/시간</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 수익 구조 -->
+        <div class="stats-section">
+          <h3>📈 수익 구조</h3>
+          <div class="income-breakdown">
+            <div class="income-bar">
+              <div class="income-segment labor" id="laborSegment" style="width: 0%">
+                <span>🛠️ 0%</span>
+              </div>
+              <div class="income-segment financial" id="financialSegment" style="width: 0%">
+                <span>💰 0%</span>
+              </div>
+              <div class="income-segment property" id="propertySegment" style="width: 0%">
+                <span>🏢 0%</span>
+              </div>
+            </div>
+            <div class="income-legend">
+              <div class="legend-item">
+                <span class="legend-color labor"></span>
+                <span id="laborLegend">노동: 0%</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color financial"></span>
+                <span id="financialLegend">금융: 0%</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color property"></span>
+                <span id="propertyLegend">부동산: 0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 금융상품 상세 -->
+        <div class="stats-section">
+          <h3>💼 금융상품</h3>
+          <div class="asset-stats">
+            <div class="asset-row">
+              <span class="asset-icon">📈</span>
+              <div class="asset-info">
+                <div class="asset-name">예금 <span id="depositsOwnedStats">0개</span></div>
+                <div class="asset-production">누적 수익: <b id="depositsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">📊</span>
+              <div class="asset-info">
+                <div class="asset-name">적금 <span id="savingsOwnedStats">0개</span></div>
+                <div class="asset-production">누적 수익: <b id="savingsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">📈</span>
+              <div class="asset-info">
+                <div class="asset-name">주식 <span id="bondsOwnedStats">0개</span></div>
+                <div class="asset-production">누적 수익: <b id="bondsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 부동산 상세 -->
+        <div class="stats-section">
+          <h3>🏢 부동산</h3>
+          <div class="asset-stats">
+            <div class="asset-row">
+              <span class="asset-icon">🏘️</span>
+              <div class="asset-info">
+                <div class="asset-name">빌라 <span id="villasOwnedStats">0채</span></div>
+                <div class="asset-production">누적 수익: <b id="villasLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">🏢</span>
+              <div class="asset-info">
+                <div class="asset-name">오피스텔 <span id="officetelsOwnedStats">0채</span></div>
+                <div class="asset-production">누적 수익: <b id="officetelsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">🏡</span>
+              <div class="asset-info">
+                <div class="asset-name">아파트 <span id="apartmentsOwnedStats">0채</span></div>
+                <div class="asset-production">누적 수익: <b id="apartmentsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">🏪</span>
+              <div class="asset-info">
+                <div class="asset-name">상가 <span id="shopsOwnedStats">0채</span></div>
+                <div class="asset-production">누적 수익: <b id="shopsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+            <div class="asset-row">
+              <span class="asset-icon">🏢</span>
+              <div class="asset-info">
+                <div class="asset-name">빌딩 <span id="buildingsOwnedStats">0채</span></div>
+                <div class="asset-production">누적 수익: <b id="buildingsLifetimeStats">0원</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. 효율 분석 -->
+        <div class="stats-section">
+          <h3>⚡ 효율 순위 (개당 초당 수익)</h3>
+          <div class="efficiency-list">
+            <div class="efficiency-item best">
+              <span class="rank">🥇</span>
+              <span id="bestEfficiency">-</span>
+            </div>
+            <div class="efficiency-item">
+              <span class="rank">🥈</span>
+              <span id="secondEfficiency">-</span>
+            </div>
+            <div class="efficiency-item">
+              <span class="rank">🥉</span>
+              <span id="thirdEfficiency">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. 업적 그리드 -->
+        <div class="stats-section">
+          <h3>🏆 업적 (<span id="achievementProgress">0/0</span>)</h3>
+          <div class="achievement-grid" id="achievementGrid">
+            <!-- JavaScript로 동적 생성 -->
+          </div>
+        </div>
+
       </section>
     </div>
     </div><!-- /.tab-wrapper -->
@@ -895,7 +1316,7 @@
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
         <div>
           <div style="margin-bottom:4px;">
-            <span style="color:var(--muted); font-size:12px;">v2.9.0</span>
+            <span style="color:var(--muted); font-size:12px;">v2.10.0</span>
             <span style="background:var(--primary); color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:6px;">순차 해금</span>
           </div>
           <div style="font-size:11px;">
@@ -913,6 +1334,22 @@
   <script>
     /*
     ============================================
+    CHANGELOG v2.10.0 - Cookie Clicker 스타일 통계 탭
+    ============================================
+    [새 기능]
+    • 📊 Cookie Clicker 스타일의 상세 통계 탭 구현
+    • 💰 총 자산 및 누적 수익 표시
+    • 📈 수익 구조 시각화 (노동/금융/부동산 비율)
+    • 📊 자산별 누적 수익 및 개당 효율 분석
+    • ⏱️ 플레이 시간 및 시간당 수익 추적
+    • 🏆 업적 그리드 시스템
+    • ⚡ 효율 순위 TOP 3 표시
+    
+    [데이터 추적]
+    • 게임 시작 시간 저장/불러오기
+    • 실시간 통계 업데이트
+    • 모바일 최적화 반응형 레이아웃
+    
     CHANGELOG v2.9.0 - 순차 해금 시스템
     ============================================
     
@@ -2514,7 +2951,9 @@
         achievements: ACHIEVEMENTS,
         // 저장 시간
         saveTime: new Date().toISOString(),
-        ts: Date.now()
+        ts: Date.now(),
+        // 게임 시작 시간
+        gameStartTime: gameStartTime
       };
       
       try {
@@ -2604,6 +3043,11 @@
               achievement.unlocked = data.achievements[index].unlocked;
             }
           });
+        }
+        
+        // 게임 시작 시간 복원
+        if (data.gameStartTime) {
+          gameStartTime = data.gameStartTime;
         }
         
         console.log('게임 불러오기 완료:', data.saveTime ? new Date(data.saveTime).toLocaleString() : '시간 정보 없음');
@@ -2939,6 +3383,9 @@
       
       // 순차 해금 시스템 - 잠금 상태 업데이트
       updateProductLockStates();
+      
+      // 통계 탭 업데이트
+      updateStatsTab();
     }
 
     // 순차 해금 시스템 - 잠금 상태 업데이트
@@ -3390,6 +3837,249 @@
     console.log('✅ 판매 가격: 현재가의 80%');
     console.log('✅ 수량 선택: 1개/10개/100개');
     console.log('💡 사용법: 상단 "구매/판매" 버튼으로 모드 전환 후 거래하세요!');
+    
+    // ======= 통계 탭 업데이트 함수 =======
+    let gameStartTime = Date.now(); // 게임 시작 시간 (플레이 시간 측정용)
+    
+    function updateStatsTab() {
+      try {
+        // 1. 핵심 지표
+        const totalAssets = cash + calculateTotalAssetValue();
+        const totalEarnings = depositsLifetime + savingsLifetime + bondsLifetime +
+                              villasLifetime + officetelsLifetime + apartmentsLifetime +
+                              shopsLifetime + buildingsLifetime + totalLaborIncome;
+        
+        safeText(document.getElementById('totalAssets'), formatCashDisplay(totalAssets));
+        safeText(document.getElementById('totalEarnings'), formatCashDisplay(totalEarnings));
+        safeText(document.getElementById('rpsStats'), formatKoreanNumber(getRps()) + '원/초');
+        safeText(document.getElementById('clickIncomeStats'), formatCashDisplay(getClickIncome()));
+        
+        // 2. 플레이 정보
+        safeText(document.getElementById('totalClicksStats'), totalClicks.toLocaleString('ko-KR') + '회');
+        safeText(document.getElementById('laborIncomeStats'), formatCashDisplay(totalLaborIncome));
+        
+        // 플레이 시간 계산
+        const playTimeMinutes = Math.floor((Date.now() - gameStartTime) / 60000);
+        const playTimeHours = Math.floor(playTimeMinutes / 60);
+        const remainingMinutes = playTimeMinutes % 60;
+        const playTimeText = playTimeHours > 0 
+          ? `${playTimeHours}시간 ${remainingMinutes}분` 
+          : `${playTimeMinutes}분`;
+        safeText(document.getElementById('playTimeStats'), playTimeText);
+        
+        // 시간당 수익
+        const hourlyRateValue = playTimeMinutes > 0 
+          ? (totalEarnings / playTimeMinutes) * 60 
+          : 0;
+        safeText(document.getElementById('hourlyRate'), formatCashDisplay(hourlyRateValue) + '/시간');
+        
+        // 3. 수익 구조
+        const laborPercent = totalEarnings > 0 ? (totalLaborIncome / totalEarnings * 100) : 0;
+        const financialTotal = depositsLifetime + savingsLifetime + bondsLifetime;
+        const financialPercent = totalEarnings > 0 ? (financialTotal / totalEarnings * 100) : 0;
+        const propertyTotal = villasLifetime + officetelsLifetime + apartmentsLifetime + shopsLifetime + buildingsLifetime;
+        const propertyPercent = totalEarnings > 0 ? (propertyTotal / totalEarnings * 100) : 0;
+        
+        // 수익 구조 바
+        const laborSegment = document.getElementById('laborSegment');
+        const financialSegment = document.getElementById('financialSegment');
+        const propertySegment = document.getElementById('propertySegment');
+        
+        if (laborSegment) {
+          laborSegment.style.width = laborPercent.toFixed(1) + '%';
+          laborSegment.querySelector('span').textContent = laborPercent >= 5 
+            ? `🛠️ ${laborPercent.toFixed(1)}%` 
+            : '';
+        }
+        
+        if (financialSegment) {
+          financialSegment.style.width = financialPercent.toFixed(1) + '%';
+          financialSegment.querySelector('span').textContent = financialPercent >= 5 
+            ? `💰 ${financialPercent.toFixed(1)}%` 
+            : '';
+        }
+        
+        if (propertySegment) {
+          propertySegment.style.width = propertyPercent.toFixed(1) + '%';
+          propertySegment.querySelector('span').textContent = propertyPercent >= 5 
+            ? `🏢 ${propertyPercent.toFixed(1)}%` 
+            : '';
+        }
+        
+        // 범례 업데이트
+        safeText(document.getElementById('laborLegend'), `노동: ${laborPercent.toFixed(1)}%`);
+        safeText(document.getElementById('financialLegend'), `금융: ${financialPercent.toFixed(1)}%`);
+        safeText(document.getElementById('propertyLegend'), `부동산: ${propertyPercent.toFixed(1)}%`);
+        
+        // 4. 금융상품 상세
+        safeText(document.getElementById('depositsOwnedStats'), deposits + '개');
+        safeText(document.getElementById('depositsLifetimeStats'), formatCashDisplay(depositsLifetime));
+        
+        safeText(document.getElementById('savingsOwnedStats'), savings + '개');
+        safeText(document.getElementById('savingsLifetimeStats'), formatCashDisplay(savingsLifetime));
+        
+        safeText(document.getElementById('bondsOwnedStats'), bonds + '개');
+        safeText(document.getElementById('bondsLifetimeStats'), formatCashDisplay(bondsLifetime));
+        
+        // 5. 부동산 상세
+        safeText(document.getElementById('villasOwnedStats'), villas + '채');
+        safeText(document.getElementById('villasLifetimeStats'), formatCashDisplay(villasLifetime));
+        
+        safeText(document.getElementById('officetelsOwnedStats'), officetels + '채');
+        safeText(document.getElementById('officetelsLifetimeStats'), formatCashDisplay(officetelsLifetime));
+        
+        safeText(document.getElementById('apartmentsOwnedStats'), apartments + '채');
+        safeText(document.getElementById('apartmentsLifetimeStats'), formatCashDisplay(apartmentsLifetime));
+        
+        safeText(document.getElementById('shopsOwnedStats'), shops + '채');
+        safeText(document.getElementById('shopsLifetimeStats'), formatCashDisplay(shopsLifetime));
+        
+        safeText(document.getElementById('buildingsOwnedStats'), buildings + '채');
+        safeText(document.getElementById('buildingsLifetimeStats'), formatCashDisplay(buildingsLifetime));
+        
+        // 6. 효율 분석
+        const efficiencies = calculateEfficiencies();
+        safeText(document.getElementById('bestEfficiency'), efficiencies[0] || '-');
+        safeText(document.getElementById('secondEfficiency'), efficiencies[1] || '-');
+        safeText(document.getElementById('thirdEfficiency'), efficiencies[2] || '-');
+        
+        // 7. 업적 그리드
+        updateAchievementGrid();
+        
+      } catch (e) {
+        console.error('Stats tab update failed:', e);
+      }
+    }
+    
+    // 총 자산 가치 계산 (현재 보유 자산을 현재가로 환산)
+    function calculateTotalAssetValue() {
+      let totalValue = 0;
+      
+      // 금융상품 가치
+      if (deposits > 0) {
+        totalValue += getFinancialCost('deposit', deposits - 1);
+      }
+      if (savings > 0) {
+        totalValue += getFinancialCost('savings', savings - 1);
+      }
+      if (bonds > 0) {
+        totalValue += getFinancialCost('bond', bonds - 1);
+      }
+      
+      // 부동산 가치
+      if (villas > 0) {
+        totalValue += getPropertyCost('villa', villas - 1);
+      }
+      if (officetels > 0) {
+        totalValue += getPropertyCost('officetel', officetels - 1);
+      }
+      if (apartments > 0) {
+        totalValue += getPropertyCost('apartment', apartments - 1);
+      }
+      if (shops > 0) {
+        totalValue += getPropertyCost('shop', shops - 1);
+      }
+      if (buildings > 0) {
+        totalValue += getPropertyCost('building', buildings - 1);
+      }
+      
+      return totalValue;
+    }
+    
+    // 효율 분석 (개당 초당 수익 순위)
+    function calculateEfficiencies() {
+      const assets = [];
+      
+      // 금융상품
+      if (deposits > 0) {
+        assets.push({ name: '예금', efficiency: FINANCIAL_INCOME.deposit, count: deposits });
+      }
+      if (savings > 0) {
+        assets.push({ name: '적금', efficiency: FINANCIAL_INCOME.savings, count: savings });
+      }
+      if (bonds > 0) {
+        assets.push({ name: '주식', efficiency: FINANCIAL_INCOME.bond, count: bonds });
+      }
+      
+      // 부동산
+      if (villas > 0) {
+        assets.push({ name: '빌라', efficiency: BASE_RENT.villa * rentMultiplier, count: villas });
+      }
+      if (officetels > 0) {
+        assets.push({ name: '오피스텔', efficiency: BASE_RENT.officetel * rentMultiplier, count: officetels });
+      }
+      if (apartments > 0) {
+        assets.push({ name: '아파트', efficiency: BASE_RENT.apartment * rentMultiplier, count: apartments });
+      }
+      if (shops > 0) {
+        assets.push({ name: '상가', efficiency: BASE_RENT.shop * rentMultiplier, count: shops });
+      }
+      if (buildings > 0) {
+        assets.push({ name: '빌딩', efficiency: BASE_RENT.building * rentMultiplier, count: buildings });
+      }
+      
+      // 효율 순으로 정렬
+      assets.sort((a, b) => b.efficiency - a.efficiency);
+      
+      // 상위 3개 반환
+      return assets.slice(0, 3).map(a => 
+        `${a.name} (${formatKoreanNumber(Math.floor(a.efficiency))}원/초, ${a.count}개 보유)`
+      );
+    }
+    
+    // 업적 그리드 업데이트
+    function updateAchievementGrid() {
+      const achievementGrid = document.getElementById('achievementGrid');
+      if (!achievementGrid) return;
+      
+      // 이미 생성되어 있으면 업데이트만
+      if (achievementGrid.children.length > 0) {
+        let unlockedCount = 0;
+        Object.values(ACHIEVEMENTS).forEach(ach => {
+          const icon = document.getElementById('ach_' + ach.id);
+          if (icon) {
+            if (ach.unlocked) {
+              icon.classList.add('unlocked');
+              icon.classList.remove('locked');
+              unlockedCount++;
+            } else {
+              icon.classList.add('locked');
+              icon.classList.remove('unlocked');
+            }
+          }
+        });
+        
+        const totalAchievements = Object.keys(ACHIEVEMENTS).length;
+        safeText(document.getElementById('achievementProgress'), `${unlockedCount}/${totalAchievements}`);
+        return;
+      }
+      
+      // 처음 생성
+      achievementGrid.innerHTML = '';
+      let unlockedCount = 0;
+      const totalAchievements = Object.keys(ACHIEVEMENTS).length;
+      
+      Object.values(ACHIEVEMENTS).forEach(ach => {
+        const icon = document.createElement('div');
+        icon.className = 'achievement-icon';
+        icon.id = 'ach_' + ach.id;
+        icon.textContent = ach.icon;
+        icon.title = ach.unlocked 
+          ? `${ach.name}\n${ach.desc}\n✅ 달성!` 
+          : `${ach.name}\n${ach.desc}\n🔒 미달성`;
+        
+        if (ach.unlocked) {
+          icon.classList.add('unlocked');
+          unlockedCount++;
+        } else {
+          icon.classList.add('locked');
+        }
+        
+        achievementGrid.appendChild(icon);
+      });
+      
+      safeText(document.getElementById('achievementProgress'), `${unlockedCount}/${totalAchievements}`);
+    }
     
     // ======= 하단 네비게이션 탭 전환 =======
     const navBtns = document.querySelectorAll('.nav-btn');
