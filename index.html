@@ -2148,18 +2148,19 @@
     // 버튼 상태 업데이트 함수 (Cookie Clicker 스타일)
     function updateButtonStates() {
       const qty = purchaseQuantity;
+      const isBuy = purchaseMode === 'buy';
       
-      // 금융상품 버튼 상태 업데이트
-      elBuyDeposit.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits, qty));
-      elBuySavings.classList.toggle('affordable', cash >= getFinancialCost('savings', savings, qty));
-      elBuyBond.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds, qty));
+      // 금융상품 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
+      elBuyDeposit.classList.toggle('affordable', isBuy && cash >= getFinancialCost('deposit', deposits, qty));
+      elBuySavings.classList.toggle('affordable', isBuy && cash >= getFinancialCost('savings', savings, qty));
+      elBuyBond.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
       
-      // 부동산 버튼 상태 업데이트
-      elBuyVilla.classList.toggle('affordable', cash >= getPropertyCost('villa', villas, qty));
-      elBuyOfficetel.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels, qty));
-      elBuyApt.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments, qty));
-      elBuyShop.classList.toggle('affordable', cash >= getPropertyCost('shop', shops, qty));
-      elBuyBuilding.classList.toggle('affordable', cash >= getPropertyCost('building', buildings, qty));
+      // 부동산 버튼 상태 업데이트 (구매 모드일 때만 affordable 적용)
+      elBuyVilla.classList.toggle('affordable', isBuy && cash >= getPropertyCost('villa', villas, qty));
+      elBuyOfficetel.classList.toggle('affordable', isBuy && cash >= getPropertyCost('officetel', officetels, qty));
+      elBuyApt.classList.toggle('affordable', isBuy && cash >= getPropertyCost('apartment', apartments, qty));
+      elBuyShop.classList.toggle('affordable', isBuy && cash >= getPropertyCost('shop', shops, qty));
+      elBuyBuilding.classList.toggle('affordable', isBuy && cash >= getPropertyCost('building', buildings, qty));
       
       // 업그레이드 버튼 상태 업데이트 (제거됨 - 새 시스템 사용)
     }
@@ -2167,28 +2168,29 @@
     // 건물 목록 색상 업데이트 함수
     function updateBuildingItemStates() {
       const qty = purchaseQuantity;
+      const isBuy = purchaseMode === 'buy';
       
-      // 금융상품 아이템 상태 업데이트
+      // 금융상품 아이템 상태 업데이트 (구매 모드일 때만 affordable 적용)
       const depositItem = document.getElementById('depositItem');
       const savingsItem = document.getElementById('savingsItem');
       const bondItem = document.getElementById('bondItem');
       
-      depositItem.classList.toggle('affordable', cash >= getFinancialCost('deposit', deposits, qty));
-      savingsItem.classList.toggle('affordable', cash >= getFinancialCost('savings', savings, qty));
-      bondItem.classList.toggle('affordable', cash >= getFinancialCost('bond', bonds, qty));
+      depositItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('deposit', deposits, qty));
+      savingsItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('savings', savings, qty));
+      bondItem.classList.toggle('affordable', isBuy && cash >= getFinancialCost('bond', bonds, qty));
       
-      // 부동산 아이템 상태 업데이트
+      // 부동산 아이템 상태 업데이트 (구매 모드일 때만 affordable 적용)
       const villaItem = document.getElementById('villaItem');
       const officetelItem = document.getElementById('officetelItem');
       const aptItem = document.getElementById('aptItem');
       const shopItem = document.getElementById('shopItem');
       const buildingItem = document.getElementById('buildingItem');
       
-      villaItem.classList.toggle('affordable', cash >= getPropertyCost('villa', villas, qty));
-      officetelItem.classList.toggle('affordable', cash >= getPropertyCost('officetel', officetels, qty));
-      aptItem.classList.toggle('affordable', cash >= getPropertyCost('apartment', apartments, qty));
-      shopItem.classList.toggle('affordable', cash >= getPropertyCost('shop', shops, qty));
-      buildingItem.classList.toggle('affordable', cash >= getPropertyCost('building', buildings, qty));
+      villaItem.classList.toggle('affordable', isBuy && cash >= getPropertyCost('villa', villas, qty));
+      officetelItem.classList.toggle('affordable', isBuy && cash >= getPropertyCost('officetel', officetels, qty));
+      aptItem.classList.toggle('affordable', isBuy && cash >= getPropertyCost('apartment', apartments, qty));
+      shopItem.classList.toggle('affordable', isBuy && cash >= getPropertyCost('shop', shops, qty));
+      buildingItem.classList.toggle('affordable', isBuy && cash >= getPropertyCost('building', buildings, qty));
     }
     
     // 업그레이드 그리드 상태 업데이트 함수
