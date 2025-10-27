@@ -400,20 +400,25 @@
     /* 구매 완료 시 반짝 효과 */
     .purchase-success {
       animation: sparkle 0.6s ease-out;
+      position: relative;
+      z-index: 10;
     }
     
     @keyframes sparkle {
       0% { 
-        transform: scale(1);
+        background-color: var(--good);
         box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+        transform: scale(1);
       }
       50% { 
-        transform: scale(1.1);
-        box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.3);
+        background-color: #ffd700;
+        box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5);
+        transform: scale(1.05);
       }
       100% { 
-        transform: scale(1);
+        background-color: var(--good);
         box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+        transform: scale(1);
       }
     }
     
