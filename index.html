@@ -3054,8 +3054,11 @@
         // 저장 시간
         saveTime: new Date().toISOString(),
         ts: Date.now(),
-        // 게임 시작 시간
-        gameStartTime: gameStartTime
+        // 게임 시작 시간 (호환성 유지)
+        gameStartTime: gameStartTime,
+        // 누적 플레이시간 시스템
+        totalPlayTime: totalPlayTime,
+        sessionStartTime: sessionStartTime
       };
       
       try {
@@ -3074,6 +3077,9 @@
         const saveData = localStorage.getItem(SAVE_KEY);
         if (!saveData) {
           console.log('저장된 게임 데이터가 없습니다.');
+          // 새 게임 시작 시 누적 플레이시간 초기화
+          totalPlayTime = 0;
+          sessionStartTime = Date.now();
           return false;
         }
         
@@ -3145,10 +3151,22 @@
           });
         }
         
-        // 게임 시작 시간 복원
+        // 게임 시작 시간 복원 (호환성 유지)
         if (data.gameStartTime) {
           gameStartTime = data.gameStartTime;
         }
+        
+        // 누적 플레이시간 시스템 복원
+        if (data.totalPlayTime !== undefined) {
+          totalPlayTime = data.totalPlayTime;
+        }
+        if (data.sessionStartTime) {
+          // 이전 세션의 플레이시간을 누적
+          const previousSessionTime = Date.now() - data.sessionStartTime;
+          totalPlayTime += previousSessionTime;
+        }
+        // 새 세션 시작
+        sessionStartTime = Date.now();
         
         console.log('게임 불러오기 완료:', data.saveTime ? new Date(data.saveTime).toLocaleString() : '시간 정보 없음');
         return true;
@@ -4012,7 +4030,10 @@
     console.log('💡 사용법: 상단 "구매/판매" 버튼으로 모드 전환 후 거래하세요!');
     
     // ======= 통계 탭 업데이트 함수 =======
-    let gameStartTime = Date.now(); // 게임 시작 시간 (플레이 시간 측정용)
+    // 누적 플레이시간 시스템
+    let totalPlayTime = 0; // 누적 플레이시간 (밀리초)
+    let sessionStartTime = Date.now(); // 현재 세션 시작 시간
+    let gameStartTime = Date.now(); // 게임 시작 시간 (호환성 유지)
     
     function updateStatsTab() {
       try {
@@ -4032,8 +4053,10 @@
         safeText(document.getElementById('totalClicksStats'), totalClicks.toLocaleString('ko-KR') + '회');
         safeText(document.getElementById('laborIncomeStats'), formatCashDisplay(totalLaborIncome));
         
-        // 플레이 시간 계산
-        const playTimeMinutes = Math.floor((Date.now() - gameStartTime) / 60000);
+        // 플레이 시간 계산 (누적 플레이시간 시스템)
+        const currentSessionTime = Date.now() - sessionStartTime;
+        const totalPlayTimeMs = totalPlayTime + currentSessionTime;
+        const playTimeMinutes = Math.floor(totalPlayTimeMs / 60000);
         const playTimeHours = Math.floor(playTimeMinutes / 60);
         const remainingMinutes = playTimeMinutes % 60;
         const playTimeText = playTimeHours > 0 
