@@ -1580,6 +1580,18 @@
     let shops = 0;        // 상가
     let buildings = 0;    // 빌딩
     
+    // 해금 상태 추적 (버그 수정: 중복 해금 알림 방지)
+    const unlockedProducts = {
+      deposit: true,
+      savings: false,
+      bond: false,
+      villa: false,
+      officetel: false,
+      apartment: false,
+      shop: false,
+      building: false
+    };
+    
     // 금융상품별 기본 수익률 (초당) - 자본주의 메시지: 단계적 성장
     const FINANCIAL_INCOME = {
       deposit: 5,     // 예금: 5원/초 (최저 수익률 - 시작점)
@@ -1783,7 +1795,9 @@
       };
       
       const unlock = unlockMessages[productName];
-      if (unlock && isProductUnlocked(unlock.next)) {
+      // 버그 수정: 아직 해금되지 않았고, 해금 조건을 충족했을 때만 실행
+      if (unlock && !unlockedProducts[unlock.next] && isProductUnlocked(unlock.next)) {
+        unlockedProducts[unlock.next] = true; // 해금 상태 기록
         addLog(unlock.msg);
         
         // 해금 애니메이션
