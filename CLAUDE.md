@@ -148,6 +148,9 @@ Claude Code가 Supabase, Brave Search, 브라우저 자동화 등을 연동하�
 ```
 프로젝트 루트:
 ├── .mcp.json                # ✅ MCP 서버 정의 (Project scope, 커밋 가능)
+├── .mcp/                    # ✅ MCP 헬퍼 스크립트 (커밋 가능)
+│   ├── load-env-and-run.ps1 # .env.mcp 자동 로더
+│   └── README.md            # 스크립트 사용 가이드
 ├── .env.mcp.example         # MCP 환경변수 템플릿 (커밋 가능)
 ├── .env.mcp                 # 실제 MCP 토큰 ⚠️ .gitignore 등록
 ├── .env.local               # 개발 환경 변수 ⚠️ .gitignore 등록
@@ -184,20 +187,29 @@ Claude Code가 Supabase, Brave Search, 브라우저 자동화 등을 연동하�
 | **context7**            | 라이브러리 문서 검색         | ✅ 활성   |
 | **sequential-thinking** | 단계별 추론                  | ✅ 활성   |
 | **playwright**          | 브라우저 자동화              | ✅ 활성   |
+| **github**              | GitHub 저장소, 이슈, PR      | ✅ API 키 |
 | **sentry**              | 에러 모니터링                | ✅ OAuth  |
-| **github**              | GitHub 연동                  | ❌ 미사용 |
+| **testsprite**          | AI 코드 자동 테스트/디버깅   | ✅ API 키 |
 
 ### 환경 변수 설정
 
 **`.env.mcp` 구성:**
 
 ```bash
+# GitHub MCP
+GITHUB_TOKEN=ghp_...  # https://github.com/settings/tokens
+                      # 필요 권한: repo, workflow, read:org
+
 # Supabase MCP
 SUPABASE_URL=https://nvxdwacqmiofpennukeo.supabase.co
 SUPABASE_SERVICE_KEY=eyJ...  # DB 접근 권한
 
 # Brave Search MCP
 BRAVE_API_KEY=BSA...  # https://brave.com/search/api/
+
+# TestSprite MCP
+TESTSPRITE_API_KEY=ts_...  # https://www.testsprite.com/dashboard
+                           # 자동 테스트, 디버깅, 코드 수정
 ```
 
 **`.env.local` 구성 (개발용):**
@@ -206,10 +218,47 @@ BRAVE_API_KEY=BSA...  # https://brave.com/search/api/
 # Supabase 공개 키 (클라이언트)
 VITE_SUPABASE_URL=https://nvxdwacqmiofpennukeo.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-
-# GitHub MCP (현재 미사용)
-# GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
 ```
+
+**⚠️ 중요: 따옴표 사용 금지**
+
+`.env.mcp` 파일에 값을 입력할 때 따옴표를 사용하지 마세요:
+
+```bash
+# ✅ 올바른 형식
+BRAVE_API_KEY=BSAzv4lHYoYloVS3tUhcQ1CXUrLDIi5
+
+# ❌ 잘못된 형식 (따옴표 포함)
+BRAVE_API_KEY="BSAzv4lHYoYloVS3tUhcQ1CXUrLDIi5"
+```
+
+### 환경 변수 자동 로드
+
+`.mcp.json`은 PowerShell 스크립트 `.mcp/load-env-and-run.ps1`을 사용하여 `.env.mcp` 파일에서 환경 변수를 자동으로 로드합니다.
+
+**동작 방식:**
+
+1. MCP 서버 시작 시 `.mcp/load-env-and-run.ps1` 실행
+2. 스크립트가 `.env.mcp` 파일을 읽어서 환경 변수 설정
+3. 실제 MCP 서버 프로세스 시작
+
+**수동 테스트:**
+
+```powershell
+# 환경 변수 로드 테스트
+powershell -ExecutionPolicy Bypass -File .mcp/load-env-and-run.ps1 cmd /c 'echo BRAVE_API_KEY=%BRAVE_API_KEY%'
+
+# 출력 예시: BRAVE_API_KEY=BSAzv4lHYoYloVS3tUhcQ1CXUrLDIi5
+```
+
+**문제 해결:**
+
+MCP 서버가 환경 변수를 찾지 못하는 경우:
+
+1. `.env.mcp` 파일이 프로젝트 루트에 있는지 확인
+2. 값에 따옴표가 없는지 확인
+3. Claude Code를 완전히 종료 후 재시작
+4. 스크립트 테스트: `powershell -ExecutionPolicy Bypass -File .mcp/load-env-and-run.ps1 cmd /c echo %BRAVE_API_KEY%`
 
 ### 보안 관리 체계
 
@@ -231,8 +280,10 @@ echo ".env.mcp" >> .gitignore
 echo ".claude/settings.local.json" >> .gitignore
 
 # 2. 파워셸에서 환경변수 설정 (로컬 세션용)
+$env:GITHUB_TOKEN="ghp_..."
 $env:SUPABASE_SERVICE_KEY="eyJ..."
 $env:BRAVE_API_KEY="BSA..."
+$env:TESTSPRITE_API_KEY="ts_..."
 
 # 3. Claude Code MCP 상태 확인
 claude mcp list
@@ -247,6 +298,7 @@ claude mcp list
 # Supabase: https://app.supabase.com > Settings > API Keys > Rotate
 # Brave: https://brave.com/search/api/ > Revoke API Key
 # GitHub: https://github.com/settings/personal-access-tokens > Delete
+# TestSprite: https://www.testsprite.com/dashboard > Settings > API Keys > Delete
 
 # 2. 새 토큰 발급 및 .env.mcp/.env.local 업데이트
 
@@ -267,9 +319,9 @@ claude mcp list
 # 세션 내 모든 MCP 확인 (Project scope 포함)
 /mcp
 
-# GitHub MCP 추가 (필요 시)
-# .mcp.json에 github 설정 추가 후:
-# GITHUB_PERSONAL_ACCESS_TOKEN=ghp_... .env.mcp에 추가
+# GitHub MCP (현재 활성화됨)
+# 토큰: .env.mcp의 GITHUB_TOKEN
+# 설정: .mcp.json의 github 항목
 
 # MCP 제거
 # .mcp.json에서 해당 서버 설정 삭제

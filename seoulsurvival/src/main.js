@@ -5,6 +5,15 @@ import {
   getPropertyCost,
   getPropertySellPrice,
 } from './economy/pricing.js'
+import {
+  getFinancialIncome as calculateFinancialIncome,
+  getPropertyIncome as calculatePropertyIncome,
+  getRps as calculateRps,
+  getTotalIncomeForContribution as calculateTotalIncomeForContribution,
+  getClickIncome as calculateClickIncome,
+  getCurrentCareer as getCareerByLevel,
+  getNextCareer as getNextCareerByLevel,
+} from './economy/income.js'
 import { createMarketSystem } from './systems/market.js'
 import { createAchievementsSystem } from './systems/achievements.js'
 import { createUpgradeUnlockSystem } from './systems/upgrades.js'
@@ -32,6 +41,8 @@ import * as Modal from './ui/modal.js'
 import * as Animations from './ui/animations.js'
 import * as Diary from './systems/diary.js'
 import * as LeaderboardUI from './ui/leaderboardUI.js'
+import { initSentry } from './monitoring/sentry.js'
+import { setupErrorBoundary } from './core/errorBoundary.js'
 import {
   gameState,
   FINANCIAL_INCOME,
@@ -138,6 +149,14 @@ function showInAppBrowserWarningIfNeeded() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ======= Sentry 초기화 (프로덕션 전용) =======
+  if (import.meta.env.PROD) {
+    initSentry()
+  }
+
+  // ======= 에러 바운더리 설정 =======
+  setupErrorBoundary()
+
   // ======= i18n 초기화 =======
   // 초기 언어 설정 (URL → localStorage → 브라우저 언어)
   const initialLang = getInitialLang()
@@ -2130,63 +2149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // (단순화) 랜덤 변동 제거: 초당 수익은 예측 가능하게 유지하고,
   // 변동성은 '시장 이벤트'만으로 표현합니다.
-  function getFinancialIncome(type, count) {
-    const baseIncome = FINANCIAL_INCOME[type]
-    let income = baseIncome * count
-    const marketMult = getMarketEventMultiplier(type, 'financial')
-    income *= marketMult
-    return income
-  }
-
-  function getPropertyIncome(type, count) {
-    const baseIncome = BASE_RENT[type]
-    let income = baseIncome * count
-    const marketMult = getMarketEventMultiplier(type, 'property')
-    income *= marketMult
-    return income
-  }
-
-  function getRps() {
-    // 금융상품 수익(고정) + 시장 이벤트 배수
-    const financialIncome =
-      getFinancialIncome('deposit', deposits) +
-      getFinancialIncome('savings', savings) +
-      getFinancialIncome('bond', bonds) +
-      getFinancialIncome('usStock', usStocks) +
-      getFinancialIncome('crypto', cryptos)
-
-    // 부동산 수익(고정) + 시장 이벤트 배수
-    const propertyRent =
-      getPropertyIncome('villa', villas) +
-      getPropertyIncome('officetel', officetels) +
-      getPropertyIncome('apartment', apartments) +
-      getPropertyIncome('shop', shops) +
-      getPropertyIncome('building', buildings)
-
-    // 배수 적용 순서: 1) 부동산에 rentMultiplier 적용, 2) 전체에 marketMultiplier 적용
-    const totalIncome = financialIncome + propertyRent * rentMultiplier
-    return totalIncome * marketMultiplier
-  }
-
-  // 퍼센트 표시용 기준 총 수익 (시장 이벤트/개별 배수는 포함, 글로벌 marketMultiplier는 제외)
-  function getTotalIncomeForContribution() {
-    const financialIncome =
-      getFinancialIncome('deposit', deposits) +
-      getFinancialIncome('savings', savings) +
-      getFinancialIncome('bond', bonds) +
-      getFinancialIncome('usStock', usStocks) +
-      getFinancialIncome('crypto', cryptos)
-
-    const propertyRent =
-      getPropertyIncome('villa', villas) +
-      getPropertyIncome('officetel', officetels) +
-      getPropertyIncome('apartment', apartments) +
-      getPropertyIncome('shop', shops) +
-      getPropertyIncome('building', buildings)
-
-    // 부동산에는 rentMultiplier까지 반영 (getRps와 동일 기준, marketMultiplier만 제외)
-    return financialIncome + propertyRent * rentMultiplier
-  }
+  // NOTE: 수익 계산 함수들은 economy/income.js로 이동됨
 
   // 오토 업무 처리 시스템 UI 상태 동기화
   function updateAutoWorkUI() {
@@ -2295,17 +2258,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 구매 가능 알림 체크
 
+  // NOTE: 수익 계산 함수들은 economy/income.js로 이동됨
+  // 래퍼 함수 (원래 이름 유지, 전역 변수를 모듈 함수에 전달)
+
   function getClickIncome() {
-    const currentCareer = getCurrentCareer()
-    return Math.floor(10000 * currentCareer.multiplier * clickMultiplier) // 기본 1만원 × 배수
+    return calculateClickIncome(careerLevel, clickMultiplier)
   }
 
   function getCurrentCareer() {
-    return CAREER_LEVELS[careerLevel]
+    return getCareerByLevel(careerLevel)
   }
 
   function getNextCareer() {
-    return careerLevel < CAREER_LEVELS.length - 1 ? CAREER_LEVELS[careerLevel + 1] : null
+    return getNextCareerByLevel(careerLevel)
+  }
+
+  function getRps() {
+    const state = {
+      deposits,
+      savings,
+      bonds,
+      usStocks,
+      cryptos,
+      villas,
+      officetels,
+      apartments,
+      shops,
+      buildings,
+      rentMultiplier,
+      marketMultiplier,
+    }
+    return calculateRps(state, getMarketEventMultiplier)
+  }
+
+  function getTotalIncomeForContribution() {
+    const state = {
+      deposits,
+      savings,
+      bonds,
+      usStocks,
+      cryptos,
+      villas,
+      officetels,
+      apartments,
+      shops,
+      buildings,
+      rentMultiplier,
+      marketMultiplier,
+    }
+    return calculateTotalIncomeForContribution(state, getMarketEventMultiplier)
+  }
+
+  function getFinancialIncome(type, count) {
+    return calculateFinancialIncome(type, count, getMarketEventMultiplier)
+  }
+
+  function getPropertyIncome(type, count) {
+    return calculatePropertyIncome(type, count, getMarketEventMultiplier)
   }
 
   // 자동 승진 체크 함수 (클릭 수 기준)
@@ -6900,6 +6909,7 @@ document.addEventListener('DOMContentLoaded', () => {
       LeaderboardUI.startLeaderboardPolling()
     }
     LeaderboardUI.setupLeaderboardObserver()
+    LeaderboardUI.initLeaderboardRefreshButton()
   }, 1000)
 
   // 업그레이드 섹션 초기 상태 설정 (열림)
