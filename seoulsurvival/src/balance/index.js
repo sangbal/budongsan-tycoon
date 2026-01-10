@@ -47,3 +47,12 @@ export {
 
 // 시장 이벤트
 export { MARKET_EVENTS } from './marketEvents.js'
+
+// 시너지 시스템 (참고용)
+export {
+  SYNERGIES,
+  getActiveSynergies,
+  getSynergyMultiplier,
+  updateCompletionistSynergy,
+  getSynergyDisplayData,
+} from '../systems/synergy.js'

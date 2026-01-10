@@ -2,34 +2,27 @@
 
 export function safeSetJSON(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
+    localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
-    return false;
+    return false
   }
 }
 
 export function safeGetJSON(key, fallback = null) {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
   } catch {
-    return fallback;
+    return fallback
   }
 }
 
 export function safeRemove(key) {
   try {
-    localStorage.removeItem(key);
-    return true;
+    localStorage.removeItem(key)
+    return true
   } catch {
-    return false;
+    return false
   }
 }
-
-
-
-
-
-
-

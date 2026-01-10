@@ -8,9 +8,15 @@ import {
   CAREER_LEVELS,
   BASE_CLICK_GAIN,
 } from '../state/gameState.js'
+import {
+  getSynergyMultiplier,
+  applyPropertySynergyMultiplier,
+  applyFinancialSynergyMultiplier,
+} from '../systems/synergy.js'
+import { getPrestigeMultiplier } from '../systems/prestigeBonus.js'
 
 /**
- * 금융상품의 현재 수익 계산 (시장 이벤트 배수 포함)
+ * 금융상품의 현재 수익 계산 (시장 이벤트 배수 + 시너지 배수 + 프레스티지 배수 포함)
  * @param {string} type - 금융상품 타입 (deposit, savings, bond, usStock, crypto)
  * @param {number} count - 보유 수량
  * @param {Function} getMarketEventMultiplier - 시장 이벤트 배수 함수
@@ -21,11 +27,16 @@ export function getFinancialIncome(type, count, getMarketEventMultiplier) {
   let income = baseIncome * count
   const marketMult = getMarketEventMultiplier(type, 'financial')
   income *= marketMult
+  // 시너지 배수 적용 (금융 전문가, 다각화 등)
+  income = applyFinancialSynergyMultiplier(income, gameState)
+  // 프레스티지 배수 적용 (자동 수익 강화, 궁극의 힘 등)
+  income *= getPrestigeMultiplier('auto_income')
+  income *= getPrestigeMultiplier('all_income')
   return income
 }
 
 /**
- * 부동산의 현재 수익 계산 (시장 이벤트 배수 포함)
+ * 부동산의 현재 수익 계산 (시장 이벤트 배수 + 시너지 배수 + 프레스티지 배수 포함)
  * @param {string} type - 부동산 타입 (villa, officetel, apartment, shop, building)
  * @param {number} count - 보유 수량
  * @param {Function} getMarketEventMultiplier - 시장 이벤트 배수 함수
@@ -36,6 +47,11 @@ export function getPropertyIncome(type, count, getMarketEventMultiplier) {
   let income = baseIncome * count
   const marketMult = getMarketEventMultiplier(type, 'property')
   income *= marketMult
+  // 시너지 배수 적용 (부동산 왕, 서울 지배자, 다각화 등)
+  income = applyPropertySynergyMultiplier(income, gameState)
+  // 프레스티지 배수 적용 (자동 수익 강화, 궁극의 힘 등)
+  income *= getPrestigeMultiplier('auto_income')
+  income *= getPrestigeMultiplier('all_income')
   return income
 }
 
@@ -93,14 +109,15 @@ export function getTotalIncomeForContribution(state, getMarketEventMultiplier) {
 }
 
 /**
- * 클릭당 수익 계산 (직급 배수 + 업그레이드 배수)
+ * 클릭당 수익 계산 (직급 배수 + 업그레이드 배수 + 프레스티지 배수)
  * @param {number} careerLevel - 현재 직급 레벨
  * @param {number} clickMultiplier - 클릭 배수
  * @returns {number} 클릭당 수익
  */
 export function getClickIncome(careerLevel, clickMultiplier) {
   const currentCareer = CAREER_LEVELS[careerLevel]
-  return Math.floor(BASE_CLICK_GAIN * currentCareer.multiplier * clickMultiplier)
+  const prestigeMult = getPrestigeMultiplier('click_power')
+  return Math.floor(BASE_CLICK_GAIN * currentCareer.multiplier * clickMultiplier * prestigeMult)
 }
 
 /**

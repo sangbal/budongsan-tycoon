@@ -18,6 +18,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: [
+        'seoulsurvival/src/**/*.js', // 명시적으로 소스 디렉토리 포함
+      ],
       exclude: [
         'node_modules/',
         'dist/',
@@ -26,7 +29,15 @@ export default defineConfig({
         'tests/',
         '**/*.config.js',
         '**/*.config.ts',
+        '**/__tests__/**', // 테스트 파일 제외
+        '**/*.test.js', // 테스트 파일 제외
+        '**/main.js', // 통합 파일 제외 (E2E로 테스트)
       ],
+      // 커버리지 임계값 설정
+      statements: 50,
+      branches: 45,
+      functions: 50,
+      lines: 50,
     },
   },
   resolve: {

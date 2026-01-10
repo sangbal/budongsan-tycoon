@@ -53,6 +53,7 @@ let __leaderboardUpdateTimer = null
 let __lbPollingStarted = false
 let __lbInterval = null
 let __lbObserver = null
+let __lbFirstLoad = true // 페이지 로드 후 첫 랭킹 탭 진입 플래그
 
 // ======= 게임 상태 참조 (main.js에서 설정) =======
 let gameStateRef = null
@@ -611,12 +612,16 @@ export function startLeaderboardPolling() {
   // 플래그 설정 (타이머 설정 전에 설정하여 중복 방지)
   __lbPollingStarted = true
 
-  // 즉시 1회 업데이트
-  updateLeaderboardUI(true)
+  // 첫 로드일 때만 즉시 업데이트
+  if (__lbFirstLoad) {
+    updateLeaderboardUI(true)
+    __lbFirstLoad = false
+  }
 
-  // 다음 분(정각)까지 대기 후, 1분마다 갱신
+  // 다음 5분 정각까지 대기 후, 5분마다 갱신
   const now = Date.now()
-  const delayToNextMinute = 60000 - (now % 60000)
+  const POLLING_INTERVAL_MS = 300000 // 5분 = 300초
+  const delayToNextInterval = POLLING_INTERVAL_MS - (now % POLLING_INTERVAL_MS)
 
   __lbInterval = setTimeout(function tick() {
     const rankingActive = rankingTab.classList.contains('active')
@@ -626,8 +631,8 @@ export function startLeaderboardPolling() {
       return
     }
     updateLeaderboardUI(false)
-    __lbInterval = setTimeout(tick, 60000)
-  }, delayToNextMinute)
+    __lbInterval = setTimeout(tick, POLLING_INTERVAL_MS)
+  }, delayToNextInterval)
 }
 
 /**
@@ -710,4 +715,34 @@ export function setupLeaderboardObserver() {
   )
 
   __lbObserver.observe(container)
+}
+
+/**
+ * 리더보드 새로고침 버튼 초기화
+ */
+export function initLeaderboardRefreshButton() {
+  const refreshBtn = document.getElementById('leaderboardRefreshBtn')
+  if (!refreshBtn) return
+
+  refreshBtn.addEventListener('click', async () => {
+    // 이미 로딩 중이면 무시
+    if (__leaderboardLoading) {
+      return
+    }
+
+    // 로딩 애니메이션 시작
+    refreshBtn.classList.add('loading')
+    refreshBtn.disabled = true
+
+    try {
+      // 강제 업데이트 실행
+      await updateLeaderboardUI(true)
+    } catch (error) {
+      console.error('[LB] 수동 새로고침 실패:', error)
+    } finally {
+      // 로딩 애니메이션 종료
+      refreshBtn.classList.remove('loading')
+      refreshBtn.disabled = false
+    }
+  })
 }

@@ -569,4 +569,56 @@ export default {
   'upgrade.financial_expert.desc': '모든 금융 수익 +20%',
   'upgrade.auto_work_system.name': '🤖 AI 업무 처리 시스템',
   'upgrade.auto_work_system.desc': '1초마다 자동으로 1회 클릭 (초당 수익 추가)',
+
+  // 프레스티지 보너스 (Tier 1: 타워 1+)
+  'prestige.clickMaster.name': '클릭 마스터',
+  'prestige.clickMaster.desc': '타워당 클릭 파워 +10%',
+  'prestige.autoIncomeBoost.name': '자동 수익 강화',
+  'prestige.autoIncomeBoost.desc': '타워당 자동 수익 +5%',
+  'prestige.discountMaster.name': '할인 전문가',
+  'prestige.discountMaster.desc': '타워당 모든 가격 -2% (최대 50%)',
+  'prestige.startingCapital.name': '스타트 자금',
+  'prestige.startingCapital.desc': '타워당 시작 자금 +100만원',
+
+  // 프레스티지 보너스 (Tier 2: 타워 3+)
+  'prestige.upgradePower.name': '업그레이드 강화',
+  'prestige.upgradePower.desc': '모든 업그레이드 효과 +20%',
+  'prestige.offlineBoost.name': '오프라인 수익 증가',
+  'prestige.offlineBoost.desc': '오프라인 계산 시간 +50%',
+
+  // 프레스티지 보너스 (Tier 3: 타워 5+)
+  'prestige.specialUpgrades.name': '특수 업그레이드 해금',
+  'prestige.specialUpgrades.desc': '프레스티지 전용 업그레이드 활성화',
+  'prestige.synergyMaster.name': '시너지 전문가',
+  'prestige.synergyMaster.desc': '모든 시너지 효과 +25%',
+
+  // 프레스티지 보너스 (Tier 4: 타워 10+)
+  'prestige.timeWarp.name': '시간 왜곡',
+  'prestige.timeWarp.desc': '게임 틱 속도 +10%',
+  'prestige.ultimatePower.name': '궁극의 힘',
+  'prestige.ultimatePower.desc': '모든 수익 x1.5',
+
+  // 프레스티지 UI
+  'prestige.title': '프레스티지 보너스',
+  'prestige.hint.none': '첫 타워를 획득하면 프레스티지 보너스가 활성화됩니다.',
+  'prestige.effect.unlocked': '해금됨',
+
+  // 시너지 시스템
+  'synergy.realEstateMogul.name': '부동산 왕',
+  'synergy.realEstateMogul.desc': '부동산 5종 보유 → 부동산 수익 +30%',
+  'synergy.financeGuru.name': '금융 전문가',
+  'synergy.financeGuru.desc': '금융 5종 보유 → 금융 수익 +25%',
+  'synergy.diversification.name': '다각화',
+  'synergy.diversification.desc': '모든 상품 보유 → 전체 수익 +15%',
+  'synergy.seoulRuler.name': '서울 지배자',
+  'synergy.seoulRuler.desc': '빌딩 5개+ 보유 → 전체 수익 +50%',
+  'synergy.completionist.name': '완벽주의자',
+  'synergy.completionist.desc': '모든 업그레이드 구매 → 전체 수익 +100%',
+
+  // 시너지 UI
+  'synergy.title': '🔗 빌드 시너지',
+  'synergy.subtitle': '특정 조합으로 보너스 수익 획득!',
+  'synergy.active': '활성화',
+  'synergy.inactive': '미활성화',
+  'synergy.none': '활성화된 시너지가 없습니다.',
 }

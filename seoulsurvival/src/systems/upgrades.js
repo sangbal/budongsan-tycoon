@@ -5,19 +5,19 @@
  * @param {{addLog:(msg:string)=>void, onAnyUnlocked?:()=>void}} deps
  */
 export function createUpgradeUnlockSystem(upgrades, deps) {
-  const { addLog, onAnyUnlocked } = deps;
+  const { addLog, onAnyUnlocked } = deps
 
   function checkUpgradeUnlocks() {
-    let newUnlocks = 0;
+    let newUnlocks = 0
 
     for (const [id, upgrade] of Object.entries(upgrades)) {
-      if (upgrade.purchased || upgrade.unlocked) continue;
+      if (upgrade.purchased || upgrade.unlocked) continue
 
       try {
         if (upgrade.unlockCondition()) {
-          upgrade.unlocked = true;
-          newUnlocks++;
-          addLog(`🎁 새 업그레이드 해금: ${upgrade.name}`);
+          upgrade.unlocked = true
+          newUnlocks++
+          addLog(`🎁 새 업그레이드 해금: ${upgrade.name}`)
         }
       } catch {
         // 해금 조건 평가 실패는 무시(게임 진행 유지)
@@ -26,16 +26,9 @@ export function createUpgradeUnlockSystem(upgrades, deps) {
     }
 
     if (newUnlocks > 0 && onAnyUnlocked) {
-      onAnyUnlocked();
+      onAnyUnlocked()
     }
   }
 
-  return { checkUpgradeUnlocks };
+  return { checkUpgradeUnlocks }
 }
-
-
-
-
-
-
-

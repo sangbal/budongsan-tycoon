@@ -1,0 +1,31 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
+  "mcpServers": {
+    "github": {
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".mcp/load-env-and-run.ps1",
+        "npx", "-y", "@modelcontextprotocol/server-github"
+      ],
+      "description": "GitHub - 저장소 관리, 이슈, PR, Actions (GITHUB_TOKEN 필요)"
+    },
+    "filesystem": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "로컬 파일시스템 접근 (읽기/쓰기/디렉토리 관리)"
+    },
+    "testsprite": {
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".mcp/load-env-and-run.ps1",
+        "npx", "-y", "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "${TESTSPRITE_API_KEY}"
+      },
+      "description": "TestSprite - AI 코드 자동 테스트, 디버깅, 수정 (API_KEY 필요)"
+    }
+  }
+}

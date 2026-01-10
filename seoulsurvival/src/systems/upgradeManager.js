@@ -7,6 +7,7 @@
 import * as NumberFormat from '../utils/numberFormat.js'
 import { t } from '../i18n/index.js'
 import * as Diary from './diary.js'
+import { updateCompletionistSynergy } from './synergy.js'
 
 // 개발 모드 체크 (디버깅 로그 제어용)
 const __IS_DEV__ = !!import.meta?.env?.DEV
@@ -272,6 +273,9 @@ export function createUpgradeManager(deps) {
 
     updateUpgradeList()
     updateUpgradeAffordability()
+
+    // 완벽주의자 시너지 업데이트 (모든 업그레이드 구매 체크)
+    updateCompletionistSynergy(UPGRADES)
   }
 
   return {

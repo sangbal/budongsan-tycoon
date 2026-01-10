@@ -20,9 +20,17 @@ import { createUpgradeUnlockSystem } from './systems/upgrades.js'
 import { createUpgradeManager } from './systems/upgradeManager.js'
 import { getDomRefs } from './ui/domRefs.js'
 import { safeClass, safeHTML, safeText } from './ui/domUtils.js'
-import { updateStatsTab as updateStatsTabImpl } from './ui/statsTab.js'
+import {
+  updateStatsTab as updateStatsTabImpl,
+  resetGrowthTracking,
+  loadGrowthTracking,
+  saveGrowthTracking,
+  setAchievementScrollActive,
+} from './ui/statsTab.js'
 import { createInvestmentTab } from './ui/investmentTab.js'
-import { fetchCloudSave, upsertCloudSave } from '../../shared/cloudSave.js'
+import { createCloudSyncManager } from './persist/cloudSync.js'
+import { createSaveLoadManager } from './persist/saveLoad.js'
+import { createNicknameManager } from './systems/nicknameManager.js'
 import { getUser, onAuthStateChange, signInGoogle } from '../../shared/auth/core.js'
 import { isSupabaseConfigured } from '../../shared/auth/config.js'
 import {
@@ -34,15 +42,26 @@ import {
   claimNickname,
   getMyRank,
 } from '../../shared/leaderboard.js'
-import { t, applyI18nToDOM, setLang, getLang, getInitialLang } from './i18n/index.js'
+import {
+  t,
+  applyI18nToDOM,
+  applyI18nToDOMAsync,
+  setLang,
+  getLang,
+  getInitialLang,
+} from './i18n/index.js'
 import { GAME_VERSION } from './version.js'
 import * as NumberFormat from './utils/numberFormat.js'
 import * as Modal from './ui/modal.js'
 import * as Animations from './ui/animations.js'
 import * as Diary from './systems/diary.js'
 import * as LeaderboardUI from './ui/leaderboardUI.js'
+import { updateSynergyDisplay } from './ui/synergyDisplay.js'
+import { updateCompletionistSynergy } from './systems/synergy.js'
 import { initSentry } from './monitoring/sentry.js'
 import { setupErrorBoundary } from './core/errorBoundary.js'
+import { createUpgrades } from './data/upgrades.js'
+import { createAchievements } from './data/achievements.js'
 import {
   gameState,
   FINANCIAL_INCOME,
@@ -58,6 +77,7 @@ import {
   getTotalProperties,
   BASE_CLICK_GAIN,
 } from './state/gameState.js'
+import { getStartingCash } from './systems/prestigeBonus.js'
 
 // ===== 밸런스 설정 import =====
 import { MARKET_EVENTS, BASE_COSTS } from './balance/index.js'
@@ -161,7 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 초기 언어 설정 (URL → localStorage → 브라우저 언어)
   const initialLang = getInitialLang()
   setLang(initialLang)
-  applyI18nToDOM()
+  // 번역 로드 완료 후 DOM에 적용 (비동기)
+  applyI18nToDOMAsync()
 
   // ======= 모달 시스템 초기화 =======
   Modal.initModal()
@@ -206,450 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch {
     // 브라우저가 해당 이벤트를 지원하지 않아도 무시
   }
-
-  /*
-    ============================================
-    CHANGELOG v3.1.0 - 이벤트/밸런스 대폭 강화
-    ============================================
-    [새 기능]
-    • ⚡ 시장 이벤트: 상품별 세분화된 이벤트 (32개 → 64개로 확장)
-      - 강남 아파트 대박, 코인 시장 폭락 등 현실적 이벤트
-    • ⚡ 시장 이벤트: 상품별 세분화된 이벤트 (32개 → 64개로 확장)
-      - 강남 아파트 대박, 코인 시장 폭락 등 현실적 이벤트
-      - 각 상품별 개별 수익/손실 효과
-    • 📈 업그레이드 재밸런싱: 48개 업그레이드 비용/효과 최적화
-      - 게임 밸런싱 전문가 관점에서 전체적 조정
-    • 🏆 업적 확장: 16개 → 32개 업적으로 확장
-      - 시장 이벤트 등 게임 진행 업적 추가
-    • 🎨 시각 효과: 떨어지는 지폐/상품 애니메이션 추가
-      - 노동 클릭 시 지폐 떨어짐
-      - 상품 구매 시 해당 상품 이모지 떨어짐
-    
-    [버그 수정]
-    • 🔧 중복 선언 오류 수정 (marketEventEndTime)
-    • 🔧 버튼 상태 오류 수정 (미국주식, 코인 구매 버튼)
-    • 🔧 하이라이트 이펙트 오류 수정 (잘못된 상품 하이라이트)
-    
-    [개선사항]
-    • 📝 README.md 업데이트: 새로운 기능들 반영
-    • ⚖️ 게임 밸런싱: 중반 허리 이어주기 (미국주식, 코인)
-    • 🔄 순차 해금: 예금→적금→국내주식→미국주식→코인→빌라 순서
-    
-    CHANGELOG v2.11.0 - PC 버전 통계 탭 추가 및 반응형 개선
-    ============================================
-    [새 기능]
-    • 📊 PC 버전에 통계 탭 상시 표시 (3열 그리드)
-    • 🖥️ 화면 크기별 반응형 레이아웃
-      - 1367px 이상: 4열 (노동 + 투자 + 통계 + 설정)
-      - 769px~1366px: 2열 + 통계 하단
-      - 768px 이하: 모바일 탭 네비게이션
-    • 📐 통계 탭 컴팩트 스타일링 (PC 최적화)
-    • 📜 자동 스크롤 지원 (max-height: 85vh)
-    
-    CHANGELOG v2.10.1 - 업그레이드 효과 중복 적용 버그 수정
-    ============================================
-    [버그 수정]
-    • 🐛 새로고침 시 clickMultiplier가 계속 증가하는 버그 수정
-    • 업그레이드 효과 재적용 코드 제거 (배수는 이미 저장된 값으로 복원됨)
-    • 이제 새로고침해도 시급이 정상적으로 유지됩니다
-    
-    CHANGELOG v2.10.0 - Cookie Clicker 스타일 통계 탭
-    ============================================
-    [새 기능]
-    • 📊 Cookie Clicker 스타일의 상세 통계 탭 구현
-    • 💰 총 자산 및 누적 수익 표시
-    • 📈 수익 구조 시각화 (노동/금융/부동산 비율)
-    • 📊 자산별 누적 수익 및 개당 효율 분석
-    • ⏱️ 플레이 시간 및 시간당 수익 추적
-    • 🏆 업적 그리드 시스템
-    • ⚡ 효율 순위 TOP 3 표시
-    
-    [데이터 추적]
-    • 게임 시작 시간 저장/불러오기
-    • 실시간 통계 업데이트
-    • 모바일 최적화 반응형 레이아웃
-    
-    CHANGELOG v2.9.0 - 순차 해금 시스템
-    ============================================
-    
-    🔐 금융상품과 부동산의 단계적 해금 시스템 도입
-    
-    A. 순차 해금 체계 ✅
-    예금 (항상 가능)
-      → 적금 (예금 1개 필요)
-        → 주식 (적금 1개 필요)
-          → 빌라 (주식 1개 필요)
-            → 오피스텔 (빌라 1개 필요)
-              → 아파트 (오피스텔 1개 필요)
-                → 상가 (아파트 1개 필요)
-                  → 빌딩 (상가 1개 필요)
-    
-    B. 시각적 피드백 ✅
-    - 🔒 잠긴 상품: 회색 처리 + 잠금 아이콘 표시
-    - 투명도 30%, 흑백 필터 90%
-    - 클릭 불가 (pointer-events: none)
-    - 호버 효과 비활성화
-    
-    C. 해금 메시지 및 애니메이션 ✅
-    - 상품 구매 시 다음 상품 자동 해금 체크
-    - "🔓 적금이 해금되었습니다!" 메시지
-    - 발광 애니메이션 (1초간 초록색 빛)
-    - 자연스러운 확대/축소 효과
-    
-    D. 에러 방지 ✅
-    - 잠긴 상품 클릭 시 안내 메시지
-    - "❌ 적금은 예금을 1개 이상 보유해야 해금됩니다."
-    - 명확한 해금 조건 안내
-    
-    E. 게임 플레이 효과 ✅
-    - 초보자 친화적: 단계별 학습 유도
-    - 명확한 진행 경로: 무엇을 다음에 해야 하는지 명확
-    - 성취감 증가: 새 상품 해금 시마다 보상감
-    - 전략적 깊이: 효율보다 해금이 우선
-    
-    ============================================
-    CHANGELOG v2.8.1 - 노동 배수 밸런싱
-    ============================================
-    
-    ⚖️ 게임 밸런스 개선: 노동 수익 너프로 부동산 가치 회복
-    
-    A. 업그레이드 배수 조정 (보수적 너프) ✅
-    기존 → 새로운 배수
-    - ⚡ 효율적인 업무 처리: ×2 → ×1.5
-    - 🎯 집중력 강화: ×2 → ×1.5
-    - 💰 성과급 (구 골든 클릭): 평균 ×1.9 → ×1.5 (10% 확률로 6배)
-    - 🔥 초과근무: ×2 → ×1.3
-    - 💎 전문성 개발: ×2 → ×1.3
-    - 👔 CEO 특권: ×3 → ×2
-    
-    최종 누적 배수: 91.2배 → 11.4배 (약 8배 감소)
-    
-    B. 네이밍 변경 ✅
-    - "✨ 골든 클릭" → "💰 성과급" (더 현실적인 표현)
-    - 로그 메시지: "골든 클릭! 10배 수익!" → "성과급 지급! 6배 수익!"
-    
-    C. 게임 밸런스 효과 ✅
-    CEO 클릭당 수익 비교:
-    - 기존: 2,280만원/클릭 (과도함)
-    - 개선: 285만원/클릭 (적절함)
-    
-    부동산 대비 균형:
-    - 빌딩 월세: 51.4만원/초
-    - CEO 오토클릭: 285만원/초 = 빌딩 5.5채 수준
-    - 결론: 노동 + 부동산 모두 의미있게 작동 ⚖️
-    
-    D. 실전 시급표 (CEO + 모든 업그레이드) ✅
-    - 기본: 25만원 → 25만원
-    - +⚡: 50만원 → 37.5만원
-    - +🎯: 100만원 → 56.3만원
-    - +💰: 190만원 → 84.4만원 (평균)
-    - +🔥: 380만원 → 109.8만원
-    - +💎: 760만원 → 142.7만원
-    - +👔: 2,280만원 → 285만원 (최종)
-    
-    ============================================
-    CHANGELOG v2.8.0 - 노동 시스템 종합 최적화
-    ============================================
-    
-    🎯 노동 수익 시스템 4대 최적화 완료
-    
-    A. 승진 필요 클릭 수 재조정 (부드러운 곡선) ✅
-    기존 → 새로운 값 (더 부드러운 성장 곡선)
-    - 계약직: 20 → 50 클릭
-    - 사원: 40 → 100 클릭
-    - 대리: 120 → 200 클릭
-    - 과장: 240 → 350 클릭
-    - 차장: 400 → 550 클릭
-    - 부장: 600 → 800 클릭
-    - 상무: 800 → 1,100 클릭
-    - 전무: 1,200 → 1,500 클릭
-    - CEO: 2,000 클릭 (유지)
-    
-    B. 업그레이드 해금 조건 재조정 ✅
-    더 빠른 타이밍에 해금되어 초중반 강화
-    - ⚡ 효율적인 업무 처리: 100 → 50 클릭 (사원 직전)
-    - 🎯 집중력 강화: 500 → 250 클릭 (과장 직전)
-    - ✨ 골든 클릭: 1,000 → 600 클릭 (부장 직전)
-    
-    C. 신규 업그레이드 3종 추가 ✅
-    후반 노동 수익 강화를 위한 새로운 업그레이드
-    - 🔥 초과근무 (1,200 클릭): 클릭당 수익 ×2, 5천만원
-    - 💎 전문성 개발 (2,000 클릭): 클릭당 수익 ×2, 2억원
-    - 👔 CEO 특권 (CEO 달성): 클릭당 수익 ×3, 10억원
-    
-    D. 오토클릭 시스템 추가 ✅
-    자동화로 후반 게임플레이 개선
-    - 📱 자동 업무 처리 시스템: 1초마다 자동 1회 클릭
-    - 해금 조건: 상무(7레벨) 이상 + 부동산 10채 보유
-    - 비용: 50억원
-    - 골든 클릭 확률 적용 (10% 확률로 10배)
-    
-    E. 게임 밸런스 효과 ✅
-    - 초반: 더 빠른 업그레이드로 재미 증가
-    - 중반: 부드러운 승진 곡선으로 지루함 감소
-    - 후반: 신규 업그레이드 + 오토클릭으로 의미 있는 노동 수익
-    - 최종 배수: 1 × 2 × 2 × 2 × 2 × 2 × 3 = 192배 (기존 32배 대비 6배 증가)
-    - CEO + 모든 업그레이드: 25 × 192 = 4,800배 (클릭당 4,800만원!)
-    
-    ============================================
-    CHANGELOG v2.7.1 - 노동 시급 밸런싱 (연봉 기반)
-    ============================================
-    
-    ⚖️ 게임 밸런스 개선: 현실적인 급여 체계 적용
-    
-    A. 직급별 시급 조정 (연봉 기반) ✅
-    - 알바 (2000만원): 1.0배 → 1.0배 (유지)
-    - 계약직 (3000만원): 1.5배 → 1.5배 (유지)
-    - 사원 (4000만원): 2.5배 → 2.0배 (-20%)
-    - 대리 (5000만원): 4.0배 → 2.5배 (-37.5%)
-    - 과장 (6000만원): 6.0배 → 3.0배 (-50%)
-    - 차장 (7000만원): 8.0배 → 3.5배 (-56%)
-    - 부장 (8000만원): 12.0배 → 4.0배 (-67%)
-    - 상무 (1억원): 18.0배 → 5.0배 (-72%)
-    - 전무 (2억원): 30.0배 → 10.0배 (-67%)
-    - CEO (5억원): 50.0배 → 25.0배 (-50%)
-    
-    B. 게임 밸런스 개선 효과 ✅
-    - 초중반 금융상품의 의미 강화
-    - 부동산 투자 필요성 증가
-    - 노동 vs 자산 수익 균형 달성
-    - 후반에도 여전히 폭발적 성장 (전무 10배, CEO 25배)
-    
-    C. 현실성 개선 ✅
-    - 실제 연봉 체계와 일치
-    - 연간 2,000시간 근무 기준
-    - 직급별 합리적인 급여 상승 곡선
-    
-    D. 게임플레이 영향 ✅
-    - 초반(알바~계약직): 변화 없음, 진입 장벽 유지
-    - 중반(사원~부장): 노동 수익 감소, 투자 필수화
-    - 후반(상무~CEO): 여전히 강력하지만 부동산과 균형
-    
-    ============================================
-    CHANGELOG v2.7.0 - Cookie Clicker 스타일 3줄 설명 시스템
-    ============================================
-    
-    🎮 Cookie Clicker 벤치마킹: 상품 설명 구조 개선
-    
-    A. 3줄 설명 시스템 도입 ✅
-    각 금융상품/부동산마다 다음 정보를 표시:
-    - 1줄: 개별 수익 (예: "• 각 예금이 초당 10원 생산")
-    - 2줄: 총 기여도 (예: "• 5개 예금이 초당 50원 생산 (총 수익의 5%)")
-    - 3줄: 누적 생산량 (예: "• 지금까지 125,000원 생산")
-    
-    B. 누적 생산량 추적 시스템 ✅
-    - 금융상품: depositsLifetime, savingsLifetime, bondsLifetime
-    - 부동산: villasLifetime, officetelsLifetime, apartmentsLifetime, shopsLifetime, buildingsLifetime
-    - 매 틱(50ms)마다 개별 상품의 생산량 누적
-    - 저장/불러오기에 포함
-    
-    C. 실시간 통계 계산 ✅
-    - 각 상품의 총 수익 = 개당 수익 × 보유 개수
-    - 전체 RPS 대비 비율 계산
-    - 숫자 서식: 천단위 콤마, 원단위 표시
-    
-    D. UI/UX 개선 ✅
-    - 플레이어가 각 상품의 효율성을 한눈에 파악
-    - 어느 상품이 가장 많이 벌고 있는지 직관적으로 확인
-    - 누적 생산량으로 성취감 제공
-    - Cookie Clicker의 정보 전달 방식 완벽 구현
-    
-    E. 기술 구현 ✅
-    - HTML: 8개 상품 × 3개 정보 = 24개 새 요소 추가
-    - JavaScript: updateUI()에서 실시간 계산 및 업데이트
-    - 게임 루프: deltaTime 기반 누적 생산량 계산
-    - 저장/불러오기: 모든 lifetime 변수 포함
-    
-    ============================================
-    CHANGELOG v2.6.2 - UI 디자인 통일
-    ============================================
-    
-    🎨 전체 UI 일관성 개선
-    
-    A. 금융상품/부동산 카드 스타일 업그레이드와 통일 ✅
-    - 배경색: var(--btn2) → var(--btn)
-    - 테두리: 1px → 2px solid transparent
-    - border-radius: 12px → 8px
-    - 호버 효과: 배경 변경 + 테두리 하늘색 + 위로 이동
-    - 간격: 10px → 8px (일관성)
-    
-    B. 구매 가능 상태 시각 효과 개선 ✅
-    - affordable: 초록 테두리 + 발광 애니메이션 (업그레이드와 동일)
-    - 기존: border-left만 → 개선: 전체 테두리 + 그림자
-    - upgradeGlow 애니메이션 공유
-    
-    C. 버튼 디자인 현대화 ✅
-    - 배경: var(--btn) → var(--accent) (민트색)
-    - 텍스트: var(--text) → var(--bg) (검정, 대비 강화)
-    - 크기: padding 16px 22px → 8px 16px (컴팩트)
-    - 폰트: 기본 → 12px (일관성)
-    - 호버: 밝기 증가 + 크기 확대
-    - 비활성: 회색 배경
-    
-    D. 메타 정보 레이아웃 개선 ✅
-    - flex:1 추가로 공간 최적 활용
-    - desc 마진: 4px 추가 (가독성)
-    - pointer-events:none으로 클릭 간섭 방지
-    
-    E. 전체적인 통일감 ✅
-    - 업그레이드 / 금융상품 / 부동산 모두 동일한 디자인 언어
-    - 호버 시 일관된 반응
-    - 구매 가능 시 동일한 시각적 피드백
-    
-    ============================================
-    CHANGELOG v2.6.1 - 업그레이드 클릭 문제 해결
-    ============================================
-    
-    🐛 핵심 버그 수정: 업그레이드 클릭 불가 문제
-    
-    A. 문제 진단 ✅
-    - updateUI()가 50ms마다 호출되면서 updateUpgradeList()도 함께 호출
-    - DOM이 초당 20번 재생성되어 클릭 도중 요소가 사라짐
-    - 테두리 깜빡임 현상 (업그레이드 리스트 재생성 신호)
-    - F12 개발자 도구 열면 성능 저하로 클릭 가능 (증상 확인)
-    
-    B. 해결 방법 ✅
-    - updateUpgradeList() → 해금/구매 시에만 호출 (DOM 재생성)
-    - updateUpgradeAffordability() → 매 틱마다 호출 (클래스만 토글)
-    - pointer-events: none을 자식 요소에 적용
-    
-    C. 성능 개선 ✅
-    - DOM 재생성: 초당 20회 → 필요시에만
-    - 스타일 업데이트: 0회 → 초당 20회 (가벼움)
-    - CPU 사용량: 감소
-    - 메모리 사용량: 감소
-    
-    D. 사용자 경험 개선 ✅
-    - ✅ 테두리 깜빡임 완전 제거
-    - ✅ 클릭 100% 작동 보장
-    - ✅ F12 없이도 정상 구매 가능
-    - ✅ 부드러운 애니메이션
-    
-    ============================================
-    CHANGELOG v2.6 - Cookie Clicker 스타일 업그레이드 시스템
-    ============================================
-    
-    🎯 핵심 개편: "건물별 업그레이드 해금 시스템"
-    
-    A. 업그레이드 시스템 전면 개편 ✅
-    - 기존 3x3 그리드 → Cookie Clicker 스타일 리스트
-    - 하단 업그레이드 섹션 통합 (월세 수익률, 관리인 고용)
-    - 동적 해금 시스템: 조건 충족 시 자동 표시
-    
-    B. 건물별 업그레이드 추가 ✅
-    - 노동: 총 클릭 수 기반 (3개)
-    - 예금: 5/25개 보유 시 (2개)
-    - 적금: 5/25개 보유 시 (2개)
-    - 주식: 5/25개 보유 시 (2개)
-    - 빌라: 5/25개 보유 시 (2개)
-    - 오피스텔: 5/25개 보유 시 (2개)
-    - 아파트: 5/25개 보유 시 (2개)
-    - 상가: 5/25개 보유 시 (2개)
-    - 빌딩: 5/25개 보유 시 (2개)
-    - 전역: 총 부동산/금융 개수 기반 (3개)
-    
-    C. UI/UX 개선 ✅
-    - 구매 가능한 업그레이드 시각적 강조 (발광 효과)
-    - NEW! 배지 추가
-    - 업그레이드 개수 표시 "(3)"
-    - 스크롤 가능한 리스트 (max-height: 400px)
-    
-    D. 저장/불러오기 통합 ✅
-    - 업그레이드 해금/구매 상태 저장
-    - 로드 시 구매한 업그레이드 효과 재적용
-    
-    ============================================
-    CHANGELOG v2.5 - 자본주의 메시지 구현
-    ============================================
-    
-    🎯 핵심 철학: "더 큰 자본을 소유할수록 더 높은 수익률"
-    
-    A. 수익률 재설계 (일관된 상승 곡선) ✅
-    - 예금(0.010%) < 적금(0.015%) < 주식(0.0225%)
-    - 빌라(0.00338%) < 오피스텔(0.00506%) < 아파트(0.00759%)
-    - 상가(0.01142%) < 빌딩(0.01713%) 
-    - 각 단계 1.5배 체증 구조, 총 171배 효율 차이
-    
-    B. 금융상품 수익 하향 조정 ✅
-    - 예금: 10원/초 → 5원/초 (-50%)
-    - 적금: 120원/초 → 75원/초 (-37.5%)
-    - 주식: 1,400원/초 → 1,125원/초 (-19.6%)
-    
-    C. 부동산 수익 대폭 상향 ✅
-    - 빌라: 250원/초 → 8,438원/초 (+3,275%)
-    - 오피스텔: 500원/초 → 17,719원/초 (+3,444%)
-    - 아파트: 1,000원/초 → 60,750원/초 (+5,975%)
-    - 상가: 2,000원/초 → 137,000원/초 (+6,750%)
-    - 빌딩: 5,000원/초 → 514,000원/초 (+10,180%)
-    
-    D. 원룸 완전 삭제 ✅
-    - 부동산 6종 → 5종으로 단순화
-    - HTML, JS, DOM, 이벤트, saveGame 등 전체 제거
-    
-    E. 숫자 서식 개선 ✅
-    - ₩ 기호 제거: "구입 (₩1.5억)" → "구입 (1.5억)"
-    - 천단위 콤마 추가: NumberFormat.formatFinancialPrice(), NumberFormat.formatPropertyPrice()
-    - 금융상품: 만원 단위 반올림
-    - 부동산: 0.1억 단위 반올림
-    
-    F. 상단 패널 툴팁 추가 ✅
-    - 금융 툴팁: 예금/적금/주식 개수 표시
-    - 부동산 툴팁: 빌라/오피스텔/아파트/상가/빌딩 개수
-    - 수익 툴팁: 금융/부동산 수익, 시장배수 상세
-    
-    G. 직급 메시지 정합성 ✅
-    - 승진 로그: "🎉 신입사원으로 승진했습니다! (클릭당 1.2배 수익)"
-    
-    ============================================
-    v2.4 - 판매 시스템 전면 개편
-    ============================================
-    
-    🎯 판매 시스템 통합 및 최적화
-    
-    A. 불필요한 판매 버튼 제거 ✅
-    - 금융상품별 개별 판매 버튼 3개 제거 (HTML/JS)
-    
-    B. 구매/판매 모드 토글 시스템 통합 ✅
-    - 모든 금융상품과 부동산에 구매/판매 모드 적용
-    - 단일 버튼으로 구매/판매 전환 (상단 토글로 제어)
-    
-    C. 통합 거래 함수 구현 ✅
-    - handleTransaction(category, type, currentCount)
-    - 구매/판매 로직 통합, 성공/실패 상태 반환
-    
-    D. 판매 가격 계산 시스템 완성 ✅
-    - getFinancialSellPrice(), getPropertySellPrice()
-    - 판매 가격: 현재가의 80% (일관된 정책)
-    - 다중 수량 판매 지원 (1/10/100개)
-    
-    E. 가격 계산 함수 개선 ✅
-    - 다중 구매/판매 지원 (quantity 파라미터)
-    - 누적 가격 정확하게 계산
-    
-    F. 버튼 UI 동적 업데이트 ✅
-    - updateButton() 함수로 텍스트/상태 자동 업데이트
-    - "구입 x10 (₩1.5만)" / "판매 x10 (₩1.2만)"
-    
-    G. 모든 거래 이벤트 리팩토링 ✅
-    - 총 58줄 → 36줄 (38% 감소)
-    
-    H. 성능 최적화 ✅
-    - setInterval: 250ms → 50ms (5배 빠름)
-    - Ctrl+R 충돌 해결 → Ctrl+Shift+R
-    
-    I. 사용자 피드백 개선 ✅
-    - 자금/수량 부족 시 명확한 메시지
-    - 성공 메시지에 이모지 + 가격 + 보유수량
-    
-    ============================================
-    v2.3 - 정밀 검사 및 수정 완료
-    ============================================
-    - DOM/ID/참조 불일치 수정
-    - 커리어 진행률 0% 고정 문제 해결
-    - CSS 변수/테마 누락 수정
-    - 저장/불러오기/리셋 일관화
-    ============================================
-    */
 
   // ======= 유틸리티 함수 =======
   function safeText(element, text) {
@@ -734,950 +311,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // 닉네임 모달 세션 플래그 (이번 세션에서 이미 모달을 열었는지)
   let __nicknameModalShown = false
 
+  // 클라우드 동기화 관리자 (나중에 초기화)
+  let cloudSyncManager = null
+
   // ======= 업그레이드 시스템 (Cookie Clicker 스타일) =======
-  const UPGRADES = {
-    // === 노동 관련 (재밸런싱) ===
-    part_time_job: {
-      name: '🍕 아르바이트 경험',
-      desc: '클릭 수익 1.2배',
-      cost: 50000,
-      icon: '🍕',
-      // 직급 연동: 계약직부터 해금
-      unlockCondition: () => careerLevel >= 1,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    internship: {
-      name: '📝 인턴십',
-      desc: '클릭 수익 1.2배',
-      cost: 200000,
-      icon: '📝',
-      // 직급 연동: 사원부터 해금
-      unlockCondition: () => careerLevel >= 2,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    efficient_work: {
-      name: '⚡ 효율적인 업무 처리',
-      desc: '클릭 수익 1.2배',
-      cost: 500000,
-      icon: '⚡',
-      // 직급 연동: 대리부터 해금
-      unlockCondition: () => careerLevel >= 3,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    focus_training: {
-      name: '🎯 집중력 강화',
-      desc: '클릭 수익 1.2배',
-      cost: 2000000,
-      icon: '🎯',
-      // 직급 연동: 과장부터 해금
-      unlockCondition: () => careerLevel >= 4,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    professional_education: {
-      name: '📚 전문 교육',
-      desc: '클릭 수익 1.2배',
-      cost: 10000000,
-      icon: '📚',
-      // 직급 연동: 차장부터 해금
-      unlockCondition: () => careerLevel >= 5,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    performance_bonus: {
-      name: '💰 성과급',
-      desc: '2% 확률로 10배 수익',
-      cost: 10000000,
-      icon: '💰',
-      // 직급 연동: 부장부터 해금
-      unlockCondition: () => careerLevel >= 6,
-      effect: () => {
-        /* 확률형 효과는 클릭 이벤트에서 처리 */
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    career_recognition: {
-      name: '💼 경력 인정',
-      desc: '클릭 수익 1.2배',
-      cost: 30000000,
-      icon: '💼',
-      // 직급 연동: 부장부터 해금
-      unlockCondition: () => careerLevel >= 6,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    overtime_work: {
-      name: '🔥 초과근무',
-      desc: '클릭 수익 1.2배',
-      cost: 50000000,
-      icon: '🔥',
-      // 직급 연동: 상무부터 해금
-      unlockCondition: () => careerLevel >= 7,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    honor_award: {
-      name: '🎖️ 명예상',
-      desc: '클릭 수익 1.2배',
-      cost: 100000000,
-      icon: '🎖️',
-      // 직급 연동: 상무부터 해금
-      unlockCondition: () => careerLevel >= 7,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    expertise_development: {
-      name: '💎 전문성 개발',
-      desc: '클릭 수익 1.2배',
-      cost: 200000000,
-      icon: '💎',
-      // 직급 연동: 전무부터 해금
-      unlockCondition: () => careerLevel >= 8,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    teamwork: {
-      name: '🤝 팀워크 향상',
-      desc: '클릭 수익 1.2배',
-      cost: 500000000,
-      icon: '🤝',
-      // 직급 연동: 전무부터 해금
-      unlockCondition: () => careerLevel >= 8,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    leadership: {
-      name: '👑 리더십',
-      desc: '클릭 수익 1.2배',
-      cost: 2000000000,
-      icon: '👑',
-      // 직급 연동: 전무부터 해금
-      unlockCondition: () => careerLevel >= 8,
-      effect: () => {
-        clickMultiplier *= 1.2
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    ceo_privilege: {
-      name: '👔 CEO 특권',
-      desc: '클릭 수익 2.0배',
-      cost: 10000000000,
-      icon: '👔',
-      unlockCondition: () => careerLevel >= 9,
-      effect: () => {
-        clickMultiplier *= 2.0
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    global_experience: {
-      name: '🌍 글로벌 경험',
-      desc: '클릭 수익 2.0배',
-      cost: 50000000000,
-      icon: '🌍',
-      // 직급 연동: CEO 이후(추가 성장용)로 해금
-      unlockCondition: () => careerLevel >= 9 && totalClicks >= 15000,
-      effect: () => {
-        clickMultiplier *= 2.0
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-    entrepreneurship: {
-      name: '🚀 창업',
-      desc: '클릭 수익 2.0배',
-      cost: 100000000000,
-      icon: '🚀',
-      // 직급 연동: CEO 이후(최종 성장용)로 해금
-      unlockCondition: () => careerLevel >= 9 && totalClicks >= 30000,
-      effect: () => {
-        clickMultiplier *= 2.0
-      },
-      category: 'labor',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 예금 관련 ===
-    deposit_boost_1: {
-      name: '💰 예금 이자율 상승',
-      desc: '예금 수익 2배',
-      cost: 100000, // 기본가 5만원 × 2
-      icon: '💰',
-      unlockCondition: () => deposits >= 5,
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 2
-      },
-      category: 'deposit',
-      unlocked: false,
-      purchased: false,
-    },
-    deposit_boost_2: {
-      name: '💎 프리미엄 예금',
-      desc: '예금 수익 2배',
-      cost: 250000, // 기본가 5만원 × 5
-      icon: '💎',
-      unlockCondition: () => deposits >= 15,
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 2
-      },
-      category: 'deposit',
-      unlocked: false,
-      purchased: false,
-    },
-    deposit_boost_3: {
-      name: '💠 다이아몬드 예금',
-      desc: '예금 수익 2배',
-      cost: 500000, // 기본가 5만원 × 10
-      icon: '💠',
-      unlockCondition: () => deposits >= 30,
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 2
-      },
-      category: 'deposit',
-      unlocked: false,
-      purchased: false,
-    },
-    deposit_boost_4: {
-      name: '💍 플래티넘 예금',
-      desc: '예금 수익 2배',
-      cost: 1000000, // 기본가 5만원 × 20
-      icon: '💍',
-      unlockCondition: () => deposits >= 40,
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 2
-      },
-      category: 'deposit',
-      unlocked: false,
-      purchased: false,
-    },
-    deposit_boost_5: {
-      name: '👑 킹 예금',
-      desc: '예금 수익 2배',
-      cost: 2000000, // 기본가 5만원 × 40
-      icon: '👑',
-      unlockCondition: () => deposits >= 50,
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 2
-      },
-      category: 'deposit',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 적금 관련 ===
-    savings_boost_1: {
-      name: '🏦 적금 복리 효과',
-      desc: '적금 수익 2배',
-      cost: 1000000, // 기본가 50만원 × 2
-      icon: '🏦',
-      unlockCondition: () => savings >= 5,
-      effect: () => {
-        FINANCIAL_INCOME.savings *= 2
-      },
-      category: 'savings',
-      unlocked: false,
-      purchased: false,
-    },
-    savings_boost_2: {
-      name: '🏅 골드 적금',
-      desc: '적금 수익 2배',
-      cost: 2500000, // 기본가 50만원 × 5
-      icon: '🏅',
-      unlockCondition: () => savings >= 15,
-      effect: () => {
-        FINANCIAL_INCOME.savings *= 2
-      },
-      category: 'savings',
-      unlocked: false,
-      purchased: false,
-    },
-    savings_boost_3: {
-      name: '💍 플래티넘 적금',
-      desc: '적금 수익 2배',
-      cost: 5000000, // 기본가 50만원 × 10
-      icon: '💍',
-      unlockCondition: () => savings >= 30,
-      effect: () => {
-        FINANCIAL_INCOME.savings *= 2
-      },
-      category: 'savings',
-      unlocked: false,
-      purchased: false,
-    },
-    savings_boost_4: {
-      name: '💠 다이아몬드 적금',
-      desc: '적금 수익 2배',
-      cost: 10000000, // 기본가 50만원 × 20
-      icon: '💠',
-      unlockCondition: () => savings >= 40,
-      effect: () => {
-        FINANCIAL_INCOME.savings *= 2
-      },
-      category: 'savings',
-      unlocked: false,
-      purchased: false,
-    },
-    savings_boost_5: {
-      name: '👑 킹 적금',
-      desc: '적금 수익 2배',
-      cost: 20000000, // 기본가 50만원 × 40
-      icon: '👑',
-      unlockCondition: () => savings >= 50,
-      effect: () => {
-        FINANCIAL_INCOME.savings *= 2
-      },
-      category: 'savings',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 주식 관련 ===
-    bond_boost_1: {
-      name: '📈 주식 수익률 향상',
-      desc: '주식 수익 2배',
-      cost: 10000000, // 기본가 500만원 × 2
-      icon: '📈',
-      unlockCondition: () => bonds >= 5,
-      effect: () => {
-        FINANCIAL_INCOME.bond *= 2
-      },
-      category: 'bond',
-      unlocked: false,
-      purchased: false,
-    },
-    bond_boost_2: {
-      name: '💹 프리미엄 주식',
-      desc: '주식 수익 2배',
-      cost: 25000000, // 기본가 500만원 × 5
-      icon: '💹',
-      unlockCondition: () => bonds >= 15,
-      effect: () => {
-        FINANCIAL_INCOME.bond *= 2
-      },
-      category: 'bond',
-      unlocked: false,
-      purchased: false,
-    },
-    bond_boost_3: {
-      name: '📊 블루칩 주식',
-      desc: '주식 수익 2배',
-      cost: 50000000, // 기본가 500만원 × 10
-      icon: '📊',
-      unlockCondition: () => bonds >= 30,
-      effect: () => {
-        FINANCIAL_INCOME.bond *= 2
-      },
-      category: 'bond',
-      unlocked: false,
-      purchased: false,
-    },
-    bond_boost_4: {
-      name: '💎 대형주 포트폴리오',
-      desc: '주식 수익 2배',
-      cost: 100000000, // 기본가 500만원 × 20
-      icon: '💎',
-      unlockCondition: () => bonds >= 40,
-      effect: () => {
-        FINANCIAL_INCOME.bond *= 2
-      },
-      category: 'bond',
-      unlocked: false,
-      purchased: false,
-    },
-    bond_boost_5: {
-      name: '👑 킹 주식',
-      desc: '주식 수익 2배',
-      cost: 200000000, // 기본가 500만원 × 40
-      icon: '👑',
-      unlockCondition: () => bonds >= 50,
-      effect: () => {
-        FINANCIAL_INCOME.bond *= 2
-      },
-      category: 'bond',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 미국주식 관련 ===
-    usstock_boost_1: {
-      name: '🇺🇸 S&P 500 투자',
-      desc: '미국주식 수익 2배',
-      cost: 50000000, // 기본가 2,500만원 × 2
-      icon: '🇺🇸',
-      unlockCondition: () => usStocks >= 5,
-      effect: () => {
-        FINANCIAL_INCOME.usStock *= 2
-      },
-      category: 'usStock',
-      unlocked: false,
-      purchased: false,
-    },
-    usstock_boost_2: {
-      name: '📈 나스닥 투자',
-      desc: '미국주식 수익 2배',
-      cost: 125000000, // 기본가 2,500만원 × 5
-      icon: '📈',
-      unlockCondition: () => usStocks >= 15,
-      effect: () => {
-        FINANCIAL_INCOME.usStock *= 2
-      },
-      category: 'usStock',
-      unlocked: false,
-      purchased: false,
-    },
-    usstock_boost_3: {
-      name: '💎 글로벌 주식 포트폴리오',
-      desc: '미국주식 수익 2배',
-      cost: 250000000, // 기본가 2,500만원 × 10
-      icon: '💎',
-      unlockCondition: () => usStocks >= 30,
-      effect: () => {
-        FINANCIAL_INCOME.usStock *= 2
-      },
-      category: 'usStock',
-      unlocked: false,
-      purchased: false,
-    },
-    usstock_boost_4: {
-      name: '🌍 글로벌 대형주',
-      desc: '미국주식 수익 2배',
-      cost: 500000000, // 기본가 2,500만원 × 20
-      icon: '🌍',
-      unlockCondition: () => usStocks >= 40,
-      effect: () => {
-        FINANCIAL_INCOME.usStock *= 2
-      },
-      category: 'usStock',
-      unlocked: false,
-      purchased: false,
-    },
-    usstock_boost_5: {
-      name: '👑 킹 글로벌 주식',
-      desc: '미국주식 수익 2배',
-      cost: 1000000000, // 기본가 2,500만원 × 40
-      icon: '👑',
-      unlockCondition: () => usStocks >= 50,
-      effect: () => {
-        FINANCIAL_INCOME.usStock *= 2
-      },
-      category: 'usStock',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 코인 관련 ===
-    crypto_boost_1: {
-      name: '₿ 비트코인 투자',
-      desc: '코인 수익 2배',
-      cost: 200000000, // 기본가 1억원 × 2
-      icon: '₿',
-      unlockCondition: () => cryptos >= 5,
-      effect: () => {
-        FINANCIAL_INCOME.crypto *= 2
-      },
-      category: 'crypto',
-      unlocked: false,
-      purchased: false,
-    },
-    crypto_boost_2: {
-      name: '💎 알트코인 포트폴리오',
-      desc: '코인 수익 2배',
-      cost: 500000000, // 기본가 1억원 × 5
-      icon: '💎',
-      unlockCondition: () => cryptos >= 15,
-      effect: () => {
-        FINANCIAL_INCOME.crypto *= 2
-      },
-      category: 'crypto',
-      unlocked: false,
-      purchased: false,
-    },
-    crypto_boost_3: {
-      name: '🚀 디지털 자산 전문가',
-      desc: '코인 수익 2배',
-      cost: 1000000000, // 기본가 1억원 × 10
-      icon: '🚀',
-      unlockCondition: () => cryptos >= 30,
-      effect: () => {
-        FINANCIAL_INCOME.crypto *= 2
-      },
-      category: 'crypto',
-      unlocked: false,
-      purchased: false,
-    },
-    crypto_boost_4: {
-      name: '🌐 메타버스 자산',
-      desc: '코인 수익 2배',
-      cost: 2000000000, // 기본가 1억원 × 20
-      icon: '🌐',
-      unlockCondition: () => cryptos >= 40,
-      effect: () => {
-        FINANCIAL_INCOME.crypto *= 2
-      },
-      category: 'crypto',
-      unlocked: false,
-      purchased: false,
-    },
-    crypto_boost_5: {
-      name: '👑 킹 암호화폐',
-      desc: '코인 수익 2배',
-      cost: 4000000000, // 기본가 1억원 × 40
-      icon: '👑',
-      unlockCondition: () => cryptos >= 50,
-      effect: () => {
-        FINANCIAL_INCOME.crypto *= 2
-      },
-      category: 'crypto',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 빌라 관련 ===
-    villa_boost_1: {
-      name: '🏘️ 빌라 리모델링',
-      desc: '빌라 수익 2배',
-      cost: 500000000, // 기본가 2.5억원 × 2
-      icon: '🏘️',
-      unlockCondition: () => villas >= 5,
-      effect: () => {
-        BASE_RENT.villa *= 2
-      },
-      category: 'villa',
-      unlocked: false,
-      purchased: false,
-    },
-    villa_boost_2: {
-      name: '🌟 럭셔리 빌라',
-      desc: '빌라 수익 2배',
-      cost: 1250000000, // 기본가 2.5억원 × 5
-      icon: '🌟',
-      unlockCondition: () => villas >= 15,
-      effect: () => {
-        BASE_RENT.villa *= 2
-      },
-      category: 'villa',
-      unlocked: false,
-      purchased: false,
-    },
-    villa_boost_3: {
-      name: '✨ 프리미엄 빌라 단지',
-      desc: '빌라 수익 2배',
-      cost: 2500000000, // 기본가 2.5억원 × 10
-      icon: '✨',
-      unlockCondition: () => villas >= 30,
-      effect: () => {
-        BASE_RENT.villa *= 2
-      },
-      category: 'villa',
-      unlocked: false,
-      purchased: false,
-    },
-    villa_boost_4: {
-      name: '💎 다이아몬드 빌라',
-      desc: '빌라 수익 2배',
-      cost: 5000000000, // 기본가 2.5억원 × 20
-      icon: '💎',
-      unlockCondition: () => villas >= 40,
-      effect: () => {
-        BASE_RENT.villa *= 2
-      },
-      category: 'villa',
-      unlocked: false,
-      purchased: false,
-    },
-    villa_boost_5: {
-      name: '👑 킹 빌라',
-      desc: '빌라 수익 2배',
-      cost: 10000000000, // 기본가 2.5억원 × 40
-      icon: '👑',
-      unlockCondition: () => villas >= 50,
-      effect: () => {
-        BASE_RENT.villa *= 2
-      },
-      category: 'villa',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 오피스텔 관련 ===
-    officetel_boost_1: {
-      name: '🏢 오피스텔 스마트화',
-      desc: '오피스텔 수익 2배',
-      cost: 700000000, // 기본가 3.5억원 × 2
-      icon: '🏢',
-      unlockCondition: () => officetels >= 5,
-      effect: () => {
-        BASE_RENT.officetel *= 2
-      },
-      category: 'officetel',
-      unlocked: false,
-      purchased: false,
-    },
-    officetel_boost_2: {
-      name: '🏙️ 프리미엄 오피스텔',
-      desc: '오피스텔 수익 2배',
-      cost: 1750000000, // 기본가 3.5억원 × 5
-      icon: '🏙️',
-      unlockCondition: () => officetels >= 15,
-      effect: () => {
-        BASE_RENT.officetel *= 2
-      },
-      category: 'officetel',
-      unlocked: false,
-      purchased: false,
-    },
-    officetel_boost_3: {
-      name: '🌆 럭셔리 오피스텔 타워',
-      desc: '오피스텔 수익 2배',
-      cost: 3500000000, // 기본가 3.5억원 × 10
-      icon: '🌆',
-      unlockCondition: () => officetels >= 30,
-      effect: () => {
-        BASE_RENT.officetel *= 2
-      },
-      category: 'officetel',
-      unlocked: false,
-      purchased: false,
-    },
-    officetel_boost_4: {
-      name: '💎 다이아몬드 오피스텔',
-      desc: '오피스텔 수익 2배',
-      cost: 7000000000, // 기본가 3.5억원 × 20
-      icon: '💎',
-      unlockCondition: () => officetels >= 40,
-      effect: () => {
-        BASE_RENT.officetel *= 2
-      },
-      category: 'officetel',
-      unlocked: false,
-      purchased: false,
-    },
-    officetel_boost_5: {
-      name: '👑 킹 오피스텔',
-      desc: '오피스텔 수익 2배',
-      cost: 14000000000, // 기본가 3.5억원 × 40
-      icon: '👑',
-      unlockCondition: () => officetels >= 50,
-      effect: () => {
-        BASE_RENT.officetel *= 2
-      },
-      category: 'officetel',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 아파트 관련 ===
-    apartment_boost_1: {
-      name: '🏡 아파트 프리미엄화',
-      desc: '아파트 수익 2배',
-      cost: 1600000000, // 기본가 8억원 × 2
-      icon: '🏡',
-      unlockCondition: () => apartments >= 5,
-      effect: () => {
-        BASE_RENT.apartment *= 2
-      },
-      category: 'apartment',
-      unlocked: false,
-      purchased: false,
-    },
-    apartment_boost_2: {
-      name: '🏰 타워팰리스급 아파트',
-      desc: '아파트 수익 2배',
-      cost: 4000000000, // 기본가 8억원 × 5
-      icon: '🏰',
-      unlockCondition: () => apartments >= 15,
-      effect: () => {
-        BASE_RENT.apartment *= 2
-      },
-      category: 'apartment',
-      unlocked: false,
-      purchased: false,
-    },
-    apartment_boost_3: {
-      name: '🏛️ 초고급 아파트 단지',
-      desc: '아파트 수익 2배',
-      cost: 8000000000, // 기본가 8억원 × 10
-      icon: '🏛️',
-      unlockCondition: () => apartments >= 30,
-      effect: () => {
-        BASE_RENT.apartment *= 2
-      },
-      category: 'apartment',
-      unlocked: false,
-      purchased: false,
-    },
-    apartment_boost_4: {
-      name: '💎 다이아몬드 아파트',
-      desc: '아파트 수익 2배',
-      cost: 16000000000, // 기본가 8억원 × 20
-      icon: '💎',
-      unlockCondition: () => apartments >= 40,
-      effect: () => {
-        BASE_RENT.apartment *= 2
-      },
-      category: 'apartment',
-      unlocked: false,
-      purchased: false,
-    },
-    apartment_boost_5: {
-      name: '👑 킹 아파트',
-      desc: '아파트 수익 2배',
-      cost: 32000000000, // 기본가 8억원 × 40
-      icon: '👑',
-      unlockCondition: () => apartments >= 50,
-      effect: () => {
-        BASE_RENT.apartment *= 2
-      },
-      category: 'apartment',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 상가 관련 ===
-    shop_boost_1: {
-      name: '🏪 상가 입지 개선',
-      desc: '상가 수익 2배',
-      cost: 2400000000, // 기본가 12억원 × 2
-      icon: '🏪',
-      unlockCondition: () => shops >= 5,
-      effect: () => {
-        BASE_RENT.shop *= 2
-      },
-      category: 'shop',
-      unlocked: false,
-      purchased: false,
-    },
-    shop_boost_2: {
-      name: '🛍️ 프리미엄 상권',
-      desc: '상가 수익 2배',
-      cost: 6000000000, // 기본가 12억원 × 5
-      icon: '🛍️',
-      unlockCondition: () => shops >= 15,
-      effect: () => {
-        BASE_RENT.shop *= 2
-      },
-      category: 'shop',
-      unlocked: false,
-      purchased: false,
-    },
-    shop_boost_3: {
-      name: '🏬 메가몰 상권',
-      desc: '상가 수익 2배',
-      cost: 12000000000, // 기본가 12억원 × 10
-      icon: '🏬',
-      unlockCondition: () => shops >= 30,
-      effect: () => {
-        BASE_RENT.shop *= 2
-      },
-      category: 'shop',
-      unlocked: false,
-      purchased: false,
-    },
-    shop_boost_4: {
-      name: '💎 다이아몬드 상권',
-      desc: '상가 수익 2배',
-      cost: 24000000000, // 기본가 12억원 × 20
-      icon: '💎',
-      unlockCondition: () => shops >= 40,
-      effect: () => {
-        BASE_RENT.shop *= 2
-      },
-      category: 'shop',
-      unlocked: false,
-      purchased: false,
-    },
-    shop_boost_5: {
-      name: '👑 킹 상권',
-      desc: '상가 수익 2배',
-      cost: 48000000000, // 기본가 12억원 × 40
-      icon: '👑',
-      unlockCondition: () => shops >= 50,
-      effect: () => {
-        BASE_RENT.shop *= 2
-      },
-      category: 'shop',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 빌딩 관련 ===
-    building_boost_1: {
-      name: '🏙️ 빌딩 테넌트 확보',
-      desc: '빌딩 수익 2배',
-      cost: 6000000000, // 기본가 30억원 × 2
-      icon: '🏙️',
-      unlockCondition: () => buildings >= 5,
-      effect: () => {
-        BASE_RENT.building *= 2
-      },
-      category: 'building',
-      unlocked: false,
-      purchased: false,
-    },
-    building_boost_2: {
-      name: '💼 랜드마크 빌딩',
-      desc: '빌딩 수익 2배',
-      cost: 15000000000, // 기본가 30억원 × 5
-      icon: '💼',
-      unlockCondition: () => buildings >= 15,
-      effect: () => {
-        BASE_RENT.building *= 2
-      },
-      category: 'building',
-      unlocked: false,
-      purchased: false,
-    },
-    building_boost_3: {
-      name: '🏢 초고층 마천루',
-      desc: '빌딩 수익 2배',
-      cost: 30000000000, // 기본가 30억원 × 10
-      icon: '🏢',
-      unlockCondition: () => buildings >= 30,
-      effect: () => {
-        BASE_RENT.building *= 2
-      },
-      category: 'building',
-      unlocked: false,
-      purchased: false,
-    },
-    building_boost_4: {
-      name: '💎 다이아몬드 빌딩',
-      desc: '빌딩 수익 2배',
-      cost: 60000000000, // 기본가 30억원 × 20
-      icon: '💎',
-      unlockCondition: () => buildings >= 40,
-      effect: () => {
-        BASE_RENT.building *= 2
-      },
-      category: 'building',
-      unlocked: false,
-      purchased: false,
-    },
-    building_boost_5: {
-      name: '👑 킹 빌딩',
-      desc: '빌딩 수익 2배',
-      cost: 120000000000, // 기본가 30억원 × 40
-      icon: '👑',
-      unlockCondition: () => buildings >= 50,
-      effect: () => {
-        BASE_RENT.building *= 2
-      },
-      category: 'building',
-      unlocked: false,
-      purchased: false,
-    },
-
-    // === 전역 업그레이드 ===
-    rent_multiplier: {
-      name: '📊 부동산 관리 전문화',
-      desc: '모든 부동산 수익 +10%',
-      cost: 1000000000,
-      icon: '📊',
-      unlockCondition: () => getTotalProperties() >= 10,
-      effect: () => {
-        rentMultiplier *= 1.1
-      },
-      category: 'global',
-      unlocked: false,
-      purchased: false,
-    },
-    manager_hire: {
-      name: '👨‍💼 전문 관리인 고용',
-      desc: '전체 임대 수익 +5%',
-      cost: 5000000000,
-      icon: '👨‍💼',
-      unlockCondition: () => getTotalProperties() >= 20,
-      effect: () => {
-        rentMultiplier *= 1.05
-        managerLevel++
-      },
-      category: 'global',
-      unlocked: false,
-      purchased: false,
-    },
-    financial_expert: {
-      name: '💼 금융 전문가 고용',
-      desc: '모든 금융 수익 +20%',
-      cost: 10000000000,
-      icon: '💼',
-      unlockCondition: () => careerLevel >= 8, // 전무 달성 시 해금
-      effect: () => {
-        FINANCIAL_INCOME.deposit *= 1.2
-        FINANCIAL_INCOME.savings *= 1.2
-        FINANCIAL_INCOME.bond *= 1.2
-      },
-      category: 'global',
-      unlocked: false,
-      purchased: false,
-    },
-    auto_work_system: {
-      name: '🤖 AI 업무 처리 시스템',
-      desc: '1초마다 자동으로 1회 클릭 (초당 수익 추가)',
-      cost: 5000000000,
-      icon: '📱',
-      unlockCondition: () => careerLevel >= 7 && getTotalProperties() >= 10,
-      effect: () => {
-        autoClickEnabled = true
-        updateAutoWorkUI()
-      },
-      category: 'global',
-      unlocked: false,
-      purchased: false,
-    },
-  }
+  // UPGRADES 객체는 팩토리 함수로 생성 (data/upgrades.js)
+  let UPGRADES = null
 
   // ======= 업그레이드 관리 시스템 초기화 =======
-  const upgradeManager = createUpgradeManager({
+  // UPGRADES는 나중에 팩토리 함수로 생성됨
+  let upgradeManager = null
+  let updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade
+
+  // upgradeManager 초기화는 UPGRADES 생성 후 수행 (라인 1320 이후)
+  /*
+  const upgradeManager_OLD = createUpgradeManager({
     UPGRADES,
     getCash: () => cash,
     setCash: newCash => {
@@ -1687,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   const { updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade } =
     upgradeManager
+  */
 
   // 부동산 보유 수량
   let villas = 0 // 빌라
@@ -1759,282 +408,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 업적 시스템
   let totalClicks = 0 // 총 클릭 수 추적
 
-  const ACHIEVEMENTS = [
-    // === 기본 업적 (8개) ===
-    {
-      id: 'first_click',
-      name: '첫 노동',
-      desc: '첫 번째 클릭을 했다',
-      icon: '👆',
-      condition: () => totalClicks >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_deposit',
-      name: '첫 예금',
-      desc: '첫 번째 예금을 구입했다',
-      icon: '💰',
-      condition: () => deposits >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_savings',
-      name: '첫 적금',
-      desc: '첫 번째 적금을 구입했다',
-      icon: '🏦',
-      condition: () => savings >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_bond',
-      name: '첫 국내주식',
-      desc: '첫 번째 국내주식을 구입했다',
-      icon: '📈',
-      condition: () => bonds >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_us_stock',
-      name: '첫 미국주식',
-      desc: '첫 번째 미국주식을 구입했다',
-      icon: '🇺🇸',
-      condition: () => usStocks >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_crypto',
-      name: '첫 코인',
-      desc: '첫 번째 코인을 구입했다',
-      icon: '₿',
-      condition: () => cryptos >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_property',
-      name: '첫 부동산',
-      desc: '첫 번째 부동산을 구입했다',
-      icon: '🏠',
-      condition: () => villas + officetels + apartments + shops + buildings >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'first_upgrade',
-      name: '첫 업그레이드',
-      desc: '첫 번째 업그레이드를 구입했다',
-      icon: '⚡',
-      condition: () => Object.values(UPGRADES).some(upgrade => upgrade.purchased),
-      unlocked: false,
-    },
+  // ACHIEVEMENTS 배열은 팩토리 함수로 생성
+  let ACHIEVEMENTS = null
 
-    // === 전문가 업적 (8개) ===
-    {
-      id: 'financial_expert',
-      name: '금융 전문가',
-      desc: '모든 금융상품을 보유했다',
-      icon: '💼',
-      condition: () => deposits > 0 && savings > 0 && bonds > 0 && usStocks > 0 && cryptos > 0,
-      unlocked: false,
-    },
-    {
-      id: 'property_collector',
-      name: '부동산 수집가',
-      desc: '5채의 부동산을 보유했다',
-      icon: '🏘️',
-      condition: () => getTotalProperties() >= 5,
-      unlocked: false,
-    },
-    {
-      id: 'property_tycoon',
-      name: '부동산 타이쿤',
-      desc: '모든 부동산 종류를 보유했다',
-      icon: '🏙️',
-      condition: () => villas > 0 && officetels > 0 && apartments > 0 && shops > 0 && buildings > 0,
-      unlocked: false,
-    },
-    {
-      id: 'investment_guru',
-      name: '투자 고수',
-      desc: '모든 업그레이드를 구입했다',
-      icon: '📊',
-      condition: () => Object.values(UPGRADES).every(upgrade => upgrade.purchased),
-      unlocked: false,
-    },
-    {
-      id: 'gangnam_rich',
-      name: '강남 부자',
-      desc: '강남 부동산 3채를 보유했다',
-      icon: '🏙️',
-      condition: () => apartments >= 3,
-      unlocked: false,
-    },
-    {
-      id: 'global_investor',
-      name: '글로벌 투자자',
-      desc: '해외 투자 1억원을 달성했다',
-      icon: '🌍',
-      condition: () => usStocks * 1000000 + cryptos * 1000000 >= 100000000,
-      unlocked: false,
-    },
-    {
-      id: 'crypto_expert',
-      name: '암호화폐 전문가',
-      desc: '코인 투자 5억원을 달성했다',
-      icon: '₿',
-      condition: () => {
-        // 실제 코인 투자 금액 계산 (누적 구매 가격)
-        let totalInvestment = 0
-        for (let i = 0; i < cryptos; i++) {
-          totalInvestment += getFinancialCost('crypto', i, 1)
-        }
-        return totalInvestment >= 500000000 // 5억원
-      },
-      unlocked: false,
-    },
-    {
-      id: 'real_estate_agent',
-      name: '부동산 중개사',
-      desc: '부동산 20채를 보유했다',
-      icon: '🏠',
-      condition: () => getTotalProperties() >= 20,
-      unlocked: false,
-    },
-
-    // === 자산 업적 (8개) ===
-    // 총 자산 = 현금 + 보유 금융/부동산 자산 가치 기준
-    {
-      id: 'millionaire',
-      name: '백만장자',
-      desc: '총 자산 1억원을 달성했다',
-      icon: '💎',
-      condition: () => getTotalAssets() >= 100000000,
-      unlocked: false,
-    },
-    {
-      id: 'ten_millionaire',
-      name: '억만장자',
-      desc: '총 자산 10억원을 달성했다',
-      icon: '💰',
-      condition: () => getTotalAssets() >= 1000000000,
-      unlocked: false,
-    },
-    {
-      id: 'hundred_millionaire',
-      name: '부자',
-      desc: '총 자산 100억원을 달성했다',
-      icon: '🏆',
-      condition: () => getTotalAssets() >= 10000000000,
-      unlocked: false,
-    },
-    {
-      id: 'billionaire',
-      name: '대부호',
-      desc: '총 자산 1,000억원을 달성했다',
-      icon: '👑',
-      condition: () => getTotalAssets() >= 100000000000,
-      unlocked: false,
-    },
-    {
-      id: 'trillionaire',
-      name: '재벌',
-      desc: '총 자산 1조원을 달성했다',
-      icon: '🏰',
-      condition: () => getTotalAssets() >= 1000000000000,
-      unlocked: false,
-    },
-    {
-      id: 'global_rich',
-      name: '세계적 부자',
-      desc: '총 자산 10조원을 달성했다',
-      icon: '🌍',
-      condition: () => getTotalAssets() >= 10000000000000,
-      unlocked: false,
-    },
-    {
-      id: 'legendary_rich',
-      name: '전설의 부자',
-      desc: '총 자산 100조원을 달성했다',
-      icon: '⭐',
-      condition: () => getTotalAssets() >= 100000000000000,
-      unlocked: false,
-    },
-    {
-      id: 'god_rich',
-      name: '신의 부자',
-      desc: '총 자산 1,000조원을 달성했다',
-      icon: '✨',
-      condition: () => getTotalAssets() >= 1000000000000000,
-      unlocked: false,
-    },
-
-    // === 커리어 업적 (8개) ===
-    {
-      id: 'career_starter',
-      name: '직장인',
-      desc: '계약직으로 승진했다',
-      icon: '👔',
-      condition: () => careerLevel >= 1,
-      unlocked: false,
-    },
-    {
-      id: 'employee',
-      name: '정규직',
-      desc: '사원으로 승진했다',
-      icon: '👨‍💼',
-      condition: () => careerLevel >= 2,
-      unlocked: false,
-    },
-    {
-      id: 'deputy_director',
-      name: '팀장',
-      desc: '과장으로 승진했다',
-      icon: '👨‍💻',
-      condition: () => careerLevel >= 4,
-      unlocked: false,
-    },
-    {
-      id: 'executive',
-      name: '임원',
-      desc: '상무로 승진했다',
-      icon: '👨‍🎓',
-      condition: () => careerLevel >= 7,
-      unlocked: false,
-    },
-    {
-      id: 'ceo',
-      name: 'CEO',
-      desc: 'CEO가 되었다',
-      icon: '👑',
-      condition: () => careerLevel >= 9,
-      unlocked: false,
-    },
-    // 재벌 회장: 총 자산 1조 기준
-    {
-      id: 'chaebol_chairman',
-      name: '재벌 회장',
-      desc: '자산 1조원을 달성했다',
-      icon: '🏆',
-      condition: () => getTotalAssets() >= 1000000000000,
-      unlocked: false,
-    },
-    {
-      id: 'global_ceo',
-      name: '글로벌 CEO',
-      desc: '해외 진출을 달성했다',
-      icon: '🌍',
-      condition: () => usStocks >= 10 && cryptos >= 10,
-      unlocked: false,
-    },
-    // 전설의 CEO: CEO + 총 자산 10조 + 서울타워 1개 이상 (프레스티지 경험 포함)
-    {
-      id: 'legendary_ceo',
-      name: '전설의 CEO',
-      desc: '모든 목표를 달성했다',
-      icon: '⭐',
-      condition: () =>
-        careerLevel >= 9 && getTotalAssets() >= 10000000000000 && towers_lifetime >= 1,
-      unlocked: false,
-    },
-  ]
+  // ACHIEVEMENTS 정의는 data/achievements.js로 이동
+  // 아래 주석 처리된 275줄의 ACHIEVEMENTS 배열은 삭제됨
 
   // ======= DOM =======
   const elCash = document.getElementById('cash')
@@ -2080,11 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const elQty1 = document.getElementById('qty1')
   const elQty5 = document.getElementById('qty5')
   const elQty10 = document.getElementById('qty10')
-
-  // 토글 버튼들
-  const elToggleUpgrades = document.getElementById('toggleUpgrades')
-  const elToggleFinancial = document.getElementById('toggleFinancial')
-  const elToggleProperties = document.getElementById('toggleProperties')
 
   // 저장 상태 표시
   const elSaveStatus = document.getElementById('saveStatus')
@@ -2164,6 +537,74 @@ document.addEventListener('DOMContentLoaded', () => {
       elAutoWorkIndicator.style.display = autoClickEnabled ? '' : 'none'
     }
   }
+
+  // ======= UPGRADES 및 ACHIEVEMENTS 팩토리 함수로 생성 =======
+  // 필요한 모든 의존성을 주입하여 UPGRADES 객체 생성
+  UPGRADES = createUpgrades({
+    getCareerLevel: () => careerLevel,
+    getClickMultiplier: () => clickMultiplier,
+    setClickMultiplier: v => {
+      clickMultiplier = v
+    },
+    getTotalClicks: () => totalClicks,
+    getDeposits: () => deposits,
+    getSavings: () => savings,
+    getBonds: () => bonds,
+    getUsStocks: () => usStocks,
+    getCryptos: () => cryptos,
+    getVillas: () => villas,
+    getOfficetels: () => officetels,
+    getApartments: () => apartments,
+    getShops: () => shops,
+    getBuildings: () => buildings,
+    getTotalProperties,
+    updateAutoWorkUI,
+    setAutoClickEnabled: enabled => {
+      autoClickEnabled = enabled
+    },
+    incrementManagerLevel: () => {
+      managerLevel++
+    },
+    FINANCIAL_INCOME,
+    BASE_RENT,
+    getRentMultiplier: () => rentMultiplier,
+    setRentMultiplier: v => {
+      rentMultiplier = v
+    },
+  })
+
+  // upgradeManager 초기화
+  upgradeManager = createUpgradeManager({
+    UPGRADES,
+    getCash: () => cash,
+    setCash: newCash => {
+      cash = newCash
+    },
+    CAREER_LEVELS,
+  })
+  ;({ updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade } =
+    upgradeManager)
+
+  // ACHIEVEMENTS 배열 생성
+  ACHIEVEMENTS = createAchievements({
+    getTotalClicks: () => totalClicks,
+    getDeposits: () => deposits,
+    getSavings: () => savings,
+    getBonds: () => bonds,
+    getUsStocks: () => usStocks,
+    getCryptos: () => cryptos,
+    getVillas: () => villas,
+    getOfficetels: () => officetels,
+    getApartments: () => apartments,
+    getShops: () => shops,
+    getBuildings: () => buildings,
+    getTotalProperties,
+    getTotalAssets,
+    getCareerLevel: () => careerLevel,
+    getTowersLifetime: () => towers_lifetime,
+    UPGRADES,
+    getFinancialCost,
+  })
 
   // (단순화) 리스크 UI 제거
 
@@ -2705,479 +1146,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 업그레이드 그리드 상태 업데이트 함수
   // 구형 updateUpgradeGrid 함수 제거됨 - 새로운 updateUpgradeList 사용
 
-  // 게임 데이터 저장 함수
-  function saveGame() {
-    const saveData = {
-      cash: cash,
-      totalClicks: totalClicks,
-      totalLaborIncome: totalLaborIncome,
-      careerLevel: careerLevel,
-      clickMultiplier: clickMultiplier,
-      rentMultiplier: rentMultiplier,
-      autoClickEnabled: autoClickEnabled,
-      managerLevel: managerLevel,
-      rentCost: rentCost,
-      mgrCost: mgrCost,
-      // 금융상품
-      deposits: deposits,
-      savings: savings,
-      bonds: bonds,
-      usStocks: usStocks,
-      cryptos: cryptos,
-      // 금융상품 누적 생산량
-      depositsLifetime: depositsLifetime,
-      savingsLifetime: savingsLifetime,
-      bondsLifetime: bondsLifetime,
-      usStocksLifetime: usStocksLifetime,
-      cryptosLifetime: cryptosLifetime,
-      // 부동산
-      villas: villas,
-      officetels: officetels,
-      apartments: apartments,
-      shops: shops,
-      buildings: buildings,
-      towers_run: towers_run,
-      towers_lifetime: towers_lifetime,
-      // 부동산 누적 생산량
-      villasLifetime: villasLifetime,
-      officetelsLifetime: officetelsLifetime,
-      apartmentsLifetime: apartmentsLifetime,
-      shopsLifetime: shopsLifetime,
-      buildingsLifetime: buildingsLifetime,
-      // 업그레이드 (새 Cookie Clicker 스타일)
-      upgradesV2: Object.fromEntries(
-        Object.entries(UPGRADES).map(([id, upgrade]) => [
-          id,
-          { unlocked: upgrade.unlocked, purchased: upgrade.purchased },
-        ])
-      ),
-      // 시장 이벤트
-      marketMultiplier: marketMultiplier,
-      marketEventEndTime: marketEventEndTime,
-      // 업적
-      achievements: ACHIEVEMENTS,
-      // 저장 시간
-      saveTime: new Date().toISOString(),
-      ts: Date.now(),
-      // 게임 시작 시간 (호환성 유지)
-      gameStartTime: gameStartTime,
-      // 누적 플레이시간 시스템
-      totalPlayTime: totalPlayTime,
-      sessionStartTime: sessionStartTime,
-      // 닉네임 (리더보드용)
-      nickname: playerNickname,
-    }
-
-    // 디버깅: 닉네임 저장 확인
-    if (__IS_DEV__) {
-      console.log('💾 저장 데이터에 포함된 닉네임:', playerNickname || '(없음)')
-      console.log('💾 saveData.nickname:', saveData.nickname)
-    }
-
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
-      lastSaveTime = new Date()
-      updateSaveStatus() // 저장 상태 UI 업데이트
-
-      // 로그인 사용자면 탭 숨김/닫기 시 플러시를 위해 대기 중인 저장으로 설정
-      if (__currentUser) {
-        const saveTs = Number(saveData?.ts || 0) || 0
-        if (saveTs && saveTs > __lastCloudUploadedSaveTs) {
-          __cloudPendingSave = saveData
-          // 디버깅: 클라우드 저장 대기 중인 데이터 확인
-          if (__IS_DEV__) {
-            console.log(
-              '☁️ 클라우드 저장 대기 중인 데이터에 닉네임 포함:',
-              __cloudPendingSave.nickname || '(없음)'
-            )
-          }
-        }
-      }
-
-      // 리더보드 업데이트 (닉네임이 있을 때만, 30초마다)
-      if (
-        playerNickname &&
-        (!window.__lastLeaderboardUpdate || Date.now() - window.__lastLeaderboardUpdate > 30000)
-      ) {
-        LeaderboardUI.updateLeaderboardEntry()
-        window.__lastLeaderboardUpdate = Date.now()
-      }
-    } catch (error) {
-      console.error('게임 저장 실패:', error)
-      // 저장 실패 시 사용자 알림 (연속 실패 시에만)
-      __saveFailCount = (__saveFailCount || 0) + 1
-      if (__saveFailCount >= 3) {
-        // 3회 이상 연속 실패 시 경고 표시
-        showSaveWarning()
-        __saveFailCount = 0 // 경고 후 카운트 리셋
-      }
-    }
-  }
-
-  // 저장 실패 경고 표시 (연속 실패 시)
-  let __saveFailCount = 0
-  let __saveWarningShown = false
-  function showSaveWarning() {
-    if (__saveWarningShown) return // 이미 경고 표시 중이면 스킵
-    __saveWarningShown = true
-
-    const warning = document.createElement('div')
-    warning.className = 'save-warning-toast'
-    warning.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 3000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      animation: slideUp 0.3s ease-out;
-    `
-    warning.textContent = '⚠️ 게임 저장에 실패했습니다. 저장 공간을 확인해주세요.'
-    document.body.appendChild(warning)
-
-    setTimeout(() => {
-      warning.style.animation = 'slideDown 0.3s ease-in forwards'
-      setTimeout(() => {
-        if (warning.parentElement) warning.remove()
-        __saveWarningShown = false
-      }, 300)
-    }, 5000)
-  }
-
-  // ======= 닉네임 관리 함수 =======
-
-  /**
-   * 로컬 저장에서 최종 닉네임을 확인하고 반환
-   * @returns {string} 닉네임 (없으면 빈 문자열)
-   */
-  function resolveFinalNickname() {
-    try {
-      const saveData = localStorage.getItem(SAVE_KEY)
-      if (!saveData) return ''
-      const data = JSON.parse(saveData)
-      return data.nickname || ''
-    } catch (error) {
-      console.error('닉네임 확인 실패:', error)
-      return ''
-    }
-  }
-
-  /**
-   * 닉네임이 없으면 모달을 열고, 세션 플래그로 중복 방지
-   * 이 함수는 모든 닉네임 모달 오픈의 단일 진입점
-   */
-  function ensureNicknameModal() {
-    // 이미 이번 세션에서 모달을 열었으면 스킵
-    if (__nicknameModalShown) {
-      console.log('⏭️ 닉네임 모달: 이미 이번 세션에서 표시됨')
-      return
-    }
-
-    // 최종 닉네임 확인
-    const finalNickname = resolveFinalNickname()
-    if (finalNickname) {
-      // 닉네임이 있으면 playerNickname 업데이트하고 스킵
-      playerNickname = finalNickname
-      return
-    }
-
-    // 닉네임이 없으면 모달 오픈
-    __nicknameModalShown = true // 플래그 설정 (모달 오픈 전에 설정하여 중복 방지)
-
-    // 닉네임 결정이 끝날 때까지 클라우드 복구를 세션 단위로 차단
-    try {
-      sessionStorage.setItem(CLOUD_RESTORE_BLOCK_KEY, '1')
-    } catch (e) {
-      console.warn('sessionStorage set 실패:', e)
-    }
-
-    setTimeout(() => {
-      const handleConfirm = async nickname => {
-        // 1. 로컬 유효성 검사 (새 정책: 1~6자, 공백 불허)
-        const validation = validateNickname(nickname)
-        if (!validation.ok) {
-          let errorMessage = ''
-          switch (validation.reasonKey) {
-            case 'empty':
-              errorMessage = t('settings.nickname.change.empty')
-              break
-            case 'tooShort':
-              errorMessage = t('settings.nickname.change.tooShort')
-              break
-            case 'tooLong':
-              errorMessage = t('settings.nickname.change.tooLong')
-              break
-            case 'invalid':
-              errorMessage = t('settings.nickname.change.invalid')
-              break
-            case 'banned':
-              errorMessage = t('settings.nickname.change.banned')
-              break
-            default:
-              errorMessage = t('settings.nickname.change.invalid')
-          }
-          Modal.openInfoModal(t('modal.error.nicknameFormat.title'), errorMessage, '⚠️')
-          __nicknameModalShown = false
-          ensureNicknameModal()
-          return
-        }
-
-        // 정규화
-        const { raw: normalized, key } = normalizeNickname(nickname)
-
-        // 2. 로그인 체크
-        const user = await getUser()
-        if (!user) {
-          // 비로그인: 로컬만 저장
-          playerNickname = normalized
-          saveGame()
-          Diary.addLog(t('msg.nicknameSet', { nickname: playerNickname }))
-          Diary.addLog(t('settings.nickname.change.loginRequired'))
-
-          // 클라우드 복구 차단 해제
-          try {
-            sessionStorage.removeItem(CLOUD_RESTORE_BLOCK_KEY)
-          } catch (e) {
-            console.warn('sessionStorage remove 실패:', e)
-          }
-          return
-        }
-
-        // 3. 로그인 상태: claimNickname 수행
-        try {
-          const claimResult = await claimNickname(normalized, user.id)
-
-          if (!claimResult.success) {
-            if (claimResult.error === 'taken') {
-              Modal.openInfoModal(
-                t('modal.error.nicknameTaken.title'),
-                t('settings.nickname.change.taken'),
-                '⚠️'
-              )
-            } else {
-              Modal.openInfoModal(
-                t('modal.error.nicknameFormat.title'),
-                t('settings.nickname.change.claimFailed'),
-                '⚠️'
-              )
-            }
-            __nicknameModalShown = false
-            ensureNicknameModal()
-            return
-          }
-
-          // 성공
-          playerNickname = normalized
-          saveGame()
-          Diary.addLog(t('msg.nicknameSet', { nickname: playerNickname }))
-
-          // 마이그레이션 충돌 플래그 해제
-          try {
-            localStorage.removeItem('clicksurvivor_needsNicknameChange')
-          } catch (e) {
-            // 무시
-          }
-
-          // 리더보드 즉시 업데이트
-          try {
-            await LeaderboardUI.updateLeaderboardEntry(true)
-          } catch (error) {
-            console.error('리더보드 업데이트 실패:', error)
-          }
-
-          // 클라우드 복구 차단 해제
-          try {
-            sessionStorage.removeItem(CLOUD_RESTORE_BLOCK_KEY)
-          } catch (e) {
-            console.warn('sessionStorage remove 실패:', e)
-          }
-        } catch (error) {
-          console.error('닉네임 설정 실패:', error)
-          Modal.openInfoModal(
-            t('modal.error.nicknameFormat.title'),
-            t('settings.nickname.change.claimFailed'),
-            '⚠️'
-          )
-          __nicknameModalShown = false
-          ensureNicknameModal()
-        }
-      }
-
-      Modal.openInputModal(t('modal.nickname.title'), t('modal.nickname.message'), handleConfirm, {
-        icon: '✏️',
-        primaryLabel: t('button.confirm'),
-        placeholder: t('modal.nickname.placeholder'),
-        maxLength: 6,
-        defaultValue: '',
-        required: true,
-      })
-    }, 500) // UI 로드 후 표시
-  }
-
-  // 게임 데이터 불러오기 함수
-  function loadGame() {
-    try {
-      const saveData = localStorage.getItem(SAVE_KEY)
-      if (!saveData) {
-        console.log('저장된 게임 데이터가 없습니다.')
-        // 새 게임 시작 시 누적 플레이시간 초기화
-        totalPlayTime = 0
-        sessionStartTime = Date.now()
-        return false
-      }
-
-      const data = JSON.parse(saveData)
-
-      // 게임 상태 복원
-      cash = data.cash || 0
-      totalClicks = data.totalClicks || 0
-      totalLaborIncome = data.totalLaborIncome || 0
-      careerLevel = data.careerLevel || 0
-      clickMultiplier = data.clickMultiplier || 1
-      rentMultiplier = data.rentMultiplier || 1
-      autoClickEnabled = data.autoClickEnabled || false
-      managerLevel = data.managerLevel || 0
-      rentCost = data.rentCost || 1000000000
-      mgrCost = data.mgrCost || 5000000000
-
-      // 오토 업무 처리 UI 동기화
-      updateAutoWorkUI()
-
-      // 금융상품 복원
-      deposits = data.deposits || 0
-      savings = data.savings || 0
-      bonds = data.bonds || 0
-      usStocks = data.usStocks || 0
-      cryptos = data.cryptos || 0
-
-      // 금융상품 누적 생산량 복원
-      depositsLifetime = data.depositsLifetime || 0
-      savingsLifetime = data.savingsLifetime || 0
-      bondsLifetime = data.bondsLifetime || 0
-      usStocksLifetime = data.usStocksLifetime || 0
-      cryptosLifetime = data.cryptosLifetime || 0
-
-      // 부동산 복원
-      villas = data.villas || 0
-      officetels = data.officetels || 0
-      apartments = data.apartments || 0
-      shops = data.shops || 0
-      buildings = data.buildings || 0
-      towers_run = data.towers_run || 0
-      towers_lifetime = data.towers_lifetime || data.towers || 0 // 마이그레이션: 기존 towers를 lifetime으로
-
-      // 부동산 누적 생산량 복원
-      villasLifetime = data.villasLifetime || 0
-      officetelsLifetime = data.officetelsLifetime || 0
-      apartmentsLifetime = data.apartmentsLifetime || 0
-      shopsLifetime = data.shopsLifetime || 0
-      buildingsLifetime = data.buildingsLifetime || 0
-
-      // 업그레이드 복원 (새 Cookie Clicker 스타일)
-      if (data.upgradesV2) {
-        for (const [id, state] of Object.entries(data.upgradesV2)) {
-          if (UPGRADES[id]) {
-            UPGRADES[id].unlocked = state.unlocked
-            UPGRADES[id].purchased = state.purchased
-
-            // 효과 재적용 제거: clickMultiplier 등은 이미 저장된 값으로 복원되므로 중복 적용 불필요
-            // 중복 적용 시 새로고침할 때마다 배수가 계속 곱해지는 버그 발생
-          }
-        }
-      }
-
-      // (버그픽스) 수익 테이블(FINANCIAL_INCOME/BASE_RENT)에만 영향을 주는 업그레이드 효과는
-      // 저장값으로 복원되지 않으므로, 기본값으로 리셋 후 1회 재적용하여 재접속 시 수익이 줄어드는 문제를 방지한다.
-      reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
-
-      // 시장 이벤트 복원
-      marketMultiplier = data.marketMultiplier || 1
-      marketEventEndTime = data.marketEventEndTime || 0
-
-      // 업적 복원
-      if (data.achievements) {
-        ACHIEVEMENTS.forEach((achievement, index) => {
-          if (data.achievements[index]) {
-            achievement.unlocked = data.achievements[index].unlocked
-          }
-        })
-      }
-
-      // 게임 시작 시간 복원 (호환성 유지)
-      if (data.gameStartTime) {
-        gameStartTime = data.gameStartTime
-      }
-
-      // 누적 플레이시간 시스템 복원
-      if (data.totalPlayTime !== undefined) {
-        totalPlayTime = data.totalPlayTime
-      }
-      // 닉네임 복원
-      playerNickname = data.nickname || ''
-      if (data.sessionStartTime) {
-        // 이전 세션의 플레이시간을 누적 (정수로 보정)
-        const previousSessionTime = Math.max(0, Math.floor(Date.now() - data.sessionStartTime))
-        totalPlayTime = Math.max(0, Math.floor(totalPlayTime + previousSessionTime))
-      }
-      // 새 세션 시작
-      sessionStartTime = Date.now()
-
-      return true
-    } catch (error) {
-      console.error('게임 불러오기 실패:', error)
-      return false
-    }
-  }
-
-  // 게임 초기화 함수 (A안: 수동 프레스티지 - 런 상태만 초기화, 누적 데이터 유지)
-  function resetGame() {
-    console.log('🔄 resetGame function called (A안: 수동 프레스티지)') // 디버깅용
-
-    Modal.openConfirmModal(
-      t('modal.confirm.reset.title'),
-      t('modal.confirm.reset.message'),
-      () => {
-        // 모달이 완전히 닫힌 후 프레스티지 실행 (DOM 안정화 대기)
-        setTimeout(async () => {
-          try {
-            // 초기화 진행 메시지 (diary가 초기화되었을 때만 로그)
-            if (elLog && typeof Diary.addLog === 'function') {
-              Diary.addLog(t('msg.gameReset'))
-            }
-            console.log('✅ User confirmed reset (A안: 수동 프레스티지)') // 디버깅용
-
-            // A안: performAutoPrestige() 호출로 런 상태만 초기화
-            // - towers_lifetime, totalPlayTime 등 누적 데이터는 유지됨
-            // - 닉네임도 유지됨 (performAutoPrestige에서 건드리지 않음)
-            await performAutoPrestige('settings')
-
-            if (__IS_DEV__) {
-              console.log('✅ 수동 프레스티지 완료 (누적 데이터 유지)')
-            }
-          } catch (error) {
-            console.error('❌ Error in resetGame:', error)
-            console.error('에러 스택:', error.stack)
-            // 실제 치명적 오류만 사용자에게 알림
-            Modal.openInfoModal(
-              t('modal.error.resetError.title'),
-              t('modal.error.resetError.message'),
-              '⚠️'
-            )
-          }
-        }, 100) // 모달 닫힘 애니메이션 대기
-      },
-      {
-        icon: '🔄',
-        primaryLabel: t('modal.confirm.reset.primaryLabel'),
-        secondaryLabel: t('button.cancel'),
-      }
-    )
-  }
+  // ======= 저장/로드/닉네임 관리 함수는 모듈로 이동됨 =======
+  // saveGame(), loadGame(), resetGame(), exportSave(), importSave(), updateSaveStatus()
+  // → seoulsurvival/src/persist/saveLoad.js의 saveLoadManager 사용
+  // ensureNicknameModal(), openNicknameChangeModal(), handleNicknameChangeFromModal()
+  // → seoulsurvival/src/systems/nicknameManager.js의 nicknameManager 사용
 
   // 설정 저장 함수
   function saveSettings() {
@@ -3197,79 +1170,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('설정 불러오기 실패:', error)
-    }
-  }
-
-  // 저장 내보내기 함수
-  function exportSave() {
-    try {
-      const saveData = localStorage.getItem(SAVE_KEY)
-      if (!saveData) {
-        alert(t('modal.error.noSaveData.message'))
-        return
-      }
-
-      const blob = new Blob([saveData], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `capital-clicker-save-${Date.now()}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      Diary.addLog(t('msg.saveExported'))
-    } catch (error) {
-      console.error('저장 내보내기 실패:', error)
-      alert('저장 내보내기 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 저장 가져오기 함수
-  function importSave(file) {
-    try {
-      const reader = new FileReader()
-      reader.onload = e => {
-        try {
-          const saveData = JSON.parse(e.target.result)
-          localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
-          Diary.addLog(t('msg.saveImported'))
-          setTimeout(() => {
-            location.reload()
-          }, 1000)
-        } catch (error) {
-          console.error('저장 파일 파싱 실패:', error)
-          alert('저장 파일 형식이 올바르지 않습니다.')
-        }
-      }
-      reader.readAsText(file)
-    } catch (error) {
-      console.error('저장 가져오기 실패:', error)
-      alert('저장 가져오기 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 저장 상태 UI 업데이트 함수
-  function updateSaveStatus() {
-    if (elSaveStatus) {
-      const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-      const timeStr = lastSaveTime.toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-      elSaveStatus.textContent = t('ui.saved', { time: timeStr })
-    }
-    // 설정 탭의 마지막 저장 시간 업데이트
-    const elLastSaveTimeSettings = document.getElementById('lastSaveTimeSettings')
-    if (elLastSaveTimeSettings) {
-      const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-      const timeStr = lastSaveTime.toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-      elLastSaveTimeSettings.textContent = timeStr
     }
   }
 
@@ -4329,51 +2229,125 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI()
   })
 
-  // ======= 토글 기능 =======
-  elToggleUpgrades.addEventListener('click', () => {
-    const section = document.getElementById('upgradeList')
-    const isCollapsed = section.classList.contains('collapsed-section')
+  // ======= 투자 탭 토글 기능 (통계 탭 스타일 통일) =======
+  let investmentCollapsibleInitialized = false
 
-    if (isCollapsed) {
-      section.classList.remove('collapsed-section')
-      elToggleUpgrades.textContent = '▼'
-      elToggleUpgrades.classList.remove('collapsed')
-    } else {
-      section.classList.add('collapsed-section')
-      elToggleUpgrades.textContent = '▶'
-      elToggleUpgrades.classList.add('collapsed')
+  function initInvestmentCollapsible() {
+    if (investmentCollapsibleInitialized) return
+    investmentCollapsibleInitialized = true
+
+    const shopTab = document.getElementById('shopTab')
+    if (!shopTab) return
+
+    // 이벤트 위임: shopTab 전체에 1개 리스너
+    shopTab.addEventListener('click', e => {
+      const toggle = e.target.closest('.stats-toggle')
+      const toggleIcon = e.target.closest('.toggle-icon')
+
+      if (toggle || toggleIcon) {
+        const section = (toggle || toggleIcon).closest('.stats-section')
+
+        if (section && section.classList.contains('collapsible')) {
+          // 토글 실행
+          const isCollapsed = section.classList.toggle('collapsed')
+
+          // aria-expanded 업데이트
+          const toggleElem = section.querySelector('.stats-toggle')
+          if (toggleElem) {
+            toggleElem.setAttribute('aria-expanded', !isCollapsed)
+          }
+
+          // 상태 저장
+          const sectionId = section.getAttribute('data-section-id')
+          if (sectionId) {
+            saveSectionCollapseState(sectionId, isCollapsed)
+          }
+
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }
+    })
+
+    // 키보드 네비게이션 지원
+    shopTab.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const toggle = e.target.closest('.stats-toggle')
+        if (toggle) {
+          const section = toggle.closest('.stats-section')
+          if (section && section.classList.contains('collapsible')) {
+            const isCollapsed = section.classList.toggle('collapsed')
+            toggle.setAttribute('aria-expanded', !isCollapsed)
+
+            // 상태 저장
+            const sectionId = section.getAttribute('data-section-id')
+            if (sectionId) {
+              saveSectionCollapseState(sectionId, isCollapsed)
+            }
+
+            e.preventDefault()
+          }
+        }
+      }
+    })
+
+    // 저장된 상태 복원
+    restoreSectionCollapseState()
+  }
+
+  // 섹션 토글 상태 저장 (LocalStorage)
+  function saveSectionCollapseState(sectionId, isCollapsed) {
+    try {
+      const state = JSON.parse(localStorage.getItem('section-collapse-state') || '{}')
+      state[sectionId] = isCollapsed
+      localStorage.setItem('section-collapse-state', JSON.stringify(state))
+    } catch (err) {
+      console.warn('[Collapse] 상태 저장 실패:', err)
     }
-  })
+  }
 
-  elToggleFinancial.addEventListener('click', () => {
-    const section = document.getElementById('financialSection')
-    const isCollapsed = section.classList.contains('collapsed-section')
-
-    if (isCollapsed) {
-      section.classList.remove('collapsed-section')
-      elToggleFinancial.textContent = '▼'
-      elToggleFinancial.classList.remove('collapsed')
-    } else {
-      section.classList.add('collapsed-section')
-      elToggleFinancial.textContent = '▶'
-      elToggleFinancial.classList.add('collapsed')
+  // 섹션 토글 상태 복원
+  function restoreSectionCollapseState() {
+    try {
+      const state = JSON.parse(localStorage.getItem('section-collapse-state') || '{}')
+      Object.entries(state).forEach(([sectionId, isCollapsed]) => {
+        const section = document.querySelector(`[data-section-id="${sectionId}"]`)
+        if (section && isCollapsed) {
+          section.classList.add('collapsed')
+          const toggle = section.querySelector('.stats-toggle')
+          if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false')
+          }
+        }
+      })
+    } catch (err) {
+      console.warn('[Collapse] 상태 복원 실패:', err)
     }
-  })
+  }
 
-  elToggleProperties.addEventListener('click', () => {
-    const section = document.getElementById('propertySection')
-    const isCollapsed = section.classList.contains('collapsed-section')
+  // 동적 높이 업데이트 함수
+  function updateStatsContentHeight(sectionId) {
+    const section = document.querySelector(`[data-section-id="${sectionId}"]`)
+    if (!section || section.classList.contains('collapsed')) return
 
-    if (isCollapsed) {
-      section.classList.remove('collapsed-section')
-      elToggleProperties.textContent = '▼'
-      elToggleProperties.classList.remove('collapsed')
-    } else {
-      section.classList.add('collapsed-section')
-      elToggleProperties.textContent = '▶'
-      elToggleProperties.classList.add('collapsed')
+    const content = section.querySelector('.stats-content')
+    if (content) {
+      // scrollHeight 기반 max-height 설정
+      content.style.maxHeight = content.scrollHeight + 'px'
+
+      // 트랜지션 후 max-height 제거 (유연한 높이)
+      setTimeout(() => {
+        if (!section.classList.contains('collapsed')) {
+          content.style.maxHeight = 'none'
+        }
+      }, 300) // 트랜지션 시간과 동일
     }
-  })
+  }
+
+  // 투자 탭 초기화
+  setTimeout(() => {
+    initInvestmentCollapsible()
+  }, 100)
 
   // ======= 액션 =======
   function handleWorkAction(clientX, clientY) {
@@ -4697,7 +2671,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // towers_lifetime은 유지, towers_run은 초기화
       // 자산/보유/진행도 초기화
-      cash = 1000 // 초기 자본
+      // 프레스티지 보너스: 스타트 자금 적용
+      cash = 1000 + getStartingCash() // 초기 자본 + 프레스티지 보너스
       totalClicks = 0
       totalLaborIncome = 0
       careerLevel = 0
@@ -4738,7 +2713,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 저장 (안전하게)
       try {
-        saveGame()
+        saveLoadManager.saveGame()
       } catch (saveError) {
         console.error('❌ 게임 저장 중 오류:', saveError)
         // 저장 실패해도 게임 상태는 초기화됨
@@ -4775,15 +2750,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 키보드 단축키 =======
   document.addEventListener('keydown', e => {
+    // 탭 전환: Alt + 1-5 (접근성)
+    if (e.altKey && e.key >= '1' && e.key <= '5') {
+      e.preventDefault()
+      const tabMapping = {
+        1: 'workTab',
+        2: 'shopTab',
+        3: 'statsTab',
+        4: 'rankingTab',
+        5: 'settingsTab',
+      }
+      const targetTab = tabMapping[e.key]
+      const targetBtn = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`)
+      if (targetBtn) {
+        targetBtn.click()
+      }
+    }
+
     // Ctrl + Shift + R: 게임 초기화 (브라우저 새로고침과 충돌 방지)
     if (e.ctrlKey && e.shiftKey && e.key === 'R') {
       e.preventDefault()
-      resetGame()
+      saveLoadManager.resetGame()
     }
     // Ctrl + S: 수동 저장
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault() // 브라우저 저장 방지
-      saveGame()
+      saveLoadManager.saveGame()
       Diary.addLog(t('msg.manualSave'))
     }
     // Ctrl + O: 저장 가져오기
@@ -4826,7 +2818,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 자동 저장 시스템 =======
   setInterval(() => {
-    saveGame() // 5초마다 자동 저장
+    saveLoadManager.saveGame() // 5초마다 자동 저장
   }, 5000)
 
   // ======= 오토클릭 시스템 =======
@@ -4885,7 +2877,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 초기 렌더 (async IIFE로 감싸서 await 사용 가능하게 함)
   ;(async () => {
-    const gameLoaded = loadGame() // 게임 데이터 불러오기 시도
+    const gameLoaded = saveLoadManager.loadGame() // 게임 데이터 불러오기 시도
 
     // ======= 일기장 시스템 초기화 (loadGame 이후에 초기화하여 정확한 gameStartTime 사용) =======
     if (elLog) {
@@ -4927,15 +2919,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gameLoaded) {
       Diary.addLog(t('msg.gameLoaded'))
       // 로컬 저장이 있으면 즉시 닉네임 모달 확인
-      ensureNicknameModal()
+      nicknameManager.ensureNicknameModal()
     } else {
       Diary.addLog(t('msg.welcome'))
       // 로컬 저장이 없으면 클라우드 복구를 먼저 확인
-      const willReload = await maybeOfferCloudRestore()
+      const willReload = cloudSyncManager ? await cloudSyncManager.maybeOfferCloudRestore() : false
       if (!willReload) {
         // 클라우드 복구가 트리거되지 않았으면 닉네임 모달 확인
         // (사용자가 "나중에"를 선택했거나, 클라우드 세이브가 없음)
-        ensureNicknameModal()
+        nicknameManager.ensureNicknameModal()
       }
       // willReload가 true면 리로드가 예약되었으므로 닉네임 모달은 리로드 후 처리됨
     }
@@ -4993,10 +2985,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const elLanguageSelect = document.getElementById('languageSelect')
   if (elLanguageSelect) {
     elLanguageSelect.value = getLang()
-    elLanguageSelect.addEventListener('change', e => {
+    elLanguageSelect.addEventListener('change', async e => {
       const newLang = e.target.value
       setLang(newLang)
-      applyI18nToDOM()
+      await applyI18nToDOMAsync()
       updateAllUIForLanguage()
     })
   }
@@ -5009,7 +3001,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const elCloudDownloadBtn = document.getElementById('cloudDownloadBtn')
 
   if (elExportSaveBtn) {
-    elExportSaveBtn.addEventListener('click', exportSave)
+    elExportSaveBtn.addEventListener('click', () => saveLoadManager.exportSave())
   }
 
   if (elImportSaveBtn) {
@@ -5024,581 +3016,336 @@ document.addEventListener('DOMContentLoaded', () => {
     elImportFileInput.addEventListener('change', e => {
       const file = e.target.files[0]
       if (file) {
-        importSave(file)
+        saveLoadManager.importSave(file)
       }
     })
   }
 
   // ======= 클라우드 세이브(로그인 사용자 전용) =======
-  // 탭 숨김/닫기 시에만 자동 플러시 (토글 없음)
-  let __cloudPendingSave = null
-  let __lastCloudUploadedSaveTs = 0
-  let __currentUser = null
-  let __lastCloudSyncAt = null
+  // cloudSync.js 모듈로 분리됨
+  cloudSyncManager = createCloudSyncManager({
+    getUser,
+    Modal,
+    t,
+    getLang,
+    SAVE_KEY,
+    CLOUD_RESTORE_BLOCK_KEY,
+    CLOUD_RESTORE_SKIP_KEY,
+    calculateTotalAssetValueFromSave,
+    calculatePlayTimeMsFromSave,
+    sessionStartTime,
+    updateUI,
+    LeaderboardUI,
+    onAuthStateChange,
+    claimNickname,
+    normalizeNickname,
+    getPlayerNickname: () => playerNickname,
+    setPlayerNickname: value => {
+      playerNickname = value
+    },
+    __IS_DEV__,
+  })
 
-  function __updateCloudLastSyncUI() {
-    const el = document.getElementById('cloudLastSync')
-    if (!el) return
-    if (!__lastCloudSyncAt) {
-      el.textContent = '--:--'
-      return
-    }
-    const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-    el.textContent = __lastCloudSyncAt.toLocaleTimeString(locale, {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    })
-  }
-
-  function __setCloudHint(text) {
-    const el = document.getElementById('cloudSaveHint')
-    if (!el || !text) return
-    el.textContent = text
-  }
-
-  // 탭 숨김/닫기 시에만 자동 플러시 (토글 없음, 항상 ON)
-  async function flushCloudAutoUpload(reason = 'flush') {
-    if (!__currentUser) return
-    if (!__cloudPendingSave) return
-
-    const saveObj = __cloudPendingSave
-    __cloudPendingSave = null
-
-    const saveTs = Number(saveObj?.ts || Date.now()) || Date.now()
-    if (saveTs && saveTs <= __lastCloudUploadedSaveTs) return // 중복 업로드 방지
-
-    const r = await upsertCloudSave('seoulsurvival', saveObj)
-    if (!r.ok) {
-      // 플러시는 조용히 실패(UX 보호). 버튼 수동 업로드에서 자세한 안내.
-      __setCloudHint(`자동 동기화 실패(나중에 재시도). 이유: ${r.reason || 'unknown'}`)
-      return
-    }
-
-    __lastCloudUploadedSaveTs = saveTs
-    __lastCloudSyncAt = new Date()
-    __updateCloudLastSyncUI()
-    __setCloudHint('자동 동기화 완료 ✅')
-  }
-
-  async function cloudUpload() {
-    const user = await getUser()
-    if (!user) {
-      Modal.openInfoModal(
-        t('modal.error.loginRequired.title'),
-        t('modal.error.loginRequired.message'),
-        '🔐'
-      )
-      return
-    }
-
-    const raw = localStorage.getItem(SAVE_KEY)
-    if (!raw) {
-      Modal.openInfoModal(
-        t('modal.error.noSaveData.title'),
-        t('modal.error.noSaveData.message'),
-        '💾'
-      )
-      return
-    }
-
-    let saveObj
-    try {
-      saveObj = JSON.parse(raw)
-    } catch {
-      Modal.openInfoModal(
-        t('modal.error.invalidSaveData.title'),
-        t('modal.error.invalidSaveData.message'),
-        '⚠️'
-      )
-      return
-    }
-
-    const r = await upsertCloudSave('seoulsurvival', saveObj)
-    if (!r.ok) {
-      if (r.reason === 'missing_table') {
-        Modal.openInfoModal(
-          t('modal.error.cloudTableMissing.title'),
-          t('modal.error.cloudTableMissing.message'),
-          '🛠️'
-        )
-        return
-      }
-      Modal.openInfoModal(
-        t('modal.error.uploadFailed.title'),
-        t('modal.error.uploadFailed.message', { error: r.error?.message || '' }),
-        '⚠️'
-      )
-      return
-    }
-
-    Diary.addLog(t('msg.cloudSaved'))
-    Modal.openInfoModal(
-      t('modal.info.cloudSaveComplete.title'),
-      t('modal.info.cloudSaveComplete.message'),
-      '☁️'
-    )
-  }
-
-  async function cloudDownload() {
-    const user = await getUser()
-    if (!user) {
-      Modal.openInfoModal(
-        t('modal.error.loginRequired.title'),
-        t('modal.error.loginRequired.message'),
-        '🔐'
-      )
-      return
-    }
-
-    const r = await fetchCloudSave('seoulsurvival')
-    if (!r.ok) {
-      if (r.reason === 'missing_table') {
-        Modal.openInfoModal(
-          t('modal.error.cloudTableMissing.title'),
-          t('modal.error.cloudTableMissing.message'),
-          '🛠️'
-        )
-        return
-      }
-      Modal.openInfoModal(
-        t('modal.error.downloadFailed.title'),
-        t('modal.error.downloadFailed.message', { error: r.error?.message || '' }),
-        '⚠️'
-      )
-      return
-    }
-
-    if (!r.found) {
-      Modal.openInfoModal(
-        t('modal.error.noCloudSave.title'),
-        t('modal.error.noCloudSave.message'),
-        '☁️'
-      )
-      return
-    }
-
-    const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-    const cloudTime = r.save?.saveTime
-      ? new Date(r.save.saveTime).toLocaleString(locale)
-      : r.updated_at
-        ? new Date(r.updated_at).toLocaleString(locale)
-        : t('ui.noTimeInfo')
-    Modal.openConfirmModal(
-      t('modal.confirm.cloudLoad.title'),
-      t('modal.confirm.cloudLoad.message', { time: cloudTime }),
-      () => {
-        try {
-          localStorage.setItem(SAVE_KEY, JSON.stringify(r.save))
-          Diary.addLog(t('msg.cloudApplied'))
-          setTimeout(() => location.reload(), 600)
-        } catch (e) {
-          Modal.openInfoModal(
-            t('modal.error.cloudApplyFailed.title'),
-            t('modal.error.cloudApplyFailed.message', { error: String(e) }),
-            '⚠️'
-          )
-        }
+  // ======= 저장/로드 시스템 =======
+  const saveLoadManager = createSaveLoadManager({
+    SAVE_KEY,
+    gameVars: {
+      get cash() {
+        return cash
       },
-      {
-        icon: '☁️',
-        primaryLabel: t('button.load'),
-        secondaryLabel: t('button.cancel'),
-      }
-    )
-  }
+      set cash(v) {
+        cash = v
+      },
+      get totalClicks() {
+        return totalClicks
+      },
+      set totalClicks(v) {
+        totalClicks = v
+      },
+      get totalLaborIncome() {
+        return totalLaborIncome
+      },
+      set totalLaborIncome(v) {
+        totalLaborIncome = v
+      },
+      get careerLevel() {
+        return careerLevel
+      },
+      set careerLevel(v) {
+        careerLevel = v
+      },
+      get clickMultiplier() {
+        return clickMultiplier
+      },
+      set clickMultiplier(v) {
+        clickMultiplier = v
+      },
+      get rentMultiplier() {
+        return rentMultiplier
+      },
+      set rentMultiplier(v) {
+        rentMultiplier = v
+      },
+      get autoClickEnabled() {
+        return autoClickEnabled
+      },
+      set autoClickEnabled(v) {
+        autoClickEnabled = v
+      },
+      get managerLevel() {
+        return managerLevel
+      },
+      set managerLevel(v) {
+        managerLevel = v
+      },
+      get rentCost() {
+        return rentCost
+      },
+      set rentCost(v) {
+        rentCost = v
+      },
+      get mgrCost() {
+        return mgrCost
+      },
+      set mgrCost(v) {
+        mgrCost = v
+      },
+      get deposits() {
+        return deposits
+      },
+      set deposits(v) {
+        deposits = v
+      },
+      get savings() {
+        return savings
+      },
+      set savings(v) {
+        savings = v
+      },
+      get bonds() {
+        return bonds
+      },
+      set bonds(v) {
+        bonds = v
+      },
+      get usStocks() {
+        return usStocks
+      },
+      set usStocks(v) {
+        usStocks = v
+      },
+      get cryptos() {
+        return cryptos
+      },
+      set cryptos(v) {
+        cryptos = v
+      },
+      get depositsLifetime() {
+        return depositsLifetime
+      },
+      set depositsLifetime(v) {
+        depositsLifetime = v
+      },
+      get savingsLifetime() {
+        return savingsLifetime
+      },
+      set savingsLifetime(v) {
+        savingsLifetime = v
+      },
+      get bondsLifetime() {
+        return bondsLifetime
+      },
+      set bondsLifetime(v) {
+        bondsLifetime = v
+      },
+      get usStocksLifetime() {
+        return usStocksLifetime
+      },
+      set usStocksLifetime(v) {
+        usStocksLifetime = v
+      },
+      get cryptosLifetime() {
+        return cryptosLifetime
+      },
+      set cryptosLifetime(v) {
+        cryptosLifetime = v
+      },
+      get villas() {
+        return villas
+      },
+      set villas(v) {
+        villas = v
+      },
+      get officetels() {
+        return officetels
+      },
+      set officetels(v) {
+        officetels = v
+      },
+      get apartments() {
+        return apartments
+      },
+      set apartments(v) {
+        apartments = v
+      },
+      get shops() {
+        return shops
+      },
+      set shops(v) {
+        shops = v
+      },
+      get buildings() {
+        return buildings
+      },
+      set buildings(v) {
+        buildings = v
+      },
+      get towers_run() {
+        return towers_run
+      },
+      set towers_run(v) {
+        towers_run = v
+      },
+      get towers_lifetime() {
+        return towers_lifetime
+      },
+      set towers_lifetime(v) {
+        towers_lifetime = v
+      },
+      get villasLifetime() {
+        return villasLifetime
+      },
+      set villasLifetime(v) {
+        villasLifetime = v
+      },
+      get officetelsLifetime() {
+        return officetelsLifetime
+      },
+      set officetelsLifetime(v) {
+        officetelsLifetime = v
+      },
+      get apartmentsLifetime() {
+        return apartmentsLifetime
+      },
+      set apartmentsLifetime(v) {
+        apartmentsLifetime = v
+      },
+      get shopsLifetime() {
+        return shopsLifetime
+      },
+      set shopsLifetime(v) {
+        shopsLifetime = v
+      },
+      get buildingsLifetime() {
+        return buildingsLifetime
+      },
+      set buildingsLifetime(v) {
+        buildingsLifetime = v
+      },
+      get marketMultiplier() {
+        return marketMultiplier
+      },
+      set marketMultiplier(v) {
+        marketMultiplier = v
+      },
+      get marketEventEndTime() {
+        return marketEventEndTime
+      },
+      set marketEventEndTime(v) {
+        marketEventEndTime = v
+      },
+      get gameStartTime() {
+        return gameStartTime
+      },
+      set gameStartTime(v) {
+        gameStartTime = v
+      },
+      get totalPlayTime() {
+        return totalPlayTime
+      },
+      set totalPlayTime(v) {
+        totalPlayTime = v
+      },
+      get sessionStartTime() {
+        return sessionStartTime
+      },
+      set sessionStartTime(v) {
+        sessionStartTime = v
+      },
+      get playerNickname() {
+        return playerNickname
+      },
+      set playerNickname(v) {
+        playerNickname = v
+      },
+      get lastSaveTime() {
+        return lastSaveTime
+      },
+      set lastSaveTime(v) {
+        lastSaveTime = v
+      },
+    },
+    UPGRADES,
+    ACHIEVEMENTS,
+    reapplyIncomeTableAffectingUpgradeEffects,
+    updateAutoWorkUI,
+    updateSaveStatus,
+    performAutoPrestige,
+    t,
+    getLang,
+    Modal,
+    Diary,
+    LeaderboardUI,
+    upsertCloudSave: cloudSyncManager ? cloudSyncManager.upsertCloudSave : null,
+    cloudState: {
+      get __currentUser() {
+        return cloudSyncManager?.__currentUser
+      },
+      get __cloudPendingSave() {
+        return cloudSyncManager?.__cloudPendingSave
+      },
+      set __cloudPendingSave(v) {
+        if (cloudSyncManager) cloudSyncManager.__cloudPendingSave = v
+      },
+      get __lastCloudUploadedSaveTs() {
+        return cloudSyncManager?.__lastCloudUploadedSaveTs || 0
+      },
+    },
+    __IS_DEV__,
+  })
 
-  /**
-   * 클라우드 세이브 복구를 제안하고, 사용자 선택에 따라 처리
-   * @returns {Promise<boolean>} true: reload가 예약됨, false: reload 예약 안 됨
-   */
-  async function maybeOfferCloudRestore() {
-    // 닉네임 결정이 끝날 때까지 클라우드 복구를 차단
-    try {
-      if (sessionStorage.getItem(CLOUD_RESTORE_BLOCK_KEY) === '1') {
-        return false
-      }
-    } catch (e) {
-      console.warn('sessionStorage get 실패:', e)
-    }
+  // ======= 닉네임 관리 시스템 =======
+  const nicknameManager = createNicknameManager({
+    SAVE_KEY,
+    CLOUD_RESTORE_BLOCK_KEY,
+    Modal,
+    t,
+    validateNickname,
+    normalizeNickname,
+    claimNickname,
+    getUser,
+    saveGame: () => saveLoadManager.saveGame(),
+    updateUI,
+    Diary,
+    LeaderboardUI,
+    upsertCloudSave: cloudSyncManager ? cloudSyncManager.upsertCloudSave : null,
+    getPlayerNickname: () => playerNickname,
+    setPlayerNickname: value => {
+      playerNickname = value
+    },
+    __IS_DEV__,
+  })
 
-    // resetGame 직후 첫 부팅에서는 클라우드 복구 제안을 1회 스킵
-    try {
-      if (sessionStorage.getItem(CLOUD_RESTORE_SKIP_KEY) === '1') {
-        sessionStorage.removeItem(CLOUD_RESTORE_SKIP_KEY)
-        return false
-      }
-    } catch (e) {
-      console.warn('sessionStorage get/remove 실패:', e)
-    }
-
-    // 로컬 저장이 없을 때만 자동 제안(안전)
-    const hasLocal = !!localStorage.getItem(SAVE_KEY)
-    if (hasLocal) return false
-
-    const user = await getUser()
-    if (!user) return false
-
-    const r = await fetchCloudSave('seoulsurvival')
-    if (!r.ok || !r.found) return false
-
-    const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-    const cloudTime = r.save?.saveTime
-      ? new Date(r.save.saveTime).toLocaleString(locale)
-      : r.updated_at
-        ? new Date(r.updated_at).toLocaleString(locale)
-        : t('ui.noTimeInfo')
-    const message = t('modal.confirm.cloudRestore.message', { time: cloudTime })
-
-    // Promise를 반환하여 사용자 선택을 기다림
-    return new Promise(resolve => {
-      let settled = false // resolve 중복 호출 방지 가드
-
-      const done = value => {
-        if (!settled) {
-          settled = true
-          resolve(value)
-        }
-      }
-
-      Modal.openConfirmModal(
-        t('modal.confirm.cloudRestore.title'),
-        message,
-        () => {
-          // "불러오기" 클릭 시
-          try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(r.save))
-            Diary.addLog(t('msg.cloudApplied'))
-            setTimeout(() => location.reload(), 600)
-            done(true) // reload가 예약되었음을 반환
-          } catch (error) {
-            console.error('클라우드 세이브 적용 실패:', error)
-            done(false) // 에러 발생 시 false 반환
-          }
-        },
-        {
-          icon: '☁️',
-          primaryLabel: t('button.load'),
-          secondaryLabel: t('button.later'),
-          onCancel: () => {
-            // "나중에" 클릭 시
-            done(false) // reload 예약 안 됨
-          },
-        }
-      )
-    })
-  }
-
-  /**
-   * 로그인 시 클라우드/로컬 저장 비교 및 제안
-   * @returns {Promise<boolean>} true: 저장이 변경됨 (reload 필요), false: 변경 없음
-   */
-  async function compareAndOfferSaveSync() {
-    const user = await getUser()
-    if (!user) return false
-
-    // 로컬 저장 확인
-    const localSaveStr = localStorage.getItem(SAVE_KEY)
-    if (!localSaveStr) {
-      // 로컬 저장 없으면 기존 maybeOfferCloudRestore() 사용
-      return await maybeOfferCloudRestore()
-    }
-
-    let localSave
-    try {
-      localSave = JSON.parse(localSaveStr)
-    } catch (e) {
-      console.error('로컬 저장 파싱 실패:', e)
-      return false
-    }
-
-    // 클라우드 저장 확인
-    const cloudResult = await fetchCloudSave('seoulsurvival')
-    if (!cloudResult.ok || !cloudResult.found) {
-      // 클라우드 저장 없으면 현재 로컬 저장 사용
-      return false
-    }
-
-    const cloudSave = cloudResult.save
-
-    // 자산 계산
-    const localAssets = calculateTotalAssetValueFromSave(localSave)
-    const cloudAssets = calculateTotalAssetValueFromSave(cloudSave)
-
-    // 플레이타임 계산
-    const localPlayTimeMs = calculatePlayTimeMsFromSave(localSave, sessionStartTime)
-    const cloudPlayTimeMs = calculatePlayTimeMsFromSave(cloudSave, Date.now())
-
-    // 타임스탬프 비교
-    const localTs = Number(localSave.ts || 0)
-    const cloudTs = Number(cloudResult.save_ts || 0)
-
-    // 비교 로직: 클라우드가 더 높은 자산이거나, 자산이 같으면 더 최신인 경우
-    const shouldOfferCloud =
-      cloudAssets > localAssets || // 클라우드가 더 높은 자산
-      (cloudAssets === localAssets && cloudTs > localTs) // 자산 같으면 더 최신 것
-
-    if (!shouldOfferCloud) {
-      // 로컬이 더 나으면 제안하지 않음
-      return false
-    }
-
-    // 클라우드가 더 나은 경우 제안
-    const cloudTime = cloudSave.saveTime
-      ? new Date(cloudSave.saveTime).toLocaleString('ko-KR')
-      : cloudResult.updated_at
-        ? new Date(cloudResult.updated_at).toLocaleString(locale)
-        : t('ui.noTimeInfo')
-    const localTime = localSave.saveTime
-      ? new Date(localSave.saveTime).toLocaleString(locale)
-      : t('ui.noTimeInfo')
-
-    // 플레이타임 포맷
-    const localPlayTimeText = NumberFormat.formatPlaytimeMs(localPlayTimeMs)
-    const cloudPlayTimeText = NumberFormat.formatPlaytimeMs(cloudPlayTimeMs)
-
-    // 자산 포맷
-    const localAssetsText = NumberFormat.formatLeaderboardAssets(localAssets)
-    const cloudAssetsText = NumberFormat.formatLeaderboardAssets(cloudAssets)
-
-    const message =
-      `다른 기기에서 더 높은 점수로 저장된 진행이 있습니다.\n\n` +
-      `📊 지금 이 기기\n` +
-      `   자산: ${localAssetsText}\n` +
-      `   플레이타임: ${localPlayTimeText}\n` +
-      `   저장 시간: ${localTime}\n\n` +
-      `☁️ 다른 기기\n` +
-      `   자산: ${cloudAssetsText}\n` +
-      `   플레이타임: ${cloudPlayTimeText}\n` +
-      `   저장 시간: ${cloudTime}\n\n` +
-      `어떤 진행을 사용하시겠습니까?`
-
-    return new Promise(resolve => {
-      let settled = false
-
-      const done = value => {
-        if (!settled) {
-          settled = true
-          resolve(value)
-        }
-      }
-
-      Modal.openConfirmModal(
-        t('modal.confirm.progressSwitch.title'),
-        t('modal.confirm.progressSwitch.message', { message }),
-        () => {
-          // 다른 기기로 바꾸기
-          try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(cloudSave))
-            Diary.addLog(t('msg.cloudProgressLoaded'))
-            setTimeout(() => location.reload(), 600)
-            done(true)
-          } catch (error) {
-            console.error('클라우드 세이브 적용 실패:', error)
-            Modal.openInfoModal(
-              t('modal.error.progressSwitchFailed.title'),
-              t('modal.error.progressSwitchFailed.message', {
-                error: error.message || String(error),
-              }),
-              '⚠️'
-            )
-            done(false)
-          }
-        },
-        {
-          icon: '☁️',
-          primaryLabel: '다른 기기로 바꾸기',
-          secondaryLabel: '지금 기기 그대로',
-          onCancel: () => {
-            // 지금 기기 그대로 선택 시
-            done(false)
-          },
-        }
-      )
-    })
-  }
-
-  if (elCloudUploadBtn) elCloudUploadBtn.addEventListener('click', cloudUpload)
+  // 클라우드 업로드/다운로드 버튼 연결
+  if (elCloudUploadBtn) elCloudUploadBtn.addEventListener('click', cloudSyncManager.cloudUpload)
   if (elCloudDownloadBtn)
-    elCloudDownloadBtn.addEventListener('click', cloudDownload)
-    // 로컬 저장이 없으면 클라우드 복구를 1회 제안
-    // (위에서 이미 처리했으므로 여기서는 호출하지 않음)
+    elCloudDownloadBtn.addEventListener('click', cloudSyncManager.cloudDownload)
 
-    // 로그인 상태를 캐시해두면 autosave마다 getUser() 호출을 피할 수 있다.
-  ;(async () => {
-    try {
-      __currentUser = await getUser()
+  // 인증 리스너 초기화 (닉네임 마이그레이션, 저장 동기화 포함)
+  cloudSyncManager.initAuthListener()
 
-      // 마이그레이션: 로그인 시 현재 닉네임이 있으면 자동 claim 시도
-      if (__currentUser && playerNickname) {
-        try {
-          const { raw: normalized } = normalizeNickname(playerNickname)
-          const claimResult = await claimNickname(normalized, __currentUser.id)
-
-          if (!claimResult.success && claimResult.error === 'taken') {
-            // 충돌: 다른 사용자가 이미 점유
-            if (__IS_DEV__) {
-              console.warn('[Nickname Migration] 충돌 감지:', playerNickname)
-            }
-            // needsNicknameChange 플래그 설정
-            try {
-              localStorage.setItem('clicksurvivor_needsNicknameChange', 'true')
-            } catch (e) {
-              console.warn('needsNicknameChange 플래그 저장 실패:', e)
-            }
-          } else if (claimResult.success) {
-            if (__IS_DEV__) {
-              console.log('[Nickname Migration] 자동 claim 성공:', playerNickname)
-            }
-            // 성공 시 플래그 해제
-            try {
-              localStorage.removeItem('clicksurvivor_needsNicknameChange')
-            } catch (e) {
-              // 무시
-            }
-          }
-        } catch (error) {
-          console.error('[Nickname Migration] 자동 claim 실패:', error)
-          // 마이그레이션 실패해도 게임 진행은 계속
-        }
-      }
-
-      onAuthStateChange(async user => {
-        __currentUser = user
-
-        // 로그인 시 마이그레이션: 현재 닉네임이 있으면 자동 claim 시도
-        if (user && playerNickname) {
-          try {
-            const { raw: normalized } = normalizeNickname(playerNickname)
-            const claimResult = await claimNickname(normalized, user.id)
-
-            if (!claimResult.success && claimResult.error === 'taken') {
-              // 충돌: 다른 사용자가 이미 점유
-              if (__IS_DEV__) {
-                console.warn('[Nickname Migration] 로그인 후 충돌 감지:', playerNickname)
-              }
-              // needsNicknameChange 플래그 설정
-              try {
-                localStorage.setItem('clicksurvivor_needsNicknameChange', 'true')
-              } catch (e) {
-                console.warn('needsNicknameChange 플래그 저장 실패:', e)
-              }
-              // 설정 탭에 배너 표시를 위해 UI 업데이트
-              updateUI()
-            } else if (claimResult.success) {
-              if (__IS_DEV__) {
-                console.log('[Nickname Migration] 로그인 후 자동 claim 성공:', playerNickname)
-              }
-              // 성공 시 플래그 해제
-              try {
-                localStorage.removeItem('clicksurvivor_needsNicknameChange')
-              } catch (e) {
-                // 무시
-              }
-              // 리더보드 즉시 업데이트
-              try {
-                await LeaderboardUI.updateLeaderboardEntry(true)
-              } catch (error) {
-                console.error('리더보드 업데이트 실패:', error)
-              }
-            }
-          } catch (error) {
-            console.error('[Nickname Migration] 로그인 후 자동 claim 실패:', error)
-          }
-        }
-
-        // 로그인 성공 시 저장 비교 (1회만)
-        if (user && !window.__saveSyncChecked) {
-          window.__saveSyncChecked = true
-          // UI 안정화를 위해 약간의 지연
-          setTimeout(async () => {
-            try {
-              await compareAndOfferSaveSync()
-            } catch (error) {
-              console.error('저장 동기화 확인 중 오류:', error)
-            }
-          }, 1500) // 로그인 UI 업데이트 후 실행
-        } else if (!user) {
-          // 로그아웃 시 플래그 리셋
-          window.__saveSyncChecked = false
-        }
-      })
-
-      // 닉네임 변경 이벤트 감지 (다른 페이지에서 닉네임 변경 시)
-      // 이벤트 리스너는 한 번만 등록되도록 onAuthStateChange 밖으로 이동
-      if (!window.__nicknameEventListenersRegistered) {
-        window.__nicknameEventListenersRegistered = true
-
-        window.addEventListener('nicknamechanged', async event => {
-          const newNickname = event.detail?.nickname
-          if (newNickname) {
-            playerNickname = newNickname
-            // 게임 저장에 닉네임 업데이트
-            try {
-              const saveData = localStorage.getItem(SAVE_KEY)
-              if (saveData) {
-                const data = JSON.parse(saveData)
-                data.nickname = newNickname
-                localStorage.setItem(SAVE_KEY, JSON.stringify(data))
-              }
-            } catch (e) {
-              console.warn('닉네임 저장 실패:', e)
-            }
-            // UI 업데이트
-            updateUI()
-            console.log('[SeoulSurvival] Nickname updated from event:', newNickname)
-          }
-        })
-
-        // authstatechange 이벤트도 감지 (닉네임 변경 후 발생)
-        window.addEventListener('authstatechange', async () => {
-          // 닉네임 변경 플래그 확인
-          try {
-            const nicknameChanged = localStorage.getItem('clicksurvivor_nickname_changed')
-            if (nicknameChanged) {
-              // 현재 사용자 가져오기
-              const currentUser = await getUser()
-              if (currentUser) {
-                // 서버에서 최신 닉네임 가져오기
-                const { getUserProfile } = await import('../../shared/auth/core.js')
-                const profile = await getUserProfile('seoulsurvival')
-                if (profile.success && profile.user?.nickname) {
-                  playerNickname = profile.user.nickname
-                  // 게임 저장에 닉네임 업데이트
-                  const saveData = localStorage.getItem(SAVE_KEY)
-                  if (saveData) {
-                    const data = JSON.parse(saveData)
-                    data.nickname = playerNickname
-                    localStorage.setItem(SAVE_KEY, JSON.stringify(data))
-                  }
-                  // UI 업데이트
-                  updateUI()
-                  console.log('[SeoulSurvival] Nickname updated from server:', playerNickname)
-                }
-              }
-              // 플래그 제거
-              localStorage.removeItem('clicksurvivor_nickname_changed')
-            }
-          } catch (e) {
-            console.warn('닉네임 동기화 실패:', e)
-          }
-        })
-      }
-    } catch {
-      // Ignore if browser doesn't support this event
-    }
-  })()
-
-  // 탭이 숨겨지거나 닫힐 때 자동으로 클라우드에 플러시 (로그인 사용자만)
-  // 주의: 브라우저 크래시/강제 종료 시에는 실행되지 않을 수 있음 (best-effort)
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      flushCloudAutoUpload('visibility:hidden')
-    }
-  })
-  window.addEventListener('pagehide', () => {
-    flushCloudAutoUpload('pagehide')
-  })
+  // 탭 숨김/닫기 시 자동 플러시 리스너 초기화
+  cloudSyncManager.initVisibilityListeners()
 
   // 토글 스위치 이벤트 리스너
   if (elToggleParticles) {
@@ -6199,7 +3946,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // 7. 업적 그리드
       updateAchievementGrid()
 
-      // 8. 리더보드는 통계 탭이 활성화될 때만 업데이트 (updateUI에서 매번 호출하지 않음)
+      // 8. 빌드 시너지 업데이트
+      updateSynergyDisplay()
+
+      // 9. 리더보드는 통계 탭이 활성화될 때만 업데이트 (updateUI에서 매번 호출하지 않음)
       // 리더보드 업데이트는 navBtns 이벤트 리스너에서 처리
     } catch (e) {
       console.error('[Stats] ❌ Stats tab update failed:', e)
@@ -6753,7 +4503,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 모든 탭 비활성화
       tabContents.forEach(tab => tab.classList.remove('active'))
-      navBtns.forEach(navBtn => navBtn.classList.remove('active'))
+      navBtns.forEach(navBtn => {
+        navBtn.classList.remove('active')
+        navBtn.setAttribute('aria-selected', 'false')
+      })
 
       // 선택한 탭 활성화
       const tabEl = document.getElementById(targetTab)
@@ -6761,6 +4514,12 @@ document.addEventListener('DOMContentLoaded', () => {
         tabEl.classList.add('active')
       }
       btn.classList.add('active')
+      btn.setAttribute('aria-selected', 'true')
+
+      // 햅틱 피드백 (지원되는 경우)
+      if ('vibrate' in navigator) {
+        navigator.vibrate(10)
+      }
 
       // 설정 탭 진입 시 마이그레이션 충돌 체크 및 서버 닉네임 동기화
       if (targetTab === 'settingsTab') {
@@ -6924,232 +4683,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const nicknameChangeBtn = document.getElementById('nicknameChangeBtn')
   const nicknameConflictChangeBtn = document.getElementById('nicknameConflictChangeBtn')
 
-  // 쿨타임 상수 (30초)
-  const NICKNAME_CHANGE_COOLDOWN_MS = 30000
-  const NICKNAME_CHANGE_COOLDOWN_KEY = 'clicksurvivor_lastNicknameChangeAt'
-
-  /**
-   * 쿨타임 체크
-   * @returns {{ allowed: boolean, remainingSeconds?: number }}
-   */
-  function checkNicknameCooldown() {
-    try {
-      const lastChangeAt = localStorage.getItem(NICKNAME_CHANGE_COOLDOWN_KEY)
-      if (!lastChangeAt) {
-        return { allowed: true }
-      }
-
-      const lastChangeTime = parseInt(lastChangeAt, 10)
-      const now = Date.now()
-      const elapsed = now - lastChangeTime
-
-      if (elapsed >= NICKNAME_CHANGE_COOLDOWN_MS) {
-        return { allowed: true }
-      }
-
-      const remaining = Math.ceil((NICKNAME_CHANGE_COOLDOWN_MS - elapsed) / 1000)
-      return { allowed: false, remainingSeconds: remaining }
-    } catch (e) {
-      // localStorage 오류 시 허용 (쿨타임 실패해도 진행)
-      return { allowed: true }
-    }
-  }
-
-  /**
-   * 쿨타임 저장
-   */
-  function saveNicknameCooldown() {
-    try {
-      localStorage.setItem(NICKNAME_CHANGE_COOLDOWN_KEY, String(Date.now()))
-    } catch (e) {
-      console.warn('쿨타임 저장 실패:', e)
-    }
-  }
-
-  /**
-   * 닉네임 변경 모달 열기
-   */
-  function openNicknameChangeModal() {
-    // 쿨타임 체크
-    const cooldown = checkNicknameCooldown()
-    if (!cooldown.allowed) {
-      Modal.openInfoModal(
-        t('modal.error.nicknameLength.title'),
-        t('settings.nickname.change.cooldown', { seconds: cooldown.remainingSeconds || 0 }),
-        '⏱️'
-      )
-      return
-    }
-
-    // 현재 닉네임을 기본값으로 설정
-    const currentNickname = playerNickname || ''
-
-    Modal.openInputModal(
-      t('settings.nickname.modal.title'),
-      t('settings.nickname.modal.message'),
-      handleNicknameChangeFromModal,
-      {
-        icon: '✏️',
-        primaryLabel: t('settings.nickname.modal.submit'),
-        secondaryLabel: t('settings.nickname.modal.cancel'),
-        placeholder: t('settings.nickname.modal.placeholder'),
-        maxLength: 6,
-        defaultValue: currentNickname,
-        required: true,
-      }
-    )
-  }
-
-  /**
-   * 모달에서 닉네임 변경 처리
-   */
-  async function handleNicknameChangeFromModal(raw) {
-    // 1. 로컬 유효성 검사
-    const validation = validateNickname(raw)
-    if (!validation.ok) {
-      let errorMessage = ''
-      switch (validation.reasonKey) {
-        case 'empty':
-          errorMessage = t('settings.nickname.change.empty')
-          break
-        case 'tooShort':
-          errorMessage = t('settings.nickname.change.tooShort')
-          break
-        case 'tooLong':
-          errorMessage = t('settings.nickname.change.tooLong')
-          break
-        case 'invalid':
-          errorMessage = t('settings.nickname.change.invalid')
-          break
-        case 'banned':
-          errorMessage = t('settings.nickname.change.banned')
-          break
-        default:
-          errorMessage = t('settings.nickname.change.invalid')
-      }
-      Modal.openInfoModal(t('modal.error.nicknameFormat.title'), errorMessage, '⚠️')
-      return
-    }
-
-    // 정규화
-    const { raw: normalized, key } = normalizeNickname(raw)
-
-    // 현재 닉네임과 동일하면 스킵
-    const currentNormalized = normalizeNickname(playerNickname || '')
-    if (key === currentNormalized.key) {
-      if (__IS_DEV__) {
-        console.log('[Nickname] 변경 없음: 동일한 닉네임')
-      }
-      return
-    }
-
-    // 1. 로그인 체크
-    const user = await getUser()
-    if (!user) {
-      // 비로그인: 로컬만 저장, 리더보드 스킵
-      const oldNickname = playerNickname
-      playerNickname = normalized
-      saveGame()
-      updateUI()
-      Diary.addLog(t('settings.nickname.change.success'))
-      Diary.addLog(t('settings.nickname.change.loginRequired'))
-
-      if (__IS_DEV__) {
-        console.log(`[Nickname] 로컬 저장 완료 (비로그인): "${oldNickname}" → "${playerNickname}"`)
-      }
-      return
-    }
-
-    // 4. 로그인 상태: claimNickname 수행 (서버 유니크 보장)
-    try {
-      const claimResult = await claimNickname(normalized, user.id)
-
-      if (!claimResult.success) {
-        // 실패 처리
-        if (claimResult.error === 'taken') {
-          // taken 에러: 에러 모달 표시 후 입력 모달 재오픈 (재입력 가능)
-          Modal.openInfoModal(
-            t('modal.error.nicknameTaken.title'),
-            t('settings.nickname.change.taken'),
-            '⚠️'
-          )
-          // 에러 모달이 닫힌 후 입력 모달 재오픈 (기존 입력값 유지)
-          setTimeout(() => {
-            openNicknameChangeModal()
-          }, 500)
-        } else {
-          Modal.openInfoModal(
-            t('modal.error.nicknameLength.title'),
-            t('settings.nickname.change.claimFailed'),
-            '⚠️'
-          )
-        }
-        return
-      }
-
-      // 성공: 닉네임 업데이트
-      const oldNickname = playerNickname
-      playerNickname = normalized
-
-      // 저장
-      saveGame()
-
-      // 클라우드 저장
-      try {
-        const saveObj = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')
-        await upsertCloudSave('seoulsurvival', saveObj)
-        if (__IS_DEV__) {
-          console.log('[Nickname] 클라우드 저장 완료')
-        }
-      } catch (error) {
-        console.error('클라우드 저장 실패:', error)
-      }
-
-      // 리더보드 즉시 업데이트
-      try {
-        await LeaderboardUI.updateLeaderboardEntry(true) // forceImmediate: 닉네임 변경은 즉시 업데이트
-      } catch (error) {
-        console.error('리더보드 업데이트 실패:', error)
-      }
-
-      // 마이그레이션 충돌 플래그 해제
-      try {
-        localStorage.removeItem('clicksurvivor_needsNicknameChange')
-        // 자동 오픈 세션 플래그도 해제
-        sessionStorage.removeItem('clicksurvivor_nicknameModalAutoOpened')
-      } catch (e) {
-        // 무시
-      }
-
-      // 쿨타임 저장
-      saveNicknameCooldown()
-
-      // UI 업데이트
-      updateUI()
-
-      // 성공 메시지
-      Diary.addLog(t('settings.nickname.change.success'))
-
-      if (__IS_DEV__) {
-        console.log(`[Nickname] 변경 완료: "${oldNickname}" → "${playerNickname}"`)
-      }
-    } catch (error) {
-      console.error('닉네임 변경 실패:', error)
-      Modal.openInfoModal(
-        t('modal.error.nicknameLength.title'),
-        t('settings.nickname.change.claimFailed'),
-        '⚠️'
-      )
-    }
-  }
+  // ======= 닉네임 관련 함수는 모듈로 이동됨 =======
+  // checkNicknameCooldown(), saveNicknameCooldown(), openNicknameChangeModal(), handleNicknameChangeFromModal()
+  // → seoulsurvival/src/systems/nicknameManager.js의 nicknameManager 사용
 
   // 버튼 클릭 이벤트 리스너
   if (nicknameChangeBtn) {
-    nicknameChangeBtn.addEventListener('click', openNicknameChangeModal)
+    nicknameChangeBtn.addEventListener('click', () => nicknameManager.openNicknameChangeModal())
   }
 
   if (nicknameConflictChangeBtn) {
-    nicknameConflictChangeBtn.addEventListener('click', openNicknameChangeModal)
+    nicknameConflictChangeBtn.addEventListener('click', () =>
+      nicknameManager.openNicknameChangeModal()
+    )
   }
 
   // 치트 코드 (테스트용 - 콘솔에서 사용 가능)

@@ -109,8 +109,25 @@ export function getLang() {
   return currentLang
 }
 
+/**
+ * 번역 로드 후 DOM에 적용 (비동기)
+ * main.js 초기화 시 사용 권장
+ */
+export async function applyI18nToDOMAsync() {
+  await ensureTranslationLoaded(currentLang)
+  applyI18nToDOM()
+}
+
 export function applyI18nToDOM() {
   const table = translations[currentLang] || translations.ko
+
+  // 번역 테이블이 아직 로드되지 않은 경우 조용히 종료
+  if (!table) {
+    if (__IS_DEV__) {
+      console.warn('[i18n] Translation table not loaded yet, skipping applyI18nToDOM')
+    }
+    return
+  }
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n')

@@ -1,7 +1,7 @@
 // 공통 푸터 컴포넌트
 export function renderFooter(container) {
-  if (!container) return;
-  
+  if (!container) return
+
   container.innerHTML = `
     <footer class="footer">
       <div class="footer-inner">
@@ -31,15 +31,15 @@ export function renderFooter(container) {
         </div>
       </div>
     </footer>
-  `;
+  `
 }
 
 // 자동 렌더링 (terms.html, privacy.html 등에서 사용)
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('footer-mount');
+    const container = document.getElementById('footer-mount')
     if (container) {
-      renderFooter(container);
+      renderFooter(container)
     }
-  });
+  })
 }

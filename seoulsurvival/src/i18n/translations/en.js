@@ -586,4 +586,56 @@ export default {
   'upgrade.financial_expert.desc': 'All financial income +20%',
   'upgrade.auto_work_system.name': '🤖 AI Work Automation',
   'upgrade.auto_work_system.desc': 'Automatically clicks once per second (adds per-second income)',
+
+  // Prestige Bonuses (Tier 1: 1+ Towers)
+  'prestige.clickMaster.name': 'Click Master',
+  'prestige.clickMaster.desc': '+10% click power per tower',
+  'prestige.autoIncomeBoost.name': 'Auto Income Boost',
+  'prestige.autoIncomeBoost.desc': '+5% auto income per tower',
+  'prestige.discountMaster.name': 'Discount Master',
+  'prestige.discountMaster.desc': '-2% all costs per tower (max 50%)',
+  'prestige.startingCapital.name': 'Starting Capital',
+  'prestige.startingCapital.desc': '+1M starting cash per tower',
+
+  // Prestige Bonuses (Tier 2: 3+ Towers)
+  'prestige.upgradePower.name': 'Upgrade Power',
+  'prestige.upgradePower.desc': '+20% all upgrade effects',
+  'prestige.offlineBoost.name': 'Offline Boost',
+  'prestige.offlineBoost.desc': '+50% offline calculation time',
+
+  // Prestige Bonuses (Tier 3: 5+ Towers)
+  'prestige.specialUpgrades.name': 'Special Upgrades Unlock',
+  'prestige.specialUpgrades.desc': 'Unlock prestige-exclusive upgrades',
+  'prestige.synergyMaster.name': 'Synergy Master',
+  'prestige.synergyMaster.desc': '+25% all synergy effects',
+
+  // Prestige Bonuses (Tier 4: 10+ Towers)
+  'prestige.timeWarp.name': 'Time Warp',
+  'prestige.timeWarp.desc': '+10% game tick speed',
+  'prestige.ultimatePower.name': 'Ultimate Power',
+  'prestige.ultimatePower.desc': 'x1.5 all income',
+
+  // Prestige UI
+  'prestige.title': 'Prestige Bonuses',
+  'prestige.hint.none': 'Prestige bonuses will activate when you acquire your first tower.',
+  'prestige.effect.unlocked': 'Unlocked',
+
+  // Synergy System
+  'synergy.realEstateMogul.name': 'Real Estate Mogul',
+  'synergy.realEstateMogul.desc': 'Own all 5 properties → +30% property income',
+  'synergy.financeGuru.name': 'Finance Guru',
+  'synergy.financeGuru.desc': 'Own all 5 financial products → +25% financial income',
+  'synergy.diversification.name': 'Diversification',
+  'synergy.diversification.desc': 'Own all products → +15% total income',
+  'synergy.seoulRuler.name': 'Seoul Ruler',
+  'synergy.seoulRuler.desc': 'Own 5+ buildings → +50% total income',
+  'synergy.completionist.name': 'Completionist',
+  'synergy.completionist.desc': 'Purchase all upgrades → +100% total income',
+
+  // Synergy UI
+  'synergy.title': '🔗 Build Synergies',
+  'synergy.subtitle': 'Unlock bonus income with specific combinations!',
+  'synergy.active': 'Active',
+  'synergy.inactive': 'Inactive',
+  'synergy.none': 'No active synergies.',
 }

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp",
+      "description": "Supabase - 데이터베이스, 인증, 스토리지 관리 (OAuth 인증)"
+    },
+    "sentry": {
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp",
+      "description": "Sentry - 에러 모니터링 및 이슈 추적 (OAuth 인증 필요)"
+    }
+  }
+}

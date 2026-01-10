@@ -1,0 +1,65 @@
+{
+  "tech_stack": ["JavaScript", "Vite", "Supabase", "LocalStorage", "Google OAuth", "Playwright (testing)"],
+  "features": [
+    {
+      "name": "Game State Management",
+      "description": "Central game state management with gameState.js",
+      "files": ["seoulsurvival/src/state/gameState.js"]
+    },
+    {
+      "name": "Main Game Engine",
+      "description": "Core game loop, RPS calculation, save/load, UI updates",
+      "files": ["seoulsurvival/src/main.js"]
+    },
+    {
+      "name": "Modal System",
+      "description": "Generic modal dialogs for info, confirm, input prompts",
+      "files": ["seoulsurvival/src/ui/modal.js"]
+    },
+    {
+      "name": "Leaderboard UI",
+      "description": "Leaderboard display and real-time updates via Supabase",
+      "files": ["seoulsurvival/src/ui/leaderboardUI.js"]
+    },
+    {
+      "name": "Investment Tab",
+      "description": "Financial products and real estate investment UI",
+      "files": ["seoulsurvival/src/ui/investmentTab.js"]
+    },
+    {
+      "name": "Upgrade Manager",
+      "description": "Upgrade purchase, rendering, and affordability checks",
+      "files": ["seoulsurvival/src/systems/upgradeManager.js"]
+    },
+    {
+      "name": "Achievement System",
+      "description": "Achievement tracking and notification display",
+      "files": ["seoulsurvival/src/systems/achievements.js"]
+    },
+    {
+      "name": "Market Event System",
+      "description": "Random market events affecting prices",
+      "files": ["seoulsurvival/src/systems/market.js"]
+    },
+    {
+      "name": "Cloud Save",
+      "description": "Supabase cloud save synchronization",
+      "files": ["shared/cloudSave.js"]
+    },
+    {
+      "name": "Authentication",
+      "description": "Google OAuth via Supabase Auth",
+      "files": ["shared/auth/core.js", "shared/auth/config.js"]
+    },
+    {
+      "name": "Internationalization",
+      "description": "Multi-language support (Korean/English)",
+      "files": ["seoulsurvival/src/i18n/index.js", "seoulsurvival/src/i18n/translations/ko.js", "seoulsurvival/src/i18n/translations/en.js"]
+    },
+    {
+      "name": "Balance Configuration",
+      "description": "Game balance constants for careers, prices, upgrades",
+      "files": ["seoulsurvival/src/balance/index.js", "seoulsurvival/src/balance/career.js", "seoulsurvival/src/balance/financial.js", "seoulsurvival/src/balance/property.js", "seoulsurvival/src/balance/upgrades.js"]
+    }
+  ]
+}

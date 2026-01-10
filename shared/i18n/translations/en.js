@@ -9,7 +9,8 @@ export default {
   'hub.hero.cta.details': 'Details',
   'hub.hero.ssoNote': 'Account sync (saves, achievements, leaderboards) is coming soon.',
   'hub.about.title': 'At a glance',
-  'hub.about.lead': 'Start with work, grow through investing, and unlock goals through ranks and events.',
+  'hub.about.lead':
+    'Start with work, grow through investing, and unlock goals through ranks and events.',
   'hub.about.b1': 'Start with work, grow through investing',
   'hub.about.b2': 'Rank up to unlock new stages and rewards',
   'hub.about.b3': 'Time your moves with market events',
@@ -23,11 +24,14 @@ export default {
   'hub.screenshots.alt3': 'Seoul Survival share image',
   'hub.account.title': 'Continue anywhere with one account',
   'hub.account.head': 'Saves, stats, achievements, and leaderboards—unified',
-  'hub.account.body': 'Sign in with social login to sync your progress across devices on the hub and all games.',
+  'hub.account.body':
+    'Sign in with social login to sync your progress across devices on the hub and all games.',
   'hub.account.faq.q1': 'What can I do when signed in?',
-  'hub.account.faq.a1': 'You can sync your progress across devices with cloud saves. Your progress is automatically saved to the cloud when you close the tab.',
+  'hub.account.faq.a1':
+    'You can sync your progress across devices with cloud saves. Your progress is automatically saved to the cloud when you close the tab.',
   'hub.account.faq.q2': 'Do I lose progress without signing in?',
-  'hub.account.faq.a2': 'Your browser saves locally every 5 seconds. When signed in, you can also use cloud saves to continue on any device.',
+  'hub.account.faq.a2':
+    'Your browser saves locally every 5 seconds. When signed in, you can also use cloud saves to continue on any device.',
   'hub.footer.note': 'The hub lives at /, the game is at /seoulsurvival/.',
   'hub.footer.terms': 'Terms',
   'hub.footer.privacy': 'Privacy',
@@ -45,11 +49,4 @@ export default {
   'hub.drawer.title': 'Menu',
   'hub.drawer.language': 'Language',
   'hub.drawer.account': 'Account',
-};
-
-
-
-
-
-
-
+}

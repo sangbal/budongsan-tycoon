@@ -91,12 +91,5 @@ export function getDomRefs() {
     elCareerCost: document.getElementById('careerCost'),
     elCareerProgress: document.getElementById('careerProgress'),
     elCareerProgressText: document.getElementById('careerProgressText'),
-  };
+  }
 }
-
-
-
-
-
-
-

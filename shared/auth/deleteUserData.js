@@ -1,6 +1,6 @@
 // Delete user data from Supabase (game_saves, leaderboard)
-import { getSupabaseClient } from './supabaseClient.js';
-import { getUser } from './core.js';
+import { getSupabaseClient } from './supabaseClient.js'
+import { getUser } from './core.js'
 
 /**
  * Delete all user data from Supabase
@@ -9,48 +9,39 @@ import { getUser } from './core.js';
  * @returns {Promise<{ ok: boolean, reason?: string, error?: any }>}
  */
 export async function deleteUserData() {
-  const supabase = await getSupabaseClient();
+  const supabase = await getSupabaseClient()
   if (!supabase) {
-    return { ok: false, reason: 'not_configured' };
+    return { ok: false, reason: 'not_configured' }
   }
 
-  const user = await getUser();
+  const user = await getUser()
   if (!user) {
-    return { ok: false, reason: 'not_signed_in' };
+    return { ok: false, reason: 'not_signed_in' }
   }
 
   try {
     // Delete game_saves
-    const { error: savesError } = await supabase
-      .from('game_saves')
-      .delete()
-      .eq('user_id', user.id);
+    const { error: savesError } = await supabase.from('game_saves').delete().eq('user_id', user.id)
 
     if (savesError) {
-      console.error('Failed to delete game_saves:', savesError);
-      return { ok: false, reason: 'delete_saves_failed', error: savesError };
+      console.error('Failed to delete game_saves:', savesError)
+      return { ok: false, reason: 'delete_saves_failed', error: savesError }
     }
 
     // Delete leaderboard entries
     const { error: leaderboardError } = await supabase
       .from('leaderboard')
       .delete()
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
 
     if (leaderboardError) {
-      console.error('Failed to delete leaderboard:', leaderboardError);
-      return { ok: false, reason: 'delete_leaderboard_failed', error: leaderboardError };
+      console.error('Failed to delete leaderboard:', leaderboardError)
+      return { ok: false, reason: 'delete_leaderboard_failed', error: leaderboardError }
     }
 
-    return { ok: true };
+    return { ok: true }
   } catch (error) {
-    console.error('Exception while deleting user data:', error);
-    return { ok: false, reason: 'exception', error };
+    console.error('Exception while deleting user data:', error)
+    return { ok: false, reason: 'exception', error }
   }
 }
-
-
-
-
-
-
