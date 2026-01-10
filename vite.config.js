@@ -37,6 +37,65 @@ export default defineConfig({
         seoulsurvival: resolve(__dirname, 'seoulsurvival/index.html'),
         'kimchi-invasion': resolve(__dirname, 'kimchi-invasion/index.html'),
       },
+      output: {
+        manualChunks(id) {
+          // Vendor chunk 분리: node_modules 라이브러리
+          if (id.includes('node_modules')) {
+            if (id.includes('@sentry')) {
+              return 'vendor-sentry'
+            }
+            return 'vendor-common'
+          }
+
+          // Seoul Survival 게임별 코드 분리
+          if (id.includes('seoulsurvival/src')) {
+            // 번역 파일 - 각 언어별로 분리 (동적 로드)
+            if (id.includes('i18n/translations/ko')) {
+              return 'seoulsurvival-i18n-ko'
+            }
+            if (id.includes('i18n/translations/en')) {
+              return 'seoulsurvival-i18n-en'
+            }
+            // 게임 상태 및 경제 시스템 (거의 모든 함수가 의존)
+            if (id.includes('state/gameState') || id.includes('economy/')) {
+              return 'seoulsurvival-core'
+            }
+            // 시스템 모듈 (게임 로직)
+            if (id.includes('systems/')) {
+              return 'seoulsurvival-systems'
+            }
+            // UI 모듈 (렌더링 로직)
+            if (id.includes('ui/')) {
+              return 'seoulsurvival-ui'
+            }
+            // 모니터링 및 분석 (선택적 로딩)
+            if (id.includes('monitoring/') || id.includes('core/errorBoundary')) {
+              return 'seoulsurvival-monitoring'
+            }
+            // i18n 유틸 (작은 크기)
+            if (id.includes('i18n/') && !id.includes('i18n/translations/')) {
+              return 'seoulsurvival-i18n'
+            }
+            // 유틸
+            if (id.includes('utils/')) {
+              return 'seoulsurvival-utils'
+            }
+          }
+
+          // Kimchi Invasion 게임 (별도 청크)
+          if (id.includes('kimchi-invasion/src')) {
+            return 'kimchi-invasion-bundle'
+          }
+
+          // 공유 코드 분리
+          if (id.includes('shared/')) {
+            if (id.includes('auth/')) {
+              return 'shared-auth'
+            }
+            return 'shared-common'
+          }
+        },
+      },
     },
   },
 })
