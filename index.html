@@ -17,50 +17,53 @@
       
       <div class="hero-content">
         <div class="hero-badge">
-          <span class="badge-text">Capital Clicker</span>
-          <span class="badge-separator">·</span>
-          <span class="badge-text">Seoul</span>
+          <span class="badge-text" data-i18n="hub.hero.badge">Capital Clicker · Seoul</span>
         </div>
-        
-        <h1 class="hero-title">SeoulSurvival</h1>
-        <p class="hero-subtitle">서울에서 살아남는 자본 클리커</p>
-        
-        <p class="hero-description">
-          노동으로 시드를 만들고, 투자로 가속하세요.<br>
-          승진과 이벤트로 다음 목표가 열립니다.
-        </p>
-        
+
+        <h1 class="hero-title" data-i18n="hub.hero.title">SeoulSurvival</h1>
+        <p class="hero-subtitle" data-i18n="hub.hero.subtitle">서울에서 살아남는 자본 클리커</p>
+
+        <p class="hero-description" data-i18n="hub.hero.description" style="white-space: pre-line;">노동으로 시드를 만들고, 투자로 가속하세요.
+승진과 이벤트로 다음 목표가 열립니다.</p>
+
         <div class="hero-features">
           <div class="feature-item">
             <span class="feature-icon">🌐</span>
-            <span class="feature-text">브라우저에서 즉시 플레이</span>
+            <span class="feature-text" data-i18n="hub.hero.feature1">브라우저에서 즉시 플레이</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">☁️</span>
-            <span class="feature-text">클라우드 저장 & 리더보드</span>
+            <span class="feature-text" data-i18n="hub.hero.feature2">클라우드 저장 & 리더보드</span>
           </div>
           <div class="feature-item">
             <span class="feature-icon">🚀</span>
-            <span class="feature-text">설치/가입 없음</span>
+            <span class="feature-text" data-i18n="hub.hero.feature3">설치/가입 없음</span>
           </div>
         </div>
-        
+
         <div class="hero-cta">
-          <a class="btn btn-primary btn-hero" href="./seoulsurvival/">
+          <a
+            class="btn btn-primary btn-hero"
+            href="./seoulsurvival/"
+            role="button"
+            aria-label="SeoulSurvival 게임 시작하기 - 서울에서 살아남는 자본 클리커 게임"
+          >
             <span class="btn-icon">▶</span>
-            <span class="btn-text">SeoulSurvival Play</span>
+            <span class="btn-text" data-i18n="hub.hero.cta.play">SeoulSurvival Play</span>
           </a>
         </div>
       </div>
     </section>
 
-    <!-- Game List Section -->
+    <!-- Game List Section (현재 비활성화 - 게임 개발 완료 후 활성화 예정) -->
+    <!--
     <section class="game-list-section" style="max-width: 800px; margin: 40px auto 0; width: 100%;">
       <h2 style="font-size: 20px; margin-bottom: 16px; color: var(--text-muted);">All Games</h2>
       <div id="game-cards-mount" class="game-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-        <!-- 동적 렌더링: hub/main.js에서 renderGameCards() 호출 -->
+        <!- 동적 렌더링: hub/main.js에서 renderGameCards() 호출 ->
       </div>
     </section>
+    -->
   </main>
   <div id="footer-mount"></div>
   <script type="module" src="./hub/main.js"></script>

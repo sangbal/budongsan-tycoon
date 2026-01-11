@@ -31,7 +31,7 @@ main:has(.hero-panel) {
   position: relative;
   max-width: 800px;
   width: 100%;
-  min-height: 500px;
+  min-height: 600px; /* 개선: 더 큰 화면에서 콘텐츠 공간 확보 */
   overflow: hidden;
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -114,11 +114,12 @@ main:has(.hero-panel) {
 }
 
 .badge-text {
-  background: rgba(96, 165, 250, 0.2);
-  color: #e5e7eb;
+  background: rgba(96, 165, 250, 0.25);
+  /* WCAG AA 준수: 대비율 4.5:1 이상 */
+  color: #f3f4f6;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.5);
 }
 
 .badge-separator {
@@ -134,7 +135,10 @@ main:has(.hero-panel) {
   margin: 0 0 var(--spacing-sm) 0;
   color: var(--text);
   letter-spacing: -0.5px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  /* 가독성 향상: 배경 위에서 텍스트가 잘 보이도록 text-shadow 강화 */
+  text-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.8),
+    0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 /* 서브타이틀 */
@@ -196,22 +200,58 @@ main:has(.hero-panel) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--accent);
+  /* 시각적 계층 강화: 그라디언트 배경 */
+  background: linear-gradient(135deg, var(--accent) 0%, #38bdf8 100%);
   color: var(--bg);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(94, 234, 212, 0.3);
+  box-shadow:
+    0 8px 24px rgba(94, 234, 212, 0.4),
+    0 4px 12px rgba(56, 189, 248, 0.2);
   transition: all 0.3s ease;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  /* 성능 최적화: GPU 레이어 사전 생성 */
+  will-change: transform;
+}
+
+/* CTA 버튼 빛나는 효과 */
+.btn-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-hero:hover::before {
+  left: 100%;
 }
 
 .btn-hero:hover {
-  filter: brightness(1.15);
+  /* 성능 최적화: filter 제거, GPU 가속 속성만 사용 */
+  background: linear-gradient(135deg, #6ffce4 0%, #50c8ff 100%);
   transform: scale(1.05);
-  box-shadow: 0 12px 32px rgba(94, 234, 212, 0.4);
+  box-shadow:
+    0 12px 32px rgba(94, 234, 212, 0.5),
+    0 6px 16px rgba(56, 189, 248, 0.3);
 }
 
 .btn-hero:active {
   transform: scale(1.02);
+}
+
+/* 키보드 네비게이션 접근성: 포커스 스타일 */
+.btn-hero:focus-visible {
+  outline: 3px solid rgba(94, 234, 212, 0.6);
+  outline-offset: 4px;
+  box-shadow:
+    0 12px 32px rgba(94, 234, 212, 0.6),
+    0 6px 16px rgba(56, 189, 248, 0.4),
+    0 0 0 3px rgba(94, 234, 212, 0.3);
 }
 
 .btn-icon {
@@ -227,47 +267,47 @@ main:has(.hero-panel) {
 @media (max-width: 768px) {
   .hero-panel {
     max-width: 100%;
-    min-height: 400px;
+    min-height: 500px; /* 개선: 모바일에서도 충분한 콘텐츠 공간 확보 */
   }
-  
+
   .hero-background {
     /* 모바일에서도 상단 정렬 유지, 비례 유지, 하단부터 잘리도록 */
     background-size: cover;
     background-position: top center;
   }
-  
+
   .hero-content {
     padding: var(--spacing-lg) var(--spacing-md);
     text-align: center;
     align-items: center;
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1.25rem;
   }
-  
+
   .hero-description {
     font-size: var(--font-size-base);
     text-align: center;
   }
-  
+
   .hero-features {
     align-items: center;
   }
-  
+
   .feature-item {
     justify-content: center;
   }
-  
+
   .btn-hero {
     padding: 14px 28px;
     font-size: 16px;
   }
-  
+
   .hero-overlay::after {
     background: linear-gradient(
       to bottom,
@@ -308,23 +348,23 @@ main:has(.hero-panel) {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
   }
-  
+
   .footer-inner::-webkit-scrollbar {
     display: none; /* Chrome/Safari */
   }
-  
+
   .footer-links,
   .footer-social {
     flex-shrink: 0;
     white-space: nowrap;
   }
-  
+
   .footer-links a,
   .footer-social a {
     font-size: 11px;
     padding: var(--spacing-xs) var(--spacing-xs);
   }
-  
+
   .footer-copyright {
     flex-shrink: 0;
     font-size: 11px;
@@ -363,7 +403,9 @@ main:has(.hero-panel) {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    transform 0.2s;
   line-height: 1;
   height: 20px;
 }
@@ -472,52 +514,52 @@ main:has(.hero-panel) {
     flex-direction: column;
     gap: var(--spacing-sm);
   }
-  
+
   main {
     padding: var(--spacing-md) var(--spacing-sm);
   }
-  
+
   .legal-panel {
     padding: var(--spacing-md);
   }
-  
+
   .legal-panel h1 {
     font-size: 1.75rem;
     margin-bottom: var(--spacing-sm);
   }
-  
+
   .legal-date {
     font-size: var(--font-size-sm);
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-sm);
   }
-  
+
   .legal-section {
     margin-bottom: var(--spacing-lg);
   }
-  
+
   .legal-section h2 {
     font-size: 1.125rem;
     margin-bottom: var(--spacing-sm);
   }
-  
+
   .legal-section p {
     margin-bottom: var(--spacing-sm);
     text-align: left; /* 모바일에서는 좌측 정렬 */
     line-height: 1.7;
   }
-  
+
   .legal-list {
     margin-left: 1.25rem;
     margin-bottom: var(--spacing-sm);
   }
-  
+
   .legal-list li {
     margin-bottom: var(--spacing-xs);
     padding-left: 0.25rem;
     line-height: 1.7;
   }
-  
+
   .legal-list.nested {
     margin-left: 1rem;
   }
@@ -555,7 +597,7 @@ main:has(.hero-panel) {
   border-color: var(--accent);
   background: var(--bg2);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .account-menu-item-danger {
@@ -678,7 +720,7 @@ main:has(.hero-panel) {
   font-weight: 700;
   color: var(--bg);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .account-avatar-text {
@@ -1078,47 +1120,47 @@ main:has(.hero-panel) {
   .account-container {
     padding: var(--spacing-md) var(--spacing-sm);
   }
-  
+
   .account-header {
     flex-direction: column;
     text-align: center;
     padding: var(--spacing-md);
   }
-  
+
   .account-avatar {
     width: 56px;
     height: 56px;
     font-size: 20px;
   }
-  
+
   .account-name {
     font-size: 1.25rem;
   }
-  
+
   .input-group {
     flex-direction: column;
   }
-  
+
   .input-group .btn {
     width: 100%;
   }
-  
+
   .connected-account-item {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
   }
-  
+
   .connected-account-actions {
     width: 100%;
     text-align: right;
   }
-  
+
   .security-item-header {
     flex-direction: column;
     gap: var(--spacing-xs);
   }
-  
+
   .danger-warning {
     flex-direction: column;
   }

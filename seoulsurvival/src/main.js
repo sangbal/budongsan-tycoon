@@ -28,6 +28,10 @@ import {
   setAchievementScrollActive,
 } from './ui/statsTab.js'
 import { createInvestmentTab } from './ui/investmentTab.js'
+import { createGameUI } from './ui/gameUI.js'
+import { createAchievementGrid } from './ui/achievementGrid.js'
+import { createButtonStateManager } from './ui/buttonStates.js'
+import { createCollapsibleManager } from './ui/collapsible.js'
 import { createCloudSyncManager } from './persist/cloudSync.js'
 import { createSaveLoadManager } from './persist/saveLoad.js'
 import { createNicknameManager } from './systems/nicknameManager.js'
@@ -169,6 +173,19 @@ function showInAppBrowserWarningIfNeeded() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ======= 모듈 인스턴스 선언 (나중에 초기화) =======
+  let saveLoadManager = null
+  let nicknameManager = null
+  let cloudSyncManager = null
+  let gameUIInstance = null // gameUI.js 모듈 인스턴스
+
+  // updateSaveStatus 함수 (saveLoadManager 초기화 후 호출 가능)
+  function updateSaveStatus() {
+    if (saveLoadManager && saveLoadManager.updateSaveStatus) {
+      saveLoadManager.updateSaveStatus()
+    }
+  }
+
   // ======= Sentry 초기화 (프로덕션 전용) =======
   if (import.meta.env.PROD) {
     initSentry()
@@ -228,30 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 브라우저가 해당 이벤트를 지원하지 않아도 무시
   }
 
-  // ======= 유틸리티 함수 =======
-  function safeText(element, text) {
-    if (element && element.textContent !== undefined) {
-      element.textContent = text
-    }
-  }
-
-  function safeHTML(element, html) {
-    if (element && element.innerHTML !== undefined) {
-      element.innerHTML = html
-    }
-  }
-
-  function safeClass(element, className, add = true) {
-    if (element && element.classList) {
-      if (add) {
-        element.classList.add(className)
-      } else {
-        element.classList.remove(className)
-      }
-    }
-  }
-
   // ======= 상태 =======
+  // NOTE: safeText, safeHTML, safeClass는 './ui/domUtils.js'에서 import됨
   const fmt = new Intl.NumberFormat('ko-KR')
 
   let cash = 0
@@ -286,23 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let purchaseMode = 'buy' // 'buy' or 'sell'
   let purchaseQuantity = 1 // 1, 10, 100
 
-  // 성장 추적 데이터 저장
-  let hourlyEarningsHistory = [] // 최근 1시간 수익 기록
-  let dailyEarningsHistory = [] // 최근 24시간 수익 기록
-  let lastEarningsSnapshot = 0 // 마지막 수익 스냅샷
-  let lastSnapshotTime = Date.now()
+  // achievementGrid 모듈 인스턴스
+  let achievementGridInstance = null
 
-  // 업적 스크롤 관련 플래그
-  let __achievementScrollActive = false
-  let __achievementUpdatePending = false
-  let __achievementScrollDebounceTimer = null
+  // buttonStateManager 모듈 인스턴스
+  let buttonStateManager = null
 
   // 자동 저장 시스템
-  const SAVE_KEY = 'seoulTycoonSaveV1'
-  // reset/닉네임 설정 플로우 동안 클라우드 복구를 차단하는 플래그 (sessionStorage)
-  const CLOUD_RESTORE_BLOCK_KEY = 'ss_blockCloudRestoreUntilNicknameDone'
-  // resetGame 이후 1회성 클라우드 복구 스킵 플래그 (sessionStorage)
-  const CLOUD_RESTORE_SKIP_KEY = 'ss_skipCloudRestoreOnce'
+  // NOTE: SAVE_KEY, CLOUD_RESTORE_BLOCK_KEY, CLOUD_RESTORE_SKIP_KEY는 './state/gameState.js'에서 import됨
   let lastSaveTime = new Date()
 
   // 닉네임 (리더보드용)
@@ -311,8 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 닉네임 모달 세션 플래그 (이번 세션에서 이미 모달을 열었는지)
   let __nicknameModalShown = false
 
-  // 클라우드 동기화 관리자 (나중에 초기화)
-  let cloudSyncManager = null
+  // cloudSyncManager는 상단에서 선언됨
 
   // ======= 업그레이드 시스템 (Cookie Clicker 스타일) =======
   // UPGRADES 객체는 팩토리 함수로 생성 (data/upgrades.js)
@@ -369,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let managerLevel = 0 // 관리인 레벨
 
   // 설정 옵션
-  const SETTINGS_KEY = 'capitalClicker_settings'
+  // NOTE: SETTINGS_KEY는 './state/gameState.js'에서 import됨
   let settings = {
     particles: true, // 파티클 애니메이션
     fancyGraphics: true, // 화려한 그래픽
@@ -511,14 +496,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 애니메이션 시스템 초기화 (DOM 요소 선언 후) =======
   Animations.initAnimations(elWork)
 
-  // ======= 유틸 =======
-  function getTotalFinancialProducts() {
-    return deposits + savings + bonds + usStocks + cryptos
-  }
+  // ======= buttonStateManager 초기화 (DOM 요소 선언 후) =======
+  // Note: isProductUnlocked 함수가 정의된 후에 실제로 동작
+  // 여기서는 deps만 정의하고, isProductUnlocked 함수 정의 후 초기화 호출
 
-  function getTotalProperties() {
-    return villas + officetels + apartments + shops + buildings
-  }
+  // ======= 유틸 =======
+  // NOTE: getTotalFinancialProducts, getTotalProperties는 './state/gameState.js'에서 import됨
+  // 로컬 상태 기반 래퍼 함수 (기존 호출 패턴 유지)
+  const getTotalFinancialProducts = () => deposits + savings + bonds + usStocks + cryptos
+  const getTotalProperties = () => villas + officetels + apartments + shops + buildings
 
   // (단순화) 랜덤 변동 제거: 초당 수익은 예측 가능하게 유지하고,
   // 변동성은 '시장 이벤트'만으로 표현합니다.
@@ -527,14 +513,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // 오토 업무 처리 시스템 UI 상태 동기화
   function updateAutoWorkUI() {
     if (elWorkArea) {
-      if (autoClickEnabled) {
-        elWorkArea.classList.add('auto-click-enabled')
-      } else {
-        elWorkArea.classList.remove('auto-click-enabled')
-      }
+      elWorkArea.classList.toggle('auto-click-enabled', autoClickEnabled)
     }
     if (elAutoWorkIndicator) {
       elAutoWorkIndicator.style.display = autoClickEnabled ? '' : 'none'
+    }
+  }
+
+  // 서버에서 닉네임 동기화 (로그인 상태인 경우)
+  async function syncNicknameFromServer(logPrefix = '') {
+    try {
+      const user = await getUser()
+      if (!user) return
+      const { getUserProfile } = await import('../../shared/auth/core.js')
+      const profile = await getUserProfile('seoulsurvival')
+      if (!profile.success || !profile.user?.nickname) return
+      const serverNickname = profile.user.nickname
+      if (playerNickname === serverNickname) return
+      playerNickname = serverNickname
+      try {
+        const saveData = localStorage.getItem(SAVE_KEY)
+        if (saveData) {
+          const data = JSON.parse(saveData)
+          data.nickname = serverNickname
+          localStorage.setItem(SAVE_KEY, JSON.stringify(data))
+        }
+      } catch (e) {
+        console.warn('닉네임 저장 실패:', e)
+      }
+      updateUI()
+      console.log(`[SeoulSurvival] ${logPrefix}Nickname synced from server:`, serverNickname)
+    } catch (e) {
+      console.warn(`${logPrefix}닉네임 동기화 실패:`, e)
     }
   }
 
@@ -604,6 +614,13 @@ document.addEventListener('DOMContentLoaded', () => {
     getTowersLifetime: () => towers_lifetime,
     UPGRADES,
     getFinancialCost,
+  })
+
+  // achievementGrid 모듈 초기화
+  achievementGridInstance = createAchievementGrid({
+    getAchievements: () => ACHIEVEMENTS,
+    t,
+    isDev: __IS_DEV__,
   })
 
   // (단순화) 리스크 UI 제거
@@ -821,325 +838,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return false
   }
 
-  // 버튼 상태 업데이트 함수 (Cookie Clicker 스타일)
+  // 버튼 상태 업데이트 함수 (buttonStates.js 모듈로 위임)
   function updateButtonStates() {
-    const qty = purchaseQuantity
-    const isBuy = purchaseMode === 'buy'
-    const modeText = isBuy ? t('button.buy') : t('button.sell')
-    const qtyText = qty > 1 ? ` x${qty}` : ''
-
-    // 금융상품 버튼 상태 및 텍스트 업데이트
-    const depositCanBuy = isBuy && cash >= getFinancialCost('deposit', deposits, qty)
-    const depositCanSell = !isBuy && deposits >= qty
-    const savingsCanBuy = isBuy && cash >= getFinancialCost('savings', savings, qty)
-    const savingsCanSell = !isBuy && savings >= qty
-    const bondCanBuy = isBuy && cash >= getFinancialCost('bond', bonds, qty)
-    const bondCanSell = !isBuy && bonds >= qty
-    const usStockCanBuy = isBuy && cash >= getFinancialCost('usStock', usStocks, qty)
-    const usStockCanSell = !isBuy && usStocks >= qty
-    const cryptoCanBuy = isBuy && cash >= getFinancialCost('crypto', cryptos, qty)
-    const cryptoCanSell = !isBuy && cryptos >= qty
-
-    // 버튼 텍스트 업데이트
-    elBuyDeposit.textContent = `${modeText}${qtyText}`
-    elBuySavings.textContent = `${modeText}${qtyText}`
-    elBuyBond.textContent = `${modeText}${qtyText}`
-    elBuyUsStock.textContent = `${modeText}${qtyText}`
-    elBuyCrypto.textContent = `${modeText}${qtyText}`
-
-    // 버튼 상태 클래스 업데이트 (구매/판매 모드 모두 지원)
-    const affordableClass = isBuy ? 'affordable' : 'affordable-sell'
-    const unaffordableClass = isBuy ? 'unaffordable' : 'unaffordable-sell'
-
-    // 금융상품 버튼 클래스 업데이트
-    elBuyDeposit.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyDeposit.classList.add(
-      depositCanBuy || depositCanSell ? affordableClass : unaffordableClass
-    )
-
-    elBuySavings.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuySavings.classList.add(
-      savingsCanBuy || savingsCanSell ? affordableClass : unaffordableClass
-    )
-
-    elBuyBond.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    elBuyBond.classList.add(bondCanBuy || bondCanSell ? affordableClass : unaffordableClass)
-
-    elBuyUsStock.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyUsStock.classList.add(
-      usStockCanBuy || usStockCanSell ? affordableClass : unaffordableClass
-    )
-
-    elBuyCrypto.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyCrypto.classList.add(cryptoCanBuy || cryptoCanSell ? affordableClass : unaffordableClass)
-
-    // 부동산 버튼 상태 및 텍스트 업데이트
-    const villaCanBuy = isBuy && cash >= getPropertyCost('villa', villas, qty)
-    const villaCanSell = !isBuy && villas >= qty
-    const officetelCanBuy = isBuy && cash >= getPropertyCost('officetel', officetels, qty)
-    const officetelCanSell = !isBuy && officetels >= qty
-    const aptCanBuy = isBuy && cash >= getPropertyCost('apartment', apartments, qty)
-    const aptCanSell = !isBuy && apartments >= qty
-    const shopCanBuy = isBuy && cash >= getPropertyCost('shop', shops, qty)
-    const shopCanSell = !isBuy && shops >= qty
-    const buildingCanBuy = isBuy && cash >= getPropertyCost('building', buildings, qty)
-    const buildingCanSell = !isBuy && buildings >= qty
-
-    // 부동산 버튼 텍스트 업데이트
-    elBuyVilla.textContent = `${modeText}${qtyText}`
-    elBuyOfficetel.textContent = `${modeText}${qtyText}`
-    elBuyApt.textContent = `${modeText}${qtyText}`
-    elBuyShop.textContent = `${modeText}${qtyText}`
-    elBuyBuilding.textContent = `${modeText}${qtyText}`
-
-    // 부동산 버튼 상태 클래스 업데이트 (구매/판매 모드 모두 지원)
-    elBuyVilla.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyVilla.classList.add(villaCanBuy || villaCanSell ? affordableClass : unaffordableClass)
-
-    elBuyOfficetel.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyOfficetel.classList.add(
-      officetelCanBuy || officetelCanSell ? affordableClass : unaffordableClass
-    )
-
-    elBuyApt.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    elBuyApt.classList.add(aptCanBuy || aptCanSell ? affordableClass : unaffordableClass)
-
-    elBuyShop.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    elBuyShop.classList.add(shopCanBuy || shopCanSell ? affordableClass : unaffordableClass)
-
-    elBuyBuilding.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    elBuyBuilding.classList.add(
-      buildingCanBuy || buildingCanSell ? affordableClass : unaffordableClass
-    )
-
-    // 서울타워 버튼 상태 (구매만 가능, 판매 불가)
-    if (elBuyTower) {
-      const towerCost = BASE_COSTS.tower
-      const towerCanBuy = isBuy && cash >= towerCost && isProductUnlocked('tower')
-      elBuyTower.textContent = isBuy ? `${t('button.buy')}${qtyText}` : t('button.sell')
-      elBuyTower.classList.toggle('affordable', towerCanBuy)
-      elBuyTower.classList.toggle(
-        'unaffordable',
-        isBuy && (!towerCanBuy || !isProductUnlocked('tower'))
-      )
-      elBuyTower.disabled = purchaseMode === 'sell' || !isProductUnlocked('tower')
+    if (buttonStateManager) {
+      buttonStateManager.updateButtonStates()
     }
-
-    // 업그레이드 버튼 상태 업데이트 (제거됨 - 새 시스템 사용)
   }
 
-  // 건물 목록 색상 업데이트 함수
+  // 건물 목록 색상 업데이트 함수 (buttonStates.js 모듈로 위임)
   function updateBuildingItemStates() {
-    const qty = purchaseQuantity
-    const isBuy = purchaseMode === 'buy'
-    const affordableClass = isBuy ? 'affordable' : 'affordable-sell'
-    const unaffordableClass = isBuy ? 'unaffordable' : 'unaffordable-sell'
-
-    // 금융상품 아이템 상태 업데이트 (구매/판매 모드 모두 지원)
-    const depositItem = document.getElementById('depositItem')
-    const savingsItem = document.getElementById('savingsItem')
-    const bondItem = document.getElementById('bondItem')
-    const usStockItem = document.getElementById('usStockItem')
-    const cryptoItem = document.getElementById('cryptoItem')
-
-    const depositCanBuy = cash >= getFinancialCost('deposit', deposits, qty)
-    const depositCanSell = deposits >= qty
-    const savingsCanBuy = cash >= getFinancialCost('savings', savings, qty)
-    const savingsCanSell = savings >= qty
-    const bondCanBuy = cash >= getFinancialCost('bond', bonds, qty)
-    const bondCanSell = bonds >= qty
-    const usStockCanBuy = cash >= getFinancialCost('usStock', usStocks, qty)
-    const usStockCanSell = usStocks >= qty
-    const cryptoCanBuy = cash >= getFinancialCost('crypto', cryptos, qty)
-    const cryptoCanSell = cryptos >= qty
-
-    depositItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    depositItem.classList.add(depositCanBuy || depositCanSell ? affordableClass : unaffordableClass)
-
-    savingsItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    savingsItem.classList.add(savingsCanBuy || savingsCanSell ? affordableClass : unaffordableClass)
-
-    bondItem.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    bondItem.classList.add(
-      isBuy
-        ? bondCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : bondCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    usStockItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    usStockItem.classList.add(
-      isBuy
-        ? usStockCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : usStockCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    cryptoItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    cryptoItem.classList.add(
-      isBuy
-        ? cryptoCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : cryptoCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    // 부동산 아이템 상태 업데이트
-    const villaItem = document.getElementById('villaItem')
-    const officetelItem = document.getElementById('officetelItem')
-    const aptItem = document.getElementById('aptItem')
-    const shopItem = document.getElementById('shopItem')
-    const buildingItem = document.getElementById('buildingItem')
-
-    const villaCanBuy = cash >= getPropertyCost('villa', villas, qty)
-    const villaCanSell = villas >= qty
-    const officetelCanBuy = cash >= getPropertyCost('officetel', officetels, qty)
-    const officetelCanSell = officetels >= qty
-    const aptCanBuy = cash >= getPropertyCost('apartment', apartments, qty)
-    const aptCanSell = apartments >= qty
-    const shopCanBuy = cash >= getPropertyCost('shop', shops, qty)
-    const shopCanSell = shops >= qty
-    const buildingCanBuy = cash >= getPropertyCost('building', buildings, qty)
-    const buildingCanSell = buildings >= qty
-
-    villaItem.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    villaItem.classList.add(
-      isBuy
-        ? villaCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : villaCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    officetelItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    officetelItem.classList.add(
-      isBuy
-        ? officetelCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : officetelCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    aptItem.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    aptItem.classList.add(
-      isBuy
-        ? aptCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : aptCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    shopItem.classList.remove('affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell')
-    shopItem.classList.add(
-      isBuy
-        ? shopCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : shopCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    buildingItem.classList.remove(
-      'affordable',
-      'unaffordable',
-      'affordable-sell',
-      'unaffordable-sell'
-    )
-    buildingItem.classList.add(
-      isBuy
-        ? buildingCanBuy
-          ? affordableClass
-          : unaffordableClass
-        : buildingCanSell
-          ? affordableClass
-          : unaffordableClass
-    )
-
-    // 서울타워 아이템 상태 (구매만 가능, 판매 불가)
-    const towerItem = document.getElementById('towerItem')
-    if (towerItem) {
-      const towerCost = BASE_COSTS.tower
-      const towerCanBuy = isBuy && cash >= towerCost && isProductUnlocked('tower')
-      towerItem.classList.toggle('affordable', towerCanBuy)
-      towerItem.classList.toggle(
-        'unaffordable',
-        isBuy && (!towerCanBuy || !isProductUnlocked('tower'))
-      )
+    if (buttonStateManager) {
+      buttonStateManager.updateBuildingItemStates()
     }
   }
 
@@ -1173,897 +882,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // updateUI - gameUI 모듈로 위임 (Phase 1 리팩토링으로 890줄 → 8줄)
   function updateUI() {
-    // 전체 함수를 try-catch로 감싸서 안전하게 처리
-    try {
-      // 게임 버전 표시 업데이트 (package.json 동기화)
-      const gameVersionDisplay = document.getElementById('gameVersionDisplay')
-      if (gameVersionDisplay) {
-        gameVersionDisplay.textContent = `v${GAME_VERSION}`
-      }
-
-      // --- (A) 커리어 진행률 갱신을 최우선으로 ---
-      try {
-        // 닉네임 표시 업데이트
-        const nicknameLabel = document.getElementById('playerNicknameLabel')
-        const nicknameInfoItem = document.getElementById('nicknameInfoItem')
-        if (nicknameLabel) {
-          nicknameLabel.textContent = playerNickname || '-'
-        }
-        if (nicknameInfoItem) {
-          nicknameInfoItem.style.display = playerNickname ? 'flex' : 'none'
-        }
-        // 닉네임 변경 버튼 표시/숨김
-        const nicknameChangeButtonContainer = document.getElementById(
-          'nicknameChangeButtonContainer'
-        )
-        if (nicknameChangeButtonContainer) {
-          nicknameChangeButtonContainer.style.display = playerNickname ? 'block' : 'none'
-        }
-
-        // 마이그레이션 충돌 배너 표시
-        const nicknameConflictBanner = document.getElementById('nicknameConflictBanner')
-        if (nicknameConflictBanner) {
-          try {
-            const needsChange = localStorage.getItem('clicksurvivor_needsNicknameChange') === 'true'
-            if (needsChange) {
-              nicknameConflictBanner.style.display = 'block'
-              // 배너 내용 업데이트
-              const bannerText = nicknameConflictBanner.querySelector('span')
-              if (bannerText) {
-                bannerText.textContent = t('settings.nickname.migrationConflict.message')
-              }
-            } else {
-              nicknameConflictBanner.style.display = 'none'
-            }
-          } catch (e) {
-            nicknameConflictBanner.style.display = 'none'
-          }
-        }
-
-        // Supabase 진단 배지는 프로덕션에서는 표시하지 않음 (디버그 코드 제거)
-        // totalClicks 값 유효성 검사
-        if (typeof totalClicks !== 'number' || totalClicks < 0) {
-          console.warn('Invalid totalClicks value:', totalClicks, 'resetting to 0')
-          totalClicks = 0
-        }
-
-        const currentCareer = getCurrentCareer()
-        const nextCareer = getNextCareer()
-
-        if (!currentCareer) {
-          console.error('getCurrentCareer() returned null/undefined')
-          return
-        }
-
-        safeText(elCurrentCareer, getCareerName(careerLevel))
-        safeText(elClickIncomeButton, NumberFormat.formatNumberForLang(getClickIncome()))
-
-        // 직급별 배경 이미지 업데이트
-        if (elWorkArea && currentCareer.bgImage) {
-          elWorkArea.style.backgroundImage = `url('${currentCareer.bgImage}')`
-        } else if (elWorkArea && !currentCareer.bgImage) {
-          // 배경 이미지가 없으면 기본 그라데이션으로 복원
-          elWorkArea.style.backgroundImage =
-            'radial-gradient(1200px 400px at 50% -50%, rgba(94,234,212,.1), transparent 60%)'
-        }
-
-        if (nextCareer) {
-          // 승진 진행률 계산 및 표시 (개선된 형식)
-          const progress = Math.min((totalClicks / nextCareer.requiredClicks) * 100, 100)
-          const remaining = Math.max(0, nextCareer.requiredClicks - totalClicks)
-
-          if (elCareerProgress) {
-            elCareerProgress.style.width = progress + '%'
-            elCareerProgress.setAttribute('aria-valuenow', Math.round(progress))
-          }
-
-          // 간소화된 진행률 표시
-          safeText(
-            elCareerProgressText,
-            `${Math.round(progress)}% (${totalClicks}/${nextCareer.requiredClicks})`
-          )
-
-          // 남은 클릭 수 표시
-          if (elCareerRemaining) {
-            if (remaining > 0) {
-              // 천 단위 콤마 표기
-              safeText(
-                elCareerRemaining,
-                t('ui.nextPromotion', { remaining: remaining.toLocaleString('ko-KR') })
-              )
-            } else {
-              safeText(elCareerRemaining, t('ui.promotionAvailable'))
-            }
-          }
-        } else {
-          if (elCareerProgress) {
-            elCareerProgress.style.width = '100%'
-            elCareerProgress.setAttribute('aria-valuenow', 100)
-          }
-          safeText(elCareerProgressText, '100% (완료)')
-          if (elCareerRemaining) {
-            safeText(elCareerRemaining, '최고 직급 달성')
-          }
-        }
-      } catch (e) {
-        console.error('Career UI update failed:', e)
-        console.error('Error details:', {
-          totalClicks,
-          careerLevel,
-          currentCareer: getCurrentCareer(),
-          nextCareer: getNextCareer(),
-        })
-      }
-
-      // --- (B) 나머지 UI 갱신 (금융/부동산/업그레이드 등) ---
-      // 일기장 헤더 메타(yyyy.mm.dd(N일차))는 로그가 없어도 항상 갱신
-      {
-        const elCompact = document.getElementById('diaryHeaderMeta')
-        if (elCompact) {
-          const pad2 = n => String(n).padStart(2, '0')
-          const now = new Date()
-          const y = now.getFullYear()
-          const m = pad2(now.getMonth() + 1)
-          const d = pad2(now.getDate())
-          const base =
-            typeof gameStartTime !== 'undefined' && gameStartTime ? gameStartTime : sessionStartTime
-          const days = Math.max(1, Math.floor((Date.now() - base) / 86400000) + 1)
-          elCompact.textContent = `${y}.${m}.${d}(${t('ui.dayCount', { days })})`
-        }
-      }
-      safeText(elCash, NumberFormat.formatHeaderCash(cash, settings))
-      // 금융상품 집계 및 툴팁
-      const totalFinancial = getTotalFinancialProducts()
-      safeText(elFinancial, NumberFormat.formatNumberForLang(totalFinancial))
-      const financialChip = document.getElementById('financialChip')
-      if (financialChip) {
-        const countUnit = t('ui.unit.count')
-        const tooltip = `${getProductName('deposit')}: ${deposits}${countUnit}\n${getProductName('savings')}: ${savings}${countUnit}\n${getProductName('bond')}: ${bonds}${countUnit}\n${getProductName('usStock')}: ${usStocks}${countUnit}\n${getProductName('crypto')}: ${cryptos}${countUnit}`
-        financialChip.setAttribute('title', tooltip)
-      }
-
-      // 부동산 집계 및 툴팁
-      const totalProperties = getTotalProperties()
-      safeText(elProperties, NumberFormat.formatNumberForLang(totalProperties))
-      const propertyChip = document.getElementById('propertyChip')
-      if (propertyChip) {
-        const propertyUnit = t('ui.unit.property')
-        const villaName = getProductName('villa')
-        const officetelName = getProductName('officetel')
-        const aptName = getProductName('apartment')
-        const shopName = getProductName('shop')
-        const buildingName = getProductName('building')
-        const tooltip = `${villaName}: ${villas}${propertyUnit}\n${officetelName}: ${officetels}${propertyUnit}\n${aptName}: ${apartments}${propertyUnit}\n${shopName}: ${shops}${propertyUnit}\n${buildingName}: ${buildings}${propertyUnit}`
-        propertyChip.setAttribute('title', tooltip)
-      }
-
-      // 타워 배지 표시/숨김
-      const towerBadge = document.getElementById('towerBadge')
-      const towerCountHeader = document.getElementById('towerCountHeader')
-      if (towerBadge && towerCountHeader) {
-        if (towers_lifetime > 0) {
-          towerBadge.style.display = 'flex'
-          towerCountHeader.textContent = towers_lifetime
-        } else {
-          towerBadge.style.display = 'none'
-        }
-      }
-
-      // 초당 수익 및 툴팁
-      const rpsValue = getRps()
-      safeText(elRps, NumberFormat.formatHeaderCash(rpsValue, settings))
-      const rpsChip = document.getElementById('rpsChip')
-      if (rpsChip) {
-        const financialIncome =
-          deposits * FINANCIAL_INCOME.deposit +
-          savings * FINANCIAL_INCOME.savings +
-          bonds * FINANCIAL_INCOME.bond
-        const propertyIncome =
-          (villas * BASE_RENT.villa +
-            officetels * BASE_RENT.officetel +
-            apartments * BASE_RENT.apartment +
-            shops * BASE_RENT.shop +
-            buildings * BASE_RENT.building) *
-          rentMultiplier
-
-        const financialIncomeFormatted =
-          NumberFormat.formatNumberForLang(financialIncome) + t('ui.currency') + '/s'
-        const propertyIncomeFormatted =
-          NumberFormat.formatNumberForLang(propertyIncome) + t('ui.currency') + '/s'
-        const tooltip = `${t('header.tooltip.financialIncome', { amount: financialIncomeFormatted })}\n${t('header.tooltip.propertyIncome', { amount: propertyIncomeFormatted })}\n${t('header.tooltip.marketMultiplier', { multiplier: marketMultiplier })}`
-        rpsChip.setAttribute('title', tooltip)
-      }
-
-      // ======= [투자] 시장 이벤트 영향 배지/하이라이트 =======
-      updateInvestmentMarketImpactUI()
-
-      safeText(elClickMultiplier, clickMultiplier.toFixed(1))
-      safeText(elRentMultiplier, rentMultiplier.toFixed(1))
-
-      // 금융상품 UI 업데이트 (동적 가격 계산) - 안전장치 추가
-      try {
-        // 금융상품 변수 유효성 검사
-        if (typeof deposits !== 'number' || deposits < 0) {
-          console.warn('Invalid deposits value:', deposits, 'resetting to 0')
-          deposits = 0
-        }
-        if (typeof savings !== 'number' || savings < 0) {
-          console.warn('Invalid savings value:', savings, 'resetting to 0')
-          savings = 0
-        }
-        if (typeof bonds !== 'number' || bonds < 0) {
-          console.warn('Invalid bonds value:', bonds, 'resetting to 0')
-          bonds = 0
-        }
-
-        // 퍼센트 표기는 실제 현재 수익 기준으로 계산 (시장 이벤트/배수 반영, 글로벌 marketMultiplier는 제외)
-        const totalRps = getTotalIncomeForContribution()
-
-        // 예금 업데이트
-        const depositCost =
-          purchaseMode === 'buy'
-            ? getFinancialCost('deposit', deposits, purchaseQuantity)
-            : getFinancialSellPrice('deposit', deposits, purchaseQuantity)
-        const depositTotalIncome = deposits * FINANCIAL_INCOME.deposit
-        const depositEffectiveIncome = getFinancialIncome('deposit', deposits)
-        const depositPercent =
-          totalRps > 0 ? ((depositEffectiveIncome / totalRps) * 100).toFixed(1) : 0
-
-        elDepositCount.textContent = deposits
-        const depositCurrency = t('ui.currency')
-        const depositUnit = t('ui.unit.count')
-        const depositName = getProductName('deposit')
-        const depositPerUnitAmount =
-          Math.floor(FINANCIAL_INCOME.deposit).toLocaleString(
-            getLang() === 'en' ? 'en-US' : 'ko-KR'
-          ) + depositCurrency
-        const depositTotalAmount =
-          Math.floor(depositTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          depositCurrency
-        const depositLifetimeAmount = NumberFormat.formatCashDisplayFixed1(
-          depositsLifetime,
-          settings
-        )
-        const depositPrice = NumberFormat.formatFinancialPrice(depositCost)
-
-        // 상품 이름 업데이트
-        const depositTitleEl = document.querySelector('#depositItem .title')
-        if (depositTitleEl) {
-          const titleSpan = depositTitleEl.querySelector('span[data-i18n="product.deposit"]')
-          if (titleSpan) {
-            titleSpan.textContent = depositName
-          } else {
-            depositTitleEl.textContent = `💰 ${depositName}`
-          }
-        }
-
-        // 설명 업데이트 - HTML의 data-i18n 요소들을 업데이트하고 동적 값만 교체
-        const depositDescEls = document.querySelectorAll('#depositItem .desc')
-        if (depositDescEls.length >= 4) {
-          // 첫 번째 desc: 각 상품이 초당 X 생산
-          const perUnitText = t('product.desc.perUnit', {
-            product: depositName,
-            amount: depositPerUnitAmount,
-          })
-          depositDescEls[0].innerHTML = `• ${perUnitText.replace(depositPerUnitAmount, `<b>${depositPerUnitAmount}</b>`)}`
-
-          // 두 번째 desc: N개 상품이 초당 X 생산 (총 수익의 Y%)
-          const totalText = t('product.desc.total', {
-            count: deposits,
-            unit: depositUnit,
-            product: depositName,
-            amount: depositTotalAmount,
-            percent: depositPercent,
-          })
-          depositDescEls[1].innerHTML = `• ${totalText.replace(depositTotalAmount, `<b>${depositTotalAmount}</b>`).replace(depositPercent + '%', `<b>${depositPercent}%</b>`)}`
-
-          // 세 번째 desc: 지금까지 X 생산
-          const lifetimeText = t('product.desc.lifetime', { amount: depositLifetimeAmount })
-          depositDescEls[2].innerHTML = `• ${lifetimeText.replace(depositLifetimeAmount, `<b>${depositLifetimeAmount}</b>`)}`
-
-          // 네 번째 desc: 현재가: X
-          const currentPriceText = t('product.desc.currentPrice', { price: depositPrice })
-          depositDescEls[3].innerHTML = currentPriceText.replace(
-            depositPrice,
-            `<b>${depositPrice}</b>`
-          )
-        }
-
-        // 기존 ID 요소들 업데이트 (하위 호환성)
-        const incomePerDepositEl = document.getElementById('incomePerDeposit')
-        if (incomePerDepositEl) incomePerDepositEl.textContent = depositPerUnitAmount
-        const depositTotalIncomeEl = document.getElementById('depositTotalIncome')
-        if (depositTotalIncomeEl) depositTotalIncomeEl.textContent = depositTotalAmount
-        const depositPercentEl = document.getElementById('depositPercent')
-        if (depositPercentEl) depositPercentEl.textContent = depositPercent + '%'
-        const depositLifetimeEl = document.getElementById('depositLifetime')
-        if (depositLifetimeEl) depositLifetimeEl.textContent = depositLifetimeAmount
-        if (elDepositCurrentPrice) elDepositCurrentPrice.textContent = depositPrice
-
-        // 적금 업데이트
-        const savingsCost =
-          purchaseMode === 'buy'
-            ? getFinancialCost('savings', savings, purchaseQuantity)
-            : getFinancialSellPrice('savings', savings, purchaseQuantity)
-        const savingsTotalIncome = savings * FINANCIAL_INCOME.savings
-        const savingsEffectiveIncome = getFinancialIncome('savings', savings)
-        const savingsPercent =
-          totalRps > 0 ? ((savingsEffectiveIncome / totalRps) * 100).toFixed(1) : 0
-
-        elSavingsCount.textContent = savings
-        const savingsCurrency = t('ui.currency')
-        const savingsUnit = t('ui.unit.count')
-        const savingsName = getProductName('savings')
-        const savingsPerUnitAmount =
-          Math.floor(FINANCIAL_INCOME.savings).toLocaleString(
-            getLang() === 'en' ? 'en-US' : 'ko-KR'
-          ) + savingsCurrency
-        const savingsTotalAmount =
-          Math.floor(savingsTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          savingsCurrency
-        const savingsLifetimeAmount = NumberFormat.formatCashDisplayFixed1(
-          savingsLifetime,
-          settings
-        )
-        const savingsPrice = NumberFormat.formatFinancialPrice(savingsCost)
-
-        // 상품 이름 업데이트
-        const savingsTitleEl = document.querySelector('#savingsItem .title')
-        if (savingsTitleEl) savingsTitleEl.textContent = `🏦 ${savingsName}`
-
-        // 설명 업데이트
-        const savingsDescEls = document.querySelectorAll('#savingsItem .desc')
-        if (savingsDescEls.length >= 4) {
-          const savingsPerUnitText = t('product.desc.perUnit', {
-            product: savingsName,
-            amount: savingsPerUnitAmount,
-          })
-          savingsDescEls[0].innerHTML = `• ${savingsPerUnitText.replace(savingsPerUnitAmount, `<b>${savingsPerUnitAmount}</b>`)}`
-          const savingsTotalText = t('product.desc.total', {
-            count: savings,
-            unit: savingsUnit,
-            product: savingsName,
-            amount: savingsTotalAmount,
-            percent: savingsPercent,
-          })
-          savingsDescEls[1].innerHTML = `• ${savingsTotalText.replace(savingsTotalAmount, `<b>${savingsTotalAmount}</b>`).replace(savingsPercent + '%', `<b>${savingsPercent}%</b>`)}`
-          const savingsLifetimeText = t('product.desc.lifetime', { amount: savingsLifetimeAmount })
-          savingsDescEls[2].innerHTML = `• ${savingsLifetimeText.replace(savingsLifetimeAmount, `<b>${savingsLifetimeAmount}</b>`)}`
-          const savingsCurrentPriceText = t('product.desc.currentPrice', { price: savingsPrice })
-          savingsDescEls[3].innerHTML = savingsCurrentPriceText.replace(
-            savingsPrice,
-            `<b>${savingsPrice}</b>`
-          )
-        }
-
-        elIncomePerSavings.textContent = savingsPerUnitAmount
-        document.getElementById('savingsTotalIncome').textContent = savingsTotalAmount
-        document.getElementById('savingsPercent').textContent = savingsPercent + '%'
-        document.getElementById('savingsLifetimeDisplay').textContent = savingsLifetimeAmount
-        elSavingsCurrentPrice.textContent = savingsPrice
-
-        // 주식 업데이트
-        const bondCost =
-          purchaseMode === 'buy'
-            ? getFinancialCost('bond', bonds, purchaseQuantity)
-            : getFinancialSellPrice('bond', bonds, purchaseQuantity)
-        const bondTotalIncome = bonds * FINANCIAL_INCOME.bond
-        const bondEffectiveIncome = getFinancialIncome('bond', bonds)
-        const bondPercent = totalRps > 0 ? ((bondEffectiveIncome / totalRps) * 100).toFixed(1) : 0
-
-        elBondCount.textContent = bonds
-        const bondCurrency = t('ui.currency')
-        const bondUnit = t('ui.unit.count')
-        const bondName = getProductName('bond')
-        const bondPerUnitAmount =
-          Math.floor(FINANCIAL_INCOME.bond).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          bondCurrency
-        const bondTotalAmount =
-          Math.floor(bondTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          bondCurrency
-        const bondLifetimeAmount = NumberFormat.formatCashDisplayFixed1(bondsLifetime, settings)
-        const bondPrice = NumberFormat.formatFinancialPrice(bondCost)
-
-        // 상품 이름 업데이트
-        const bondTitleEl = document.querySelector('#bondItem .title')
-        if (bondTitleEl) bondTitleEl.textContent = `📈 ${bondName}`
-
-        // 설명 업데이트
-        const bondDescEls = document.querySelectorAll('#bondItem .desc')
-        if (bondDescEls.length >= 4) {
-          const bondPerUnitText = t('product.desc.perUnit', {
-            product: bondName,
-            amount: bondPerUnitAmount,
-          })
-          bondDescEls[0].innerHTML = `• ${bondPerUnitText.replace(bondPerUnitAmount, `<b>${bondPerUnitAmount}</b>`)}`
-          const bondTotalText = t('product.desc.total', {
-            count: bonds,
-            unit: bondUnit,
-            product: bondName,
-            amount: bondTotalAmount,
-            percent: bondPercent,
-          })
-          bondDescEls[1].innerHTML = `• ${bondTotalText.replace(bondTotalAmount, `<b>${bondTotalAmount}</b>`).replace(bondPercent + '%', `<b>${bondPercent}%</b>`)}`
-          const bondLifetimeText = t('product.desc.lifetime', { amount: bondLifetimeAmount })
-          bondDescEls[2].innerHTML = `• ${bondLifetimeText.replace(bondLifetimeAmount, `<b>${bondLifetimeAmount}</b>`)}`
-          const bondCurrentPriceText = t('product.desc.currentPrice', { price: bondPrice })
-          bondDescEls[3].innerHTML = bondCurrentPriceText.replace(bondPrice, `<b>${bondPrice}</b>`)
-        }
-
-        elIncomePerBond.textContent = bondPerUnitAmount
-        document.getElementById('bondTotalIncome').textContent = bondTotalAmount
-        document.getElementById('bondPercent').textContent = bondPercent + '%'
-        document.getElementById('bondLifetimeDisplay').textContent = bondLifetimeAmount
-        elBondCurrentPrice.textContent = bondPrice
-
-        // 미국주식 업데이트
-        const usStockCost =
-          purchaseMode === 'buy'
-            ? getFinancialCost('usStock', usStocks, purchaseQuantity)
-            : getFinancialSellPrice('usStock', usStocks, purchaseQuantity)
-        const usStockTotalIncome = usStocks * FINANCIAL_INCOME.usStock
-        const usStockEffectiveIncome = getFinancialIncome('usStock', usStocks)
-        const usStockPercent =
-          totalRps > 0 ? ((usStockEffectiveIncome / totalRps) * 100).toFixed(1) : 0
-
-        document.getElementById('usStockCount').textContent = usStocks
-        const usStockCurrency = t('ui.currency')
-        const usStockUnit = t('ui.unit.count')
-        const usStockName = getProductName('usStock')
-        const usStockPerUnitAmount =
-          Math.floor(FINANCIAL_INCOME.usStock).toLocaleString(
-            getLang() === 'en' ? 'en-US' : 'ko-KR'
-          ) + usStockCurrency
-        const usStockTotalAmount =
-          Math.floor(usStockTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          usStockCurrency
-        const usStockLifetimeAmount = NumberFormat.formatCashDisplayFixed1(
-          usStocksLifetime,
-          settings
-        )
-        const usStockPrice = NumberFormat.formatFinancialPrice(usStockCost)
-
-        // 상품 이름 업데이트
-        const usStockTitleEl = document.querySelector('#usStockItem .title')
-        if (usStockTitleEl) usStockTitleEl.textContent = `🇺🇸 ${usStockName}`
-
-        // 설명 업데이트
-        const usStockDescEls = document.querySelectorAll('#usStockItem .desc')
-        if (usStockDescEls.length >= 4) {
-          const usStockPerUnitText = t('product.desc.perUnit', {
-            product: usStockName,
-            amount: usStockPerUnitAmount,
-          })
-          usStockDescEls[0].innerHTML = `• ${usStockPerUnitText.replace(usStockPerUnitAmount, `<b>${usStockPerUnitAmount}</b>`)}`
-          const usStockTotalText = t('product.desc.total', {
-            count: usStocks,
-            unit: usStockUnit,
-            product: usStockName,
-            amount: usStockTotalAmount,
-            percent: usStockPercent,
-          })
-          usStockDescEls[1].innerHTML = `• ${usStockTotalText.replace(usStockTotalAmount, `<b>${usStockTotalAmount}</b>`).replace(usStockPercent + '%', `<b>${usStockPercent}%</b>`)}`
-          const usStockLifetimeText = t('product.desc.lifetime', { amount: usStockLifetimeAmount })
-          usStockDescEls[2].innerHTML = `• ${usStockLifetimeText.replace(usStockLifetimeAmount, `<b>${usStockLifetimeAmount}</b>`)}`
-          const usStockCurrentPriceText = t('product.desc.currentPrice', { price: usStockPrice })
-          usStockDescEls[3].innerHTML = usStockCurrentPriceText.replace(
-            usStockPrice,
-            `<b>${usStockPrice}</b>`
-          )
-        }
-
-        document.getElementById('incomePerUsStock').textContent = usStockPerUnitAmount
-        document.getElementById('usStockTotalIncome').textContent = usStockTotalAmount
-        document.getElementById('usStockPercent').textContent = usStockPercent + '%'
-        document.getElementById('usStockLifetimeDisplay').textContent = usStockLifetimeAmount
-        document.getElementById('usStockCurrentPrice').textContent = usStockPrice
-
-        // 코인 업데이트
-        const cryptoCost =
-          purchaseMode === 'buy'
-            ? getFinancialCost('crypto', cryptos, purchaseQuantity)
-            : getFinancialSellPrice('crypto', cryptos, purchaseQuantity)
-        const cryptoTotalIncome = cryptos * FINANCIAL_INCOME.crypto
-        const cryptoEffectiveIncome = getFinancialIncome('crypto', cryptos)
-        const cryptoPercent =
-          totalRps > 0 ? ((cryptoEffectiveIncome / totalRps) * 100).toFixed(1) : 0
-
-        document.getElementById('cryptoCount').textContent = cryptos
-        const cryptoCurrency = t('ui.currency')
-        const cryptoUnit = t('ui.unit.count')
-        const cryptoName = getProductName('crypto')
-        const cryptoPerUnitAmount =
-          Math.floor(FINANCIAL_INCOME.crypto).toLocaleString(
-            getLang() === 'en' ? 'en-US' : 'ko-KR'
-          ) + cryptoCurrency
-        const cryptoTotalAmount =
-          Math.floor(cryptoTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-          cryptoCurrency
-        const cryptoLifetimeAmount = NumberFormat.formatCashDisplayFixed1(cryptosLifetime, settings)
-        const cryptoPrice = NumberFormat.formatFinancialPrice(cryptoCost)
-
-        // 상품 이름 업데이트
-        const cryptoTitleEl = document.querySelector('#cryptoItem .title')
-        if (cryptoTitleEl) cryptoTitleEl.textContent = `₿ ${cryptoName}`
-
-        // 설명 업데이트
-        const cryptoDescEls = document.querySelectorAll('#cryptoItem .desc')
-        if (cryptoDescEls.length >= 4) {
-          const cryptoPerUnitText = t('product.desc.perUnit', {
-            product: cryptoName,
-            amount: cryptoPerUnitAmount,
-          })
-          cryptoDescEls[0].innerHTML = `• ${cryptoPerUnitText.replace(cryptoPerUnitAmount, `<b>${cryptoPerUnitAmount}</b>`)}`
-          const cryptoTotalText = t('product.desc.total', {
-            count: cryptos,
-            unit: cryptoUnit,
-            product: cryptoName,
-            amount: cryptoTotalAmount,
-            percent: cryptoPercent,
-          })
-          cryptoDescEls[1].innerHTML = `• ${cryptoTotalText.replace(cryptoTotalAmount, `<b>${cryptoTotalAmount}</b>`).replace(cryptoPercent + '%', `<b>${cryptoPercent}%</b>`)}`
-          const cryptoLifetimeText = t('product.desc.lifetime', { amount: cryptoLifetimeAmount })
-          cryptoDescEls[2].innerHTML = `• ${cryptoLifetimeText.replace(cryptoLifetimeAmount, `<b>${cryptoLifetimeAmount}</b>`)}`
-          const cryptoCurrentPriceText = t('product.desc.currentPrice', { price: cryptoPrice })
-          cryptoDescEls[3].innerHTML = cryptoCurrentPriceText.replace(
-            cryptoPrice,
-            `<b>${cryptoPrice}</b>`
-          )
-        }
-
-        document.getElementById('incomePerCrypto').textContent = cryptoPerUnitAmount
-        document.getElementById('cryptoTotalIncome').textContent = cryptoTotalAmount
-        document.getElementById('cryptoPercent').textContent = cryptoPercent + '%'
-        document.getElementById('cryptoLifetimeDisplay').textContent = cryptoLifetimeAmount
-        document.getElementById('cryptoCurrentPrice').textContent = cryptoPrice
-      } catch (e) {
-        console.error('Financial products UI update failed:', e)
-        console.error('Error details:', { deposits, savings, bonds })
-      }
-
-      // 부동산 구입 UI 업데이트 (동적 가격 계산)
-      const totalRps2 = getTotalIncomeForContribution() // 부동산용 RPS 계산
-
-      // 빌라
-      const villaCost =
-        purchaseMode === 'buy'
-          ? getPropertyCost('villa', villas, purchaseQuantity)
-          : getPropertySellPrice('villa', villas, purchaseQuantity)
-      const villaTotalIncome = villas * BASE_RENT.villa
-      const villaEffectiveIncome = getPropertyIncome('villa', villas) * rentMultiplier
-      const villaPercent = totalRps2 > 0 ? ((villaEffectiveIncome / totalRps2) * 100).toFixed(1) : 0
-
-      elVillaCount.textContent = villas
-      const villaCurrency = t('ui.currency')
-      const villaUnit = t('ui.unit.property')
-      const villaName = getProductName('villa')
-      const villaPerUnitAmount =
-        Math.floor(BASE_RENT.villa).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        villaCurrency
-      const villaTotalAmount =
-        Math.floor(villaTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        villaCurrency
-      const villaLifetimeAmount = NumberFormat.formatCashDisplayFixed1(villasLifetime, settings)
-      const villaPrice = NumberFormat.formatPropertyPrice(villaCost)
-
-      // 상품 이름 업데이트
-      const villaTitleEl = document.querySelector('#villaItem .title')
-      if (villaTitleEl) villaTitleEl.textContent = `🏘️ ${villaName}`
-
-      // 설명 업데이트
-      const villaDescEls = document.querySelectorAll('#villaItem .desc')
-      if (villaDescEls.length >= 4) {
-        const villaPerUnitText = t('product.desc.perUnit', {
-          product: villaName,
-          amount: villaPerUnitAmount,
-        })
-        villaDescEls[0].innerHTML = `• ${villaPerUnitText.replace(villaPerUnitAmount, `<b>${villaPerUnitAmount}</b>`)}`
-        const villaTotalText = t('product.desc.total', {
-          count: villas,
-          unit: villaUnit,
-          product: villaName,
-          amount: villaTotalAmount,
-          percent: villaPercent,
-        })
-        villaDescEls[1].innerHTML = `• ${villaTotalText.replace(villaTotalAmount, `<b>${villaTotalAmount}</b>`).replace(villaPercent + '%', `<b>${villaPercent}%</b>`)}`
-        const villaLifetimeText = t('product.desc.lifetime', { amount: villaLifetimeAmount })
-        villaDescEls[2].innerHTML = `• ${villaLifetimeText.replace(villaLifetimeAmount, `<b>${villaLifetimeAmount}</b>`)}`
-        const villaCurrentPriceText = t('product.desc.currentPrice', { price: villaPrice })
-        villaDescEls[3].innerHTML = villaCurrentPriceText.replace(
-          villaPrice,
-          `<b>${villaPrice}</b>`
-        )
-      }
-
-      elRentPerVilla.textContent = villaPerUnitAmount
-      document.getElementById('villaTotalIncome').textContent = villaTotalAmount
-      document.getElementById('villaPercent').textContent = villaPercent + '%'
-      document.getElementById('villaLifetimeDisplay').textContent = villaLifetimeAmount
-      elVillaCurrentPrice.textContent = villaPrice
-
-      // 오피스텔
-      const officetelCost =
-        purchaseMode === 'buy'
-          ? getPropertyCost('officetel', officetels, purchaseQuantity)
-          : getPropertySellPrice('officetel', officetels, purchaseQuantity)
-      const officetelTotalIncome = officetels * BASE_RENT.officetel
-      const officetelEffectiveIncome = getPropertyIncome('officetel', officetels) * rentMultiplier
-      const officetelPercent =
-        totalRps2 > 0 ? ((officetelEffectiveIncome / totalRps2) * 100).toFixed(1) : 0
-
-      elOfficetelCount.textContent = officetels
-      const officetelCurrency = t('ui.currency')
-      const officetelUnit = t('ui.unit.property')
-      const officetelName = getProductName('officetel')
-      const officetelPerUnitAmount =
-        Math.floor(BASE_RENT.officetel).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        officetelCurrency
-      const officetelTotalAmount =
-        Math.floor(officetelTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        officetelCurrency
-      const officetelLifetimeAmount = NumberFormat.formatCashDisplayFixed1(
-        officetelsLifetime,
-        settings
-      )
-      const officetelPrice = NumberFormat.formatPropertyPrice(officetelCost)
-
-      // 상품 이름 업데이트
-      const officetelTitleEl = document.querySelector('#officetelItem .title')
-      if (officetelTitleEl) officetelTitleEl.textContent = `🏢 ${officetelName}`
-
-      // 설명 업데이트
-      const officetelDescEls = document.querySelectorAll('#officetelItem .desc')
-      if (officetelDescEls.length >= 4) {
-        const officetelPerUnitText = t('product.desc.perUnit', {
-          product: officetelName,
-          amount: officetelPerUnitAmount,
-        })
-        officetelDescEls[0].innerHTML = `• ${officetelPerUnitText.replace(officetelPerUnitAmount, `<b>${officetelPerUnitAmount}</b>`)}`
-        const officetelTotalText = t('product.desc.total', {
-          count: officetels,
-          unit: officetelUnit,
-          product: officetelName,
-          amount: officetelTotalAmount,
-          percent: officetelPercent,
-        })
-        officetelDescEls[1].innerHTML = `• ${officetelTotalText.replace(officetelTotalAmount, `<b>${officetelTotalAmount}</b>`).replace(officetelPercent + '%', `<b>${officetelPercent}%</b>`)}`
-        const officetelLifetimeText = t('product.desc.lifetime', {
-          amount: officetelLifetimeAmount,
-        })
-        officetelDescEls[2].innerHTML = `• ${officetelLifetimeText.replace(officetelLifetimeAmount, `<b>${officetelLifetimeAmount}</b>`)}`
-        const officetelCurrentPriceText = t('product.desc.currentPrice', { price: officetelPrice })
-        officetelDescEls[3].innerHTML = officetelCurrentPriceText.replace(
-          officetelPrice,
-          `<b>${officetelPrice}</b>`
-        )
-      }
-
-      elRentPerOfficetel.textContent = officetelPerUnitAmount
-      document.getElementById('officetelTotalIncome').textContent = officetelTotalAmount
-      document.getElementById('officetelPercent').textContent = officetelPercent + '%'
-      document.getElementById('officetelLifetimeDisplay').textContent = officetelLifetimeAmount
-      elOfficetelCurrentPrice.textContent = officetelPrice
-
-      // 아파트
-      const aptCost =
-        purchaseMode === 'buy'
-          ? getPropertyCost('apartment', apartments, purchaseQuantity)
-          : getPropertySellPrice('apartment', apartments, purchaseQuantity)
-      const aptTotalIncome = apartments * BASE_RENT.apartment
-      const aptEffectiveIncome = getPropertyIncome('apartment', apartments) * rentMultiplier
-      const aptPercent = totalRps2 > 0 ? ((aptEffectiveIncome / totalRps2) * 100).toFixed(1) : 0
-
-      elAptCount.textContent = apartments
-      const aptCurrency = t('ui.currency')
-      const aptUnit = t('ui.unit.property')
-      const aptName = getProductName('apartment')
-      const aptPerUnitAmount =
-        Math.floor(BASE_RENT.apartment).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        aptCurrency
-      const aptTotalAmount =
-        Math.floor(aptTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        aptCurrency
-      const aptLifetimeAmount = NumberFormat.formatCashDisplayFixed1(apartmentsLifetime, settings)
-      const aptPrice = NumberFormat.formatPropertyPrice(aptCost)
-
-      // 상품 이름 업데이트
-      const aptTitleEl = document.querySelector('#aptItem .title')
-      if (aptTitleEl) aptTitleEl.textContent = `🏬 ${aptName}`
-
-      // 설명 업데이트
-      const aptDescEls = document.querySelectorAll('#aptItem .desc')
-      if (aptDescEls.length >= 4) {
-        const aptPerUnitText = t('product.desc.perUnit', {
-          product: aptName,
-          amount: aptPerUnitAmount,
-        })
-        aptDescEls[0].innerHTML = `• ${aptPerUnitText.replace(aptPerUnitAmount, `<b>${aptPerUnitAmount}</b>`)}`
-        const aptTotalText = t('product.desc.total', {
-          count: apartments,
-          unit: aptUnit,
-          product: aptName,
-          amount: aptTotalAmount,
-          percent: aptPercent,
-        })
-        aptDescEls[1].innerHTML = `• ${aptTotalText.replace(aptTotalAmount, `<b>${aptTotalAmount}</b>`).replace(aptPercent + '%', `<b>${aptPercent}%</b>`)}`
-        const aptLifetimeText = t('product.desc.lifetime', { amount: aptLifetimeAmount })
-        aptDescEls[2].innerHTML = `• ${aptLifetimeText.replace(aptLifetimeAmount, `<b>${aptLifetimeAmount}</b>`)}`
-        const aptCurrentPriceText = t('product.desc.currentPrice', { price: aptPrice })
-        aptDescEls[3].innerHTML = aptCurrentPriceText.replace(aptPrice, `<b>${aptPrice}</b>`)
-      }
-
-      elRentPerApt.textContent = aptPerUnitAmount
-      document.getElementById('aptTotalIncome').textContent = aptTotalAmount
-      document.getElementById('aptPercent').textContent = aptPercent + '%'
-      document.getElementById('aptLifetimeDisplay').textContent = aptLifetimeAmount
-      elAptCurrentPrice.textContent = aptPrice
-
-      // 상가
-      const shopCost =
-        purchaseMode === 'buy'
-          ? getPropertyCost('shop', shops, purchaseQuantity)
-          : getPropertySellPrice('shop', shops, purchaseQuantity)
-      const shopTotalIncome = shops * BASE_RENT.shop
-      const shopEffectiveIncome = getPropertyIncome('shop', shops) * rentMultiplier
-      const shopPercent = totalRps2 > 0 ? ((shopEffectiveIncome / totalRps2) * 100).toFixed(1) : 0
-
-      elShopCount.textContent = shops
-      const shopCurrency = t('ui.currency')
-      const shopUnit = t('ui.unit.property')
-      const shopName = getProductName('shop')
-      const shopPerUnitAmount =
-        Math.floor(BASE_RENT.shop).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        shopCurrency
-      const shopTotalAmount =
-        Math.floor(shopTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        shopCurrency
-      const shopLifetimeAmount = NumberFormat.formatCashDisplayFixed1(shopsLifetime, settings)
-      const shopPrice = NumberFormat.formatPropertyPrice(shopCost)
-
-      // 상품 이름 업데이트
-      const shopTitleEl = document.querySelector('#shopItem .title')
-      if (shopTitleEl) shopTitleEl.textContent = `🏪 ${shopName}`
-
-      // 설명 업데이트
-      const shopDescEls = document.querySelectorAll('#shopItem .desc')
-      if (shopDescEls.length >= 4) {
-        const shopPerUnitText = t('product.desc.perUnit', {
-          product: shopName,
-          amount: shopPerUnitAmount,
-        })
-        shopDescEls[0].innerHTML = `• ${shopPerUnitText.replace(shopPerUnitAmount, `<b>${shopPerUnitAmount}</b>`)}`
-        const shopTotalText = t('product.desc.total', {
-          count: shops,
-          unit: shopUnit,
-          product: shopName,
-          amount: shopTotalAmount,
-          percent: shopPercent,
-        })
-        shopDescEls[1].innerHTML = `• ${shopTotalText.replace(shopTotalAmount, `<b>${shopTotalAmount}</b>`).replace(shopPercent + '%', `<b>${shopPercent}%</b>`)}`
-        const shopLifetimeText = t('product.desc.lifetime', { amount: shopLifetimeAmount })
-        shopDescEls[2].innerHTML = `• ${shopLifetimeText.replace(shopLifetimeAmount, `<b>${shopLifetimeAmount}</b>`)}`
-        const shopCurrentPriceText = t('product.desc.currentPrice', { price: shopPrice })
-        shopDescEls[3].innerHTML = shopCurrentPriceText.replace(shopPrice, `<b>${shopPrice}</b>`)
-      }
-
-      elRentPerShop.textContent = shopPerUnitAmount
-      document.getElementById('shopTotalIncome').textContent = shopTotalAmount
-      document.getElementById('shopPercent').textContent = shopPercent + '%'
-      document.getElementById('shopLifetimeDisplay').textContent = shopLifetimeAmount
-      elShopCurrentPrice.textContent = shopPrice
-
-      // 빌딩
-      const buildingCost =
-        purchaseMode === 'buy'
-          ? getPropertyCost('building', buildings, purchaseQuantity)
-          : getPropertySellPrice('building', buildings, purchaseQuantity)
-      const buildingTotalIncome = buildings * BASE_RENT.building
-      const buildingEffectiveIncome = getPropertyIncome('building', buildings) * rentMultiplier
-      const buildingPercent =
-        totalRps2 > 0 ? ((buildingEffectiveIncome / totalRps2) * 100).toFixed(1) : 0
-
-      elBuildingCount.textContent = buildings
-      const buildingCurrency = t('ui.currency')
-      const buildingUnit = t('ui.unit.property')
-      const buildingName = getProductName('building')
-      const buildingPerUnitAmount =
-        Math.floor(BASE_RENT.building).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        buildingCurrency
-      const buildingTotalAmount =
-        Math.floor(buildingTotalIncome).toLocaleString(getLang() === 'en' ? 'en-US' : 'ko-KR') +
-        buildingCurrency
-      const buildingLifetimeAmount = NumberFormat.formatCashDisplayFixed1(
-        buildingsLifetime,
-        settings
-      )
-      const buildingPrice = NumberFormat.formatPropertyPrice(buildingCost)
-
-      // 상품 이름 업데이트
-      const buildingTitleEl = document.querySelector('#buildingItem .title')
-      if (buildingTitleEl) buildingTitleEl.textContent = `🏙️ ${buildingName}`
-
-      // 설명 업데이트
-      const buildingDescEls = document.querySelectorAll('#buildingItem .desc')
-      if (buildingDescEls.length >= 4) {
-        const buildingPerUnitText = t('product.desc.perUnit', {
-          product: buildingName,
-          amount: buildingPerUnitAmount,
-        })
-        buildingDescEls[0].innerHTML = `• ${buildingPerUnitText.replace(buildingPerUnitAmount, `<b>${buildingPerUnitAmount}</b>`)}`
-        const buildingTotalText = t('product.desc.total', {
-          count: buildings,
-          unit: buildingUnit,
-          product: buildingName,
-          amount: buildingTotalAmount,
-          percent: buildingPercent,
-        })
-        buildingDescEls[1].innerHTML = `• ${buildingTotalText.replace(buildingTotalAmount, `<b>${buildingTotalAmount}</b>`).replace(buildingPercent + '%', `<b>${buildingPercent}%</b>`)}`
-        const buildingLifetimeText = t('product.desc.lifetime', { amount: buildingLifetimeAmount })
-        buildingDescEls[2].innerHTML = `• ${buildingLifetimeText.replace(buildingLifetimeAmount, `<b>${buildingLifetimeAmount}</b>`)}`
-        const buildingCurrentPriceText = t('product.desc.currentPrice', { price: buildingPrice })
-        buildingDescEls[3].innerHTML = buildingCurrentPriceText.replace(
-          buildingPrice,
-          `<b>${buildingPrice}</b>`
-        )
-      }
-
-      elRentPerBuilding.textContent = buildingPerUnitAmount
-      document.getElementById('buildingTotalIncome').textContent = buildingTotalAmount
-      document.getElementById('buildingPercent').textContent = buildingPercent + '%'
-      document.getElementById('buildingLifetimeDisplay').textContent = buildingLifetimeAmount
-      elBuildingCurrentPrice.textContent = buildingPrice
-
-      // 서울타워 (프레스티지, 수익 없음)
-      const towerName = getProductName('tower')
-      const towerUnit = t('ui.unit.count')
-      const towerPrice = NumberFormat.formatNumberForLang(BASE_COSTS.tower, getLang())
-
-      // 상품 이름 업데이트
-      const towerTitleEl = document.querySelector('#towerItem .title')
-      if (towerTitleEl) towerTitleEl.textContent = `🗼 ${towerName}`
-
-      // 설명 업데이트
-      const towerDescEls = document.querySelectorAll('#towerItem .desc')
-      if (towerDescEls.length >= 4) {
-        towerDescEls[0].innerHTML = `• ${t('tower.desc.prestige')}`
-        towerDescEls[1].innerHTML = `• ${t('tower.desc.owned', { count: towers_run })}`
-        towerDescEls[2].innerHTML = `• ${t('tower.desc.leaderboard', { count: towers_lifetime })}`
-        towerDescEls[3].innerHTML = `${t('product.desc.currentPrice', { price: towerPrice })}`
-      }
-
-      if (elTowerCountDisplay) elTowerCountDisplay.textContent = towers_lifetime
-      if (elTowerCountBadge) elTowerCountBadge.textContent = towers_lifetime
-      if (elTowerCurrentPrice) {
-        elTowerCurrentPrice.textContent = towerPrice
-      }
-
-      // 커리어 UI 업데이트는 함수 최상단으로 이동됨
-
-      // 업그레이드 UI 업데이트 (제거됨 - 새 시스템 사용)
-
-      // 버튼 상태 업데이트 (Cookie Clicker 스타일)
-      updateButtonStates()
-
-      // 건물 목록 색상 업데이트
-      updateBuildingItemStates()
-
-      // 업그레이드 구매 가능 여부만 업데이트 (DOM 재생성 안 함)
-      updateUpgradeAffordability()
-
-      // 순차 해금 시스템 - 잠금 상태 업데이트
-      if (typeof updateProductLockStates === 'function') {
-        updateProductLockStates()
-      }
-
-      // 통계 탭 업데이트
-      updateStatsTab()
-    } catch (uiError) {
-      console.error('❌ updateUI() 전체 실행 중 오류:', uiError)
-      console.error('에러 스택:', uiError.stack)
-      // UI 업데이트 실패해도 게임은 계속 진행 가능
+    if (gameUIInstance) {
+      gameUIInstance.updateUI()
     }
+    // gameUIInstance가 초기화되기 전에는 아무것도 하지 않음
+    // (초기화 순서상 updateUI()는 gameUIInstance 초기화 후에만 호출됨)
   }
+
+  // ========== 레거시 updateUI() 코드 완전 삭제됨 ==========
+  // gameUI.js 모듈로 위임 완료 (890줄 → 8줄 감소)
+  // 원본 코드: gameUI.js의 createGameUI() 참조
 
   // ======= 투자 탭 UI 시스템 초기화 =======
   const investmentTab = createInvestmentTab({
@@ -2160,194 +990,185 @@ document.addEventListener('DOMContentLoaded', () => {
     initInvestmentEventListeners,
   } = investmentTab
 
-  // ======= 통계 섹션 접기/펼치기 기능 (TDZ 방지를 위해 여기서 선언) =======
-  let statsCollapsibleInitialized = false
-  function initStatsCollapsible() {
-    if (statsCollapsibleInitialized) return
-    statsCollapsibleInitialized = true
+  // ======= buttonStateManager 초기화 =======
+  buttonStateManager = createButtonStateManager({
+    // State getters
+    getCash: () => cash,
+    getPurchaseMode: () => purchaseMode,
+    getPurchaseQuantity: () => purchaseQuantity,
+    getDeposits: () => deposits,
+    getSavings: () => savings,
+    getBonds: () => bonds,
+    getUsStocks: () => usStocks,
+    getCryptos: () => cryptos,
+    getVillas: () => villas,
+    getOfficetels: () => officetels,
+    getApartments: () => apartments,
+    getShops: () => shops,
+    getBuildings: () => buildings,
+    // Helper functions
+    getFinancialCost,
+    getPropertyCost,
+    isProductUnlocked,
+    // DOM elements
+    elBuyDeposit,
+    elBuySavings,
+    elBuyBond,
+    elBuyUsStock,
+    elBuyCrypto,
+    elBuyVilla,
+    elBuyOfficetel,
+    elBuyApt,
+    elBuyShop,
+    elBuyBuilding,
+    elBuyTower,
+  })
 
-    const statsTab = document.getElementById('statsTab')
-    if (statsTab) {
-      statsTab.addEventListener('click', e => {
-        const toggle = e.target.closest('.stats-toggle')
-        const toggleIcon = e.target.closest('.toggle-icon')
-        if (toggle || toggleIcon) {
-          const section = (toggle || toggleIcon).closest('.stats-section')
-          if (section && section.classList.contains('collapsible')) {
-            const achievementGrid = section.querySelector('#achievementGrid')
-            if (achievementGrid) return
-            section.classList.toggle('collapsed')
-            e.preventDefault()
-            e.stopPropagation()
-          }
-        }
-      })
-    }
-  }
+  // ======= gameUI 모듈 초기화 =======
+  gameUIInstance = createGameUI({
+    // State getters
+    getCash: () => cash,
+    getDeposits: () => deposits,
+    getSavings: () => savings,
+    getBonds: () => bonds,
+    getUsStocks: () => usStocks,
+    getCryptos: () => cryptos,
+    getVillas: () => villas,
+    getOfficetels: () => officetels,
+    getApartments: () => apartments,
+    getShops: () => shops,
+    getBuildings: () => buildings,
+    getTowersRun: () => towers_run,
+    getTowersLifetime: () => towers_lifetime,
+    getDepositsLifetime: () => depositsLifetime,
+    getSavingsLifetime: () => savingsLifetime,
+    getBondsLifetime: () => bondsLifetime,
+    getUsStocksLifetime: () => usStocksLifetime,
+    getCryptosLifetime: () => cryptosLifetime,
+    getVillasLifetime: () => villasLifetime,
+    getOfficetelsLifetime: () => officetelsLifetime,
+    getApartmentsLifetime: () => apartmentsLifetime,
+    getShopsLifetime: () => shopsLifetime,
+    getBuildingsLifetime: () => buildingsLifetime,
+    getPurchaseMode: () => purchaseMode,
+    getPurchaseQuantity: () => purchaseQuantity,
+    getPlayerNickname: () => playerNickname,
+    getTotalClicks: () => totalClicks,
+    getCareerLevel: () => careerLevel,
+    getClickMultiplier: () => clickMultiplier,
+    getRentMultiplier: () => rentMultiplier,
+    getMarketMultiplier: () => marketMultiplier,
+    getSettings: () => settings,
+    getGameStartTime: () => gameStartTime,
+    getSessionStartTime: () => sessionStartTime,
 
-  // 통계 섹션 초기화 (DOMContentLoaded 이후에 실행)
-  setTimeout(() => {
-    initStatsCollapsible()
-  }, 100)
+    // State setters
+    setTotalClicks: v => {
+      totalClicks = v
+    },
+    setDeposits: v => {
+      deposits = v
+    },
+    setSavings: v => {
+      savings = v
+    },
+    setBonds: v => {
+      bonds = v
+    },
+
+    // Helper functions
+    getCareerName,
+    getCurrentCareer,
+    getNextCareer,
+    getClickIncome,
+    getRps,
+    getTotalFinancialProducts,
+    getTotalProperties,
+    getTotalIncomeForContribution,
+    getFinancialIncome,
+    getPropertyIncome,
+    getFinancialCost,
+    getFinancialSellPrice,
+    getPropertyCost,
+    getPropertySellPrice,
+    getProductName,
+
+    // UI update functions
+    updateInvestmentMarketImpactUI,
+    updateButtonStates,
+    updateBuildingItemStates,
+    updateUpgradeAffordability,
+    updateProductLockStates,
+    updateStatsTab,
+
+    // DOM elements
+    elCurrentCareer,
+    elClickIncomeButton,
+    elWorkArea,
+    elCareerProgress,
+    elCareerProgressText,
+    elCareerRemaining,
+    elCash,
+    elFinancial,
+    elProperties,
+    elRps,
+    elClickMultiplier,
+    elRentMultiplier,
+    elDepositCount,
+    elIncomePerDeposit,
+    elDepositCurrentPrice,
+    elSavingsCount,
+    elIncomePerSavings,
+    elSavingsCurrentPrice,
+    elBondCount,
+    elIncomePerBond,
+    elBondCurrentPrice,
+    elVillaCount,
+    elRentPerVilla,
+    elVillaCurrentPrice,
+    elOfficetelCount,
+    elRentPerOfficetel,
+    elOfficetelCurrentPrice,
+    elAptCount,
+    elRentPerApt,
+    elAptCurrentPrice,
+    elShopCount,
+    elRentPerShop,
+    elShopCurrentPrice,
+    elBuildingCount,
+    elRentPerBuilding,
+    elBuildingCurrentPrice,
+    elTowerCountDisplay,
+    elTowerCountBadge,
+    elTowerCurrentPrice,
+  })
+
+  // ======= 통계/투자 섹션 접기/펼치기 기능 (collapsible.js 모듈로 위임) =======
+  const collapsibleManager = createCollapsibleManager()
+  collapsibleManager.initAll(100) // 지연 초기화 (DOMContentLoaded 이후)
 
   // ======= 구매 수량 선택 시스템 =======
-  elBuyMode.addEventListener('click', () => {
-    purchaseMode = 'buy'
-    elBuyMode.classList.add('active')
-    elSellMode.classList.remove('active')
-    updateUI()
-  })
-
-  elSellMode.addEventListener('click', () => {
-    purchaseMode = 'sell'
-    elSellMode.classList.add('active')
-    elBuyMode.classList.remove('active')
-    updateUI()
-  })
-
-  elQty1.addEventListener('click', () => {
-    purchaseQuantity = 1
-    elQty1.classList.add('active')
-    elQty5.classList.remove('active')
-    elQty10.classList.remove('active')
-    updateUI()
-  })
-
-  elQty5.addEventListener('click', () => {
-    purchaseQuantity = 5
-    elQty5.classList.add('active')
-    elQty1.classList.remove('active')
-    elQty10.classList.remove('active')
-    updateUI()
-  })
-
-  elQty10.addEventListener('click', () => {
-    purchaseQuantity = 10
-    elQty10.classList.add('active')
-    elQty1.classList.remove('active')
-    elQty5.classList.remove('active')
-    updateUI()
-  })
-
-  // ======= 투자 탭 토글 기능 (통계 탭 스타일 통일) =======
-  let investmentCollapsibleInitialized = false
-
-  function initInvestmentCollapsible() {
-    if (investmentCollapsibleInitialized) return
-    investmentCollapsibleInitialized = true
-
-    const shopTab = document.getElementById('shopTab')
-    if (!shopTab) return
-
-    // 이벤트 위임: shopTab 전체에 1개 리스너
-    shopTab.addEventListener('click', e => {
-      const toggle = e.target.closest('.stats-toggle')
-      const toggleIcon = e.target.closest('.toggle-icon')
-
-      if (toggle || toggleIcon) {
-        const section = (toggle || toggleIcon).closest('.stats-section')
-
-        if (section && section.classList.contains('collapsible')) {
-          // 토글 실행
-          const isCollapsed = section.classList.toggle('collapsed')
-
-          // aria-expanded 업데이트
-          const toggleElem = section.querySelector('.stats-toggle')
-          if (toggleElem) {
-            toggleElem.setAttribute('aria-expanded', !isCollapsed)
-          }
-
-          // 상태 저장
-          const sectionId = section.getAttribute('data-section-id')
-          if (sectionId) {
-            saveSectionCollapseState(sectionId, isCollapsed)
-          }
-
-          e.preventDefault()
-          e.stopPropagation()
-        }
-      }
+  const setupModeBtn = (btn, mode, other) => {
+    btn?.addEventListener('click', () => {
+      purchaseMode = mode
+      btn.classList.add('active')
+      other?.classList.remove('active')
+      updateUI()
     })
-
-    // 키보드 네비게이션 지원
-    shopTab.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        const toggle = e.target.closest('.stats-toggle')
-        if (toggle) {
-          const section = toggle.closest('.stats-section')
-          if (section && section.classList.contains('collapsible')) {
-            const isCollapsed = section.classList.toggle('collapsed')
-            toggle.setAttribute('aria-expanded', !isCollapsed)
-
-            // 상태 저장
-            const sectionId = section.getAttribute('data-section-id')
-            if (sectionId) {
-              saveSectionCollapseState(sectionId, isCollapsed)
-            }
-
-            e.preventDefault()
-          }
-        }
-      }
+  }
+  const setupQtyBtn = (btn, qty, others) => {
+    btn?.addEventListener('click', () => {
+      purchaseQuantity = qty
+      btn.classList.add('active')
+      others.forEach(o => o?.classList.remove('active'))
+      updateUI()
     })
-
-    // 저장된 상태 복원
-    restoreSectionCollapseState()
   }
-
-  // 섹션 토글 상태 저장 (LocalStorage)
-  function saveSectionCollapseState(sectionId, isCollapsed) {
-    try {
-      const state = JSON.parse(localStorage.getItem('section-collapse-state') || '{}')
-      state[sectionId] = isCollapsed
-      localStorage.setItem('section-collapse-state', JSON.stringify(state))
-    } catch (err) {
-      console.warn('[Collapse] 상태 저장 실패:', err)
-    }
-  }
-
-  // 섹션 토글 상태 복원
-  function restoreSectionCollapseState() {
-    try {
-      const state = JSON.parse(localStorage.getItem('section-collapse-state') || '{}')
-      Object.entries(state).forEach(([sectionId, isCollapsed]) => {
-        const section = document.querySelector(`[data-section-id="${sectionId}"]`)
-        if (section && isCollapsed) {
-          section.classList.add('collapsed')
-          const toggle = section.querySelector('.stats-toggle')
-          if (toggle) {
-            toggle.setAttribute('aria-expanded', 'false')
-          }
-        }
-      })
-    } catch (err) {
-      console.warn('[Collapse] 상태 복원 실패:', err)
-    }
-  }
-
-  // 동적 높이 업데이트 함수
-  function updateStatsContentHeight(sectionId) {
-    const section = document.querySelector(`[data-section-id="${sectionId}"]`)
-    if (!section || section.classList.contains('collapsed')) return
-
-    const content = section.querySelector('.stats-content')
-    if (content) {
-      // scrollHeight 기반 max-height 설정
-      content.style.maxHeight = content.scrollHeight + 'px'
-
-      // 트랜지션 후 max-height 제거 (유연한 높이)
-      setTimeout(() => {
-        if (!section.classList.contains('collapsed')) {
-          content.style.maxHeight = 'none'
-        }
-      }, 300) // 트랜지션 시간과 동일
-    }
-  }
-
-  // 투자 탭 초기화
-  setTimeout(() => {
-    initInvestmentCollapsible()
-  }, 100)
+  setupModeBtn(elBuyMode, 'buy', elSellMode)
+  setupModeBtn(elSellMode, 'sell', elBuyMode)
+  setupQtyBtn(elQty1, 1, [elQty5, elQty10])
+  setupQtyBtn(elQty5, 5, [elQty1, elQty10])
+  setupQtyBtn(elQty10, 10, [elQty1, elQty5])
 
   // ======= 액션 =======
   function handleWorkAction(clientX, clientY) {
@@ -2510,14 +1331,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elFavoriteBtn.addEventListener('click', handleFavoriteClick)
   }
 
-  // 새로 시작 버튼 이벤트 리스너 (footer와 설정 탭 모두)
-  if (elResetBtn) {
-    elResetBtn.addEventListener('click', resetGame)
-  }
-  const elResetBtnSettings = document.getElementById('resetBtnSettings')
-  if (elResetBtnSettings) {
-    elResetBtnSettings.addEventListener('click', resetGame)
-  }
+  // 새로 시작 버튼 이벤트 리스너는 saveLoadManager 초기화 후에 설정됨
+  // (아래 saveLoadManager 생성 후 설정)
 
   // 금융상품 거래 이벤트 (구매/판매 통합)
   // 투자 탭 이벤트 리스너 초기화 (investmentTab 모듈에서 관리)
@@ -2536,128 +1351,35 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 
   // 런(현재 게임) 보유 수량 일괄 초기화 함수
-  // 상품 정의 리스트(FINANCIAL_INCOME, BASE_COSTS)를 순회하여 모든 보유 수량을 0으로 초기화
-  // 상품 추가/삭제 시에도 이 함수만 수정하면 되도록 설계
   function resetRunHoldings() {
-    // 금융상품 보유 수량 초기화 (FINANCIAL_INCOME 키 기반)
-    // 상수 키 → 변수명 매핑
-    const financialHoldings = {
-      deposit: () => {
-        deposits = 0
-      },
-      savings: () => {
-        savings = 0
-      },
-      bond: () => {
-        bonds = 0
-      },
-      usStock: () => {
-        usStocks = 0
-      },
-      crypto: () => {
-        cryptos = 0
-      },
-    }
+    // 금융상품 초기화
+    deposits = 0
+    savings = 0
+    bonds = 0
+    usStocks = 0
+    cryptos = 0
 
-    // FINANCIAL_INCOME에 정의된 모든 키에 대해 초기화 실행
-    for (const key of Object.keys(FINANCIAL_INCOME)) {
-      if (financialHoldings[key]) {
-        financialHoldings[key]()
-      }
-    }
+    // 부동산 초기화
+    villas = 0
+    officetels = 0
+    apartments = 0
+    shops = 0
+    buildings = 0
 
-    // 부동산 보유 수량 초기화 (BASE_COSTS 키 기반, tower 제외)
-    // 상수 키 → 변수명 매핑
-    const propertyHoldings = {
-      villa: () => {
-        if (typeof villas !== 'undefined') villas = 0
-      },
-      officetel: () => {
-        if (typeof officetels !== 'undefined') officetels = 0
-      },
-      apartment: () => {
-        if (typeof apartments !== 'undefined') apartments = 0
-      },
-      shop: () => {
-        if (typeof shops !== 'undefined') shops = 0
-      },
-      building: () => {
-        if (typeof buildings !== 'undefined') buildings = 0
-      },
-      // tower는 towers_run으로 별도 처리 (프레스티지 시 초기화, towers_lifetime은 유지)
-    }
+    // 타워 런 초기화 (towers_lifetime은 유지)
+    towers_run = 0
 
-    // BASE_COSTS에 정의된 모든 키에 대해 초기화 실행 (tower 제외)
-    const propertyKeys = Object.keys(BASE_COSTS).filter(key => key !== 'tower')
-    if (__IS_DEV__) {
-      console.debug('[resetRunHoldings] 부동산 초기화 대상:', propertyKeys)
-    }
-
-    for (const key of propertyKeys) {
-      if (propertyHoldings[key]) {
-        try {
-          propertyHoldings[key]()
-        } catch (e) {
-          console.warn(`[resetRunHoldings] 부동산 ${key} 초기화 실패:`, e)
-        }
-      } else if (__IS_DEV__) {
-        console.warn(`[resetRunHoldings] 부동산 ${key}에 대한 매핑이 없습니다.`)
-      }
-    }
-
-    // 추가 변수 초기화 (상수에 없는 변수들)
-    // 주의: domesticStocks는 존재하지 않음. 실제 변수는 bonds이며 위에서 이미 초기화됨
-    if (typeof towers_run !== 'undefined') {
-      towers_run = 0 // towers_lifetime은 유지
-    } else if (__IS_DEV__) {
-      console.warn('[resetRunHoldings] towers_run 변수가 정의되지 않았습니다.')
-    }
-
-    // 누적 생산량 초기화 (Lifetime 변수들) - 방어 로직 추가
-    const lifetimeHoldings = {
-      depositsLifetime: () => {
-        if (typeof depositsLifetime !== 'undefined') depositsLifetime = 0
-      },
-      savingsLifetime: () => {
-        if (typeof savingsLifetime !== 'undefined') savingsLifetime = 0
-      },
-      bondsLifetime: () => {
-        if (typeof bondsLifetime !== 'undefined') bondsLifetime = 0
-      },
-      usStocksLifetime: () => {
-        if (typeof usStocksLifetime !== 'undefined') usStocksLifetime = 0
-      },
-      cryptosLifetime: () => {
-        if (typeof cryptosLifetime !== 'undefined') cryptosLifetime = 0
-      },
-      villasLifetime: () => {
-        if (typeof villasLifetime !== 'undefined') villasLifetime = 0
-      },
-      officetelsLifetime: () => {
-        if (typeof officetelsLifetime !== 'undefined') officetelsLifetime = 0
-      },
-      apartmentsLifetime: () => {
-        if (typeof apartmentsLifetime !== 'undefined') apartmentsLifetime = 0
-      },
-      shopsLifetime: () => {
-        if (typeof shopsLifetime !== 'undefined') shopsLifetime = 0
-      },
-      buildingsLifetime: () => {
-        if (typeof buildingsLifetime !== 'undefined') buildingsLifetime = 0
-      },
-    }
-
-    if (__IS_DEV__) {
-      console.debug('[resetRunHoldings] Lifetime 변수 초기화 대상:', Object.keys(lifetimeHoldings))
-    }
-
-    for (const [varName, resetFn] of Object.entries(lifetimeHoldings)) {
-      try {
-        resetFn()
-      } catch (e) {
-        console.warn(`[resetRunHoldings] Lifetime 변수 ${varName} 초기화 실패:`, e)
-      }
-    }
+    // Lifetime 변수 초기화
+    depositsLifetime = 0
+    savingsLifetime = 0
+    bondsLifetime = 0
+    usStocksLifetime = 0
+    cryptosLifetime = 0
+    villasLifetime = 0
+    officetelsLifetime = 0
+    apartmentsLifetime = 0
+    shopsLifetime = 0
+    buildingsLifetime = 0
 
     if (__IS_DEV__) {
       console.debug('[resetRunHoldings] 초기화 완료')
@@ -2818,7 +1540,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 자동 저장 시스템 =======
   setInterval(() => {
-    saveLoadManager.saveGame() // 5초마다 자동 저장
+    if (saveLoadManager) {
+      saveLoadManager.saveGame() // 5초마다 자동 저장
+    }
   }, 5000)
 
   // ======= 오토클릭 시스템 =======
@@ -2875,8 +1599,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elCurrentYear.textContent = new Date().getFullYear()
   }
 
-  // 초기 렌더 (async IIFE로 감싸서 await 사용 가능하게 함)
-  ;(async () => {
+  // 초기 렌더 함수 (saveLoadManager/nicknameManager 초기화 후 호출)
+  async function initializeGame() {
     const gameLoaded = saveLoadManager.loadGame() // 게임 데이터 불러오기 시도
 
     // ======= 일기장 시스템 초기화 (loadGame 이후에 초기화하여 정확한 gameStartTime 사용) =======
@@ -2884,42 +1608,13 @@ document.addEventListener('DOMContentLoaded', () => {
       Diary.initDiary(elLog, { gameStartTime, sessionStartTime })
     }
 
-    // 게임 로드 후 서버에서 최신 닉네임 동기화 (로그인 상태인 경우)
-    try {
-      const user = await getUser()
-      if (user) {
-        const { getUserProfile } = await import('../../shared/auth/core.js')
-        const profile = await getUserProfile('seoulsurvival')
-        if (profile.success && profile.user?.nickname) {
-          const serverNickname = profile.user.nickname
-          // 서버 닉네임과 로컬 닉네임이 다르면 서버 닉네임으로 동기화
-          if (playerNickname !== serverNickname) {
-            playerNickname = serverNickname
-            // 게임 저장에 닉네임 업데이트
-            try {
-              const saveData = localStorage.getItem(SAVE_KEY)
-              if (saveData) {
-                const data = JSON.parse(saveData)
-                data.nickname = serverNickname
-                localStorage.setItem(SAVE_KEY, JSON.stringify(data))
-              }
-            } catch (e) {
-              console.warn('닉네임 저장 실패:', e)
-            }
-            // UI 업데이트
-            updateUI()
-            console.log('[SeoulSurvival] Initial nickname synced from server:', serverNickname)
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('초기 닉네임 동기화 실패:', e)
-    }
+    // 게임 로드 후 서버에서 최신 닉네임 동기화
+    await syncNicknameFromServer('Initial ')
 
     if (gameLoaded) {
       Diary.addLog(t('msg.gameLoaded'))
       // 로컬 저장이 있으면 즉시 닉네임 모달 확인
-      nicknameManager.ensureNicknameModal()
+      nicknameManager?.ensureNicknameModal()
     } else {
       Diary.addLog(t('msg.welcome'))
       // 로컬 저장이 없으면 클라우드 복구를 먼저 확인
@@ -2927,11 +1622,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!willReload) {
         // 클라우드 복구가 트리거되지 않았으면 닉네임 모달 확인
         // (사용자가 "나중에"를 선택했거나, 클라우드 세이브가 없음)
-        nicknameManager.ensureNicknameModal()
+        nicknameManager?.ensureNicknameModal()
       }
       // willReload가 true면 리로드가 예약되었으므로 닉네임 모달은 리로드 후 처리됨
     }
-  })()
+  }
+  // initializeGame은 saveLoadManager 초기화 후 호출됨 (아래 참조)
 
   // 초기 배경 이미지 설정
   const initialCareer = getCurrentCareer()
@@ -3047,7 +1743,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 
   // ======= 저장/로드 시스템 =======
-  const saveLoadManager = createSaveLoadManager({
+  saveLoadManager = createSaveLoadManager({
     SAVE_KEY,
     gameVars: {
       get cash() {
@@ -3314,8 +2010,17 @@ document.addEventListener('DOMContentLoaded', () => {
     __IS_DEV__,
   })
 
+  // 새로 시작 버튼 이벤트 리스너 (saveLoadManager 초기화 후)
+  if (elResetBtn) {
+    elResetBtn.addEventListener('click', () => saveLoadManager.resetGame())
+  }
+  const elResetBtnSettings = document.getElementById('resetBtnSettings')
+  if (elResetBtnSettings) {
+    elResetBtnSettings.addEventListener('click', () => saveLoadManager.resetGame())
+  }
+
   // ======= 닉네임 관리 시스템 =======
-  const nicknameManager = createNicknameManager({
+  nicknameManager = createNicknameManager({
     SAVE_KEY,
     CLOUD_RESTORE_BLOCK_KEY,
     Modal,
@@ -3335,6 +2040,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     __IS_DEV__,
   })
+
+  // 게임 초기화 (saveLoadManager/nicknameManager 준비 완료 후)
+  initializeGame()
 
   // 클라우드 업로드/다운로드 버튼 연결
   if (elCloudUploadBtn) elCloudUploadBtn.addEventListener('click', cloudSyncManager.cloudUpload)
@@ -3372,601 +2080,83 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
-  // 판매 시스템 테스트 로그
-  // ======= 성장 추적 함수 =======
-  function updateGrowthTracking() {
-    const now = Date.now()
-    const currentEarnings =
-      depositsLifetime +
-      savingsLifetime +
-      bondsLifetime +
-      usStocksLifetime +
-      cryptosLifetime +
-      villasLifetime +
-      officetelsLifetime +
-      apartmentsLifetime +
-      shopsLifetime +
-      buildingsLifetime +
-      totalLaborIncome
+  // ======= 금융상품/부동산 가치 계산 (statsTab.js에서 사용) =======
 
-    // 1시간 이내 기록 유지
-    hourlyEarningsHistory = hourlyEarningsHistory.filter(entry => now - entry.time < 3600000)
-    // 24시간 이내 기록 유지
-    dailyEarningsHistory = dailyEarningsHistory.filter(entry => now - entry.time < 86400000)
-
-    // 1분마다 스냅샷 저장
-    if (now - lastSnapshotTime >= 60000) {
-      hourlyEarningsHistory.push({ time: now, earnings: currentEarnings })
-      dailyEarningsHistory.push({ time: now, earnings: currentEarnings })
-      lastSnapshotTime = now
-    }
-
-    // 최근 1시간 수익 계산
-    const oneHourAgo = now - 3600000
-    const hourlyEarnings =
-      hourlyEarningsHistory.length > 0 ? currentEarnings - hourlyEarningsHistory[0].earnings : 0
-
-    // 최근 24시간 수익 계산
-    const oneDayAgo = now - 86400000
-    const dailyEarnings =
-      dailyEarningsHistory.length > 0 ? currentEarnings - dailyEarningsHistory[0].earnings : 0
-
-    // 성장 속도 계산 (시간당 증가율)
-    const growthRate =
-      lastEarningsSnapshot > 0 && now - lastSnapshotTime > 0
-        ? ((currentEarnings - lastEarningsSnapshot) / lastEarningsSnapshot) *
-          (3600000 / (now - lastSnapshotTime)) *
-          100
-        : 0
-
-    // 마일스톤 계산
-    const milestones = [1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000]
-    const maxAchievedText = t('stats.maxAchieved')
-    let nextMilestone = milestones.find(m => m > currentEarnings) || maxAchievedText
-    if (nextMilestone !== maxAchievedText) {
-      const remaining = nextMilestone - currentEarnings
-      const remainingText = t('stats.remaining', {
-        amount: NumberFormat.formatStatsNumber(remaining, settings),
-      })
-      nextMilestone = remainingText
-    }
-
-    // UI 업데이트
-    safeText(
-      document.getElementById('hourlyEarnings'),
-      NumberFormat.formatCashDisplay(Math.max(0, hourlyEarnings), settings)
-    )
-    safeText(
-      document.getElementById('dailyEarnings'),
-      NumberFormat.formatCashDisplay(Math.max(0, dailyEarnings), settings)
-    )
-    // "+0.0%/시간" 처럼 소수점 1자리 고정 + -0.0 방지
-    const growthRateStable = Math.abs(growthRate) < 0.05 ? 0 : growthRate
-    const perHourUnitForGrowth = t('stats.unit.perHour')
-    safeText(
-      document.getElementById('growthRate'),
-      `${growthRateStable >= 0 ? '+' : ''}${growthRateStable.toFixed(1)}%${perHourUnitForGrowth}`
-    )
-    safeText(document.getElementById('nextMilestone'), nextMilestone)
-
-    lastEarningsSnapshot = currentEarnings
-  }
-
-  // ======= 도넛 차트 그리기 =======
-  function drawDonutChart() {
-    const canvas = document.getElementById('assetDonutChart')
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // DPR(레티나) 대응: 흐릿하게 보이는 문제 해결
-    const baseSize = 200 // index.html의 canvas attribute와 동일한 논리 크기
-    const dpr = Math.max(1, Math.floor((window.devicePixelRatio || 1) * 100) / 100)
-    const target = Math.round(baseSize * dpr)
-    if (canvas.width !== target || canvas.height !== target) {
-      canvas.width = target
-      canvas.height = target
-      canvas.style.width = `${baseSize}px`
-      canvas.style.height = `${baseSize}px`
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-
-    const centerX = baseSize / 2
-    const centerY = baseSize / 2
-    const radius = 80
-    const innerRadius = 50
-
-    // 자산 비율 계산
-    const totalAssets = cash + calculateTotalAssetValue()
-    const financialValue = calculateFinancialValue()
-    const propertyValue = calculatePropertyValue()
-
-    const cashPercent = totalAssets > 0 ? (cash / totalAssets) * 100 : 0
-    const financialPercent = totalAssets > 0 ? (financialValue / totalAssets) * 100 : 0
-    const propertyPercent = totalAssets > 0 ? (propertyValue / totalAssets) * 100 : 0
-
-    // 배경 원
-    ctx.clearRect(0, 0, baseSize, baseSize)
-    ctx.beginPath()
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-    ctx.fill()
-
-    // 각 섹션 그리기
-    let currentAngle = -Math.PI / 2
-
-    // 현금
-    if (cashPercent > 0) {
-      const angle = (cashPercent / 100) * Math.PI * 2
-      ctx.beginPath()
-      ctx.moveTo(centerX, centerY)
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + angle)
-      ctx.closePath()
-      // 현금 컬러 = 노동 컬러(주황) + 더 또렷하게(그라데이션/경계선)
-      const cashGrad = ctx.createLinearGradient(
-        centerX - radius,
-        centerY - radius,
-        centerX + radius,
-        centerY + radius
-      )
-      cashGrad.addColorStop(0, '#f59e0b')
-      cashGrad.addColorStop(1, '#d97706')
-      ctx.fillStyle = cashGrad
-      ctx.fill()
-      ctx.lineWidth = 2
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)'
-      ctx.stroke()
-      currentAngle += angle
-    }
-
-    // 금융
-    if (financialPercent > 0) {
-      const angle = (financialPercent / 100) * Math.PI * 2
-      ctx.beginPath()
-      ctx.moveTo(centerX, centerY)
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + angle)
-      ctx.closePath()
-      ctx.fillStyle = 'rgba(59, 130, 246, 0.5)'
-      ctx.fill()
-      currentAngle += angle
-    }
-
-    // 부동산
-    if (propertyPercent > 0) {
-      const angle = (propertyPercent / 100) * Math.PI * 2
-      ctx.beginPath()
-      ctx.moveTo(centerX, centerY)
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + angle)
-      ctx.closePath()
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.5)'
-      ctx.fill()
-    }
-
-    // 내부 원 (도넛 효과)
-    ctx.beginPath()
-    ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2)
-    // canvas는 CSS var(--bg)를 직접 해석하지 못하므로 실제 색상값을 사용
-    const bgColor =
-      getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0b1220'
-    ctx.fillStyle = bgColor
-    ctx.fill()
-  }
-
+  // 금융상품 총 가치 계산 (ForType 함수 활용)
   function calculateFinancialValue() {
-    let value = 0
-    if (deposits > 0) {
-      for (let i = 0; i < deposits; i++) {
-        value += getFinancialCost('deposit', i)
-      }
-    }
-    if (savings > 0) {
-      for (let i = 0; i < savings; i++) {
-        value += getFinancialCost('savings', i)
-      }
-    }
-    if (bonds > 0) {
-      for (let i = 0; i < bonds; i++) {
-        value += getFinancialCost('bond', i)
-      }
-    }
-    if (usStocks > 0) {
-      for (let i = 0; i < usStocks; i++) {
-        value += getFinancialCost('usStock', i)
-      }
-    }
-    if (cryptos > 0) {
-      for (let i = 0; i < cryptos; i++) {
-        value += getFinancialCost('crypto', i)
-      }
-    }
-    return value
+    return (
+      calculateFinancialValueForType('deposit', deposits) +
+      calculateFinancialValueForType('savings', savings) +
+      calculateFinancialValueForType('bond', bonds) +
+      calculateFinancialValueForType('usStock', usStocks) +
+      calculateFinancialValueForType('crypto', cryptos)
+    )
   }
 
+  // 부동산 총 가치 계산 (ForType 함수 활용)
   function calculatePropertyValue() {
-    let value = 0
-    if (villas > 0) {
-      for (let i = 0; i < villas; i++) {
-        value += getPropertyCost('villa', i)
-      }
-    }
-    if (officetels > 0) {
-      for (let i = 0; i < officetels; i++) {
-        value += getPropertyCost('officetel', i)
-      }
-    }
-    if (apartments > 0) {
-      for (let i = 0; i < apartments; i++) {
-        value += getPropertyCost('apartment', i)
-      }
-    }
-    if (shops > 0) {
-      for (let i = 0; i < shops; i++) {
-        value += getPropertyCost('shop', i)
-      }
-    }
-    if (buildings > 0) {
-      for (let i = 0; i < buildings; i++) {
-        value += getPropertyCost('building', i)
-      }
-    }
-    return value
+    return (
+      calculatePropertyValueForType('villa', villas) +
+      calculatePropertyValueForType('officetel', officetels) +
+      calculatePropertyValueForType('apartment', apartments) +
+      calculatePropertyValueForType('shop', shops) +
+      calculatePropertyValueForType('building', buildings)
+    )
   }
 
-  // ======= 통계 탭 업데이트 함수 =======
+  // ======= 통계 탭 업데이트 함수 (statsTab.js 모듈로 위임) =======
 
   function updateStatsTab() {
-    try {
-      // 1. 핵심 지표
-      const totalAssets = cash + calculateTotalAssetValue()
-      const totalEarnings =
-        depositsLifetime +
-        savingsLifetime +
-        bondsLifetime +
-        usStocksLifetime +
-        cryptosLifetime +
-        villasLifetime +
-        officetelsLifetime +
-        apartmentsLifetime +
-        shopsLifetime +
-        buildingsLifetime +
-        totalLaborIncome
+    // statsTab.js 모듈의 updateStatsTab에 필요한 의존성 전달
+    updateStatsTabImpl({
+      safeText,
+      getRps,
+      getClickIncome,
+      calculateTotalAssetValue,
+      calculateFinancialValue,
+      calculatePropertyValue,
+      getFinancialCost,
+      getPropertyCost,
+      getProductName,
+      isProductUnlocked,
+      state: {
+        cash,
+        deposits,
+        savings,
+        bonds,
+        usStocks,
+        cryptos,
+        depositsLifetime,
+        savingsLifetime,
+        bondsLifetime,
+        usStocksLifetime,
+        cryptosLifetime,
+        villas,
+        officetels,
+        apartments,
+        shops,
+        buildings,
+        villasLifetime,
+        officetelsLifetime,
+        apartmentsLifetime,
+        shopsLifetime,
+        buildingsLifetime,
+        totalLaborIncome,
+        totalClicks,
+        sessionStartTime,
+        totalPlayTime,
+      },
+      settings,
+      ACHIEVEMENTS,
+      FINANCIAL_INCOME,
+      BASE_RENT,
+      rentMultiplier,
+      now: () => Date.now(),
+    })
 
-      const totalAssetsEl = document.getElementById('totalAssets')
-      const totalEarningsEl = document.getElementById('totalEarnings')
-
-      if (!totalAssetsEl || !totalEarningsEl) {
-        console.error(
-          '[Stats] Critical elements not found! totalAssets:',
-          totalAssetsEl,
-          'totalEarnings:',
-          totalEarningsEl
-        )
-        return
-      }
-
-      safeText(totalAssetsEl, NumberFormat.formatStatsNumber(totalAssets, settings))
-      safeText(totalEarningsEl, NumberFormat.formatStatsNumber(totalEarnings, settings))
-      // 통계 탭에서는 축약 표기/고정 소수점 규칙을 그대로 사용
-      const perSecUnit = t('stats.unit.perSec')
-      safeText(
-        document.getElementById('rpsStats'),
-        NumberFormat.formatCashDisplay(getRps(), settings) + perSecUnit
-      )
-      safeText(
-        document.getElementById('clickIncomeStats'),
-        NumberFormat.formatCashDisplay(getClickIncome(), settings)
-      )
-
-      // 2. 플레이 정보
-      const timesUnit = t('stats.unit.times')
-      const locale = getLang() === 'en' ? 'en-US' : 'ko-KR'
-      safeText(
-        document.getElementById('totalClicksStats'),
-        totalClicks.toLocaleString(locale) + timesUnit
-      )
-      safeText(
-        document.getElementById('laborIncomeStats'),
-        NumberFormat.formatStatsNumber(totalLaborIncome, settings)
-      )
-
-      // 플레이 시간 계산 (누적 플레이시간 시스템)
-      const currentSessionTime = Date.now() - sessionStartTime
-      const totalPlayTimeMs = totalPlayTime + currentSessionTime
-      const playTimeMinutes = Math.floor(totalPlayTimeMs / 60000)
-      const playTimeHours = Math.floor(playTimeMinutes / 60)
-      const remainingMinutes = playTimeMinutes % 60
-      const hourUnit = t('stats.unit.hour')
-      const minuteUnit = t('stats.unit.minute')
-      const playTimeText =
-        playTimeHours > 0
-          ? `${playTimeHours}${hourUnit} ${remainingMinutes}${minuteUnit}`
-          : `${playTimeMinutes}${minuteUnit}`
-
-      safeText(document.getElementById('playTimeStats'), playTimeText)
-
-      // 시간당 수익
-      const hourlyRateValue = playTimeMinutes > 0 ? (totalEarnings / playTimeMinutes) * 60 : 0
-      const perHourUnit = t('stats.unit.perHour')
-      safeText(
-        document.getElementById('hourlyRate'),
-        NumberFormat.formatCashDisplay(hourlyRateValue, settings) + perHourUnit
-      )
-
-      // 3. 수익 구조
-      const laborPercent = totalEarnings > 0 ? (totalLaborIncome / totalEarnings) * 100 : 0
-      const financialTotal =
-        depositsLifetime + savingsLifetime + bondsLifetime + usStocksLifetime + cryptosLifetime
-      const financialPercent = totalEarnings > 0 ? (financialTotal / totalEarnings) * 100 : 0
-      const propertyTotal =
-        villasLifetime + officetelsLifetime + apartmentsLifetime + shopsLifetime + buildingsLifetime
-      const propertyPercent = totalEarnings > 0 ? (propertyTotal / totalEarnings) * 100 : 0
-
-      // 수익 구조 바
-      const incomeBar = document.querySelector('.income-bar')
-      const laborSegment = document.getElementById('laborSegment')
-      const financialSegment = document.getElementById('financialSegment')
-      const propertySegment = document.getElementById('propertySegment')
-
-      // 애니메이션 클래스 추가
-      if (incomeBar && !incomeBar.classList.contains('animated')) {
-        incomeBar.classList.add('animated')
-      }
-
-      if (laborSegment) {
-        laborSegment.style.width = laborPercent.toFixed(1) + '%'
-        const span = laborSegment.querySelector('span')
-        if (span) {
-          span.textContent = laborPercent >= 5 ? `🛠️ ${laborPercent.toFixed(1)}%` : ''
-        }
-      }
-
-      if (financialSegment) {
-        financialSegment.style.width = financialPercent.toFixed(1) + '%'
-        const span = financialSegment.querySelector('span')
-        if (span) {
-          span.textContent = financialPercent >= 5 ? `💰 ${financialPercent.toFixed(1)}%` : ''
-        }
-      }
-
-      if (propertySegment) {
-        propertySegment.style.width = propertyPercent.toFixed(1) + '%'
-        const span = propertySegment.querySelector('span')
-        if (span) {
-          span.textContent = propertyPercent >= 5 ? `🏢 ${propertyPercent.toFixed(1)}%` : ''
-        }
-      }
-
-      // 범례 업데이트
-      safeText(
-        document.getElementById('laborLegend'),
-        `${t('stats.labor')}: ${laborPercent.toFixed(1)}%`
-      )
-      safeText(
-        document.getElementById('financialLegend'),
-        `${t('stats.financial')}: ${financialPercent.toFixed(1)}%`
-      )
-      safeText(
-        document.getElementById('propertyLegend'),
-        `${t('stats.property')}: ${propertyPercent.toFixed(1)}%`
-      )
-
-      // 성장 추적 업데이트
-      updateGrowthTracking()
-
-      // 도넛 차트 업데이트
-      drawDonutChart()
-
-      // 4. 금융상품 상세 (수익 기여도 및 총 가치 추가)
-      const totalEarningsForContribution = totalEarnings || 1
-
-      // 통계 섹션 잠금 상태 업데이트
-      updateStatsLockStates()
-
-      // 예금
-      const countUnit = t('ui.unit.count')
-      safeText(document.getElementById('depositsOwnedStats'), deposits + countUnit)
-      safeText(
-        document.getElementById('depositsLifetimeStats'),
-        NumberFormat.formatStatsNumber(depositsLifetime, settings)
-      )
-      const depositsContribution =
-        totalEarningsForContribution > 0
-          ? ((depositsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('depositsContribution'), `(${depositsContribution}%)`)
-      const depositsValue = deposits > 0 ? calculateFinancialValueForType('deposit', deposits) : 0
-      safeText(
-        document.getElementById('depositsValue'),
-        NumberFormat.formatKoreanNumber(depositsValue)
-      )
-
-      // 적금
-      safeText(document.getElementById('savingsOwnedStats'), savings + countUnit)
-      safeText(
-        document.getElementById('savingsLifetimeStats'),
-        NumberFormat.formatStatsNumber(savingsLifetime, settings)
-      )
-      const savingsContribution =
-        totalEarningsForContribution > 0
-          ? ((savingsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('savingsContribution'), `(${savingsContribution}%)`)
-      const savingsValue = savings > 0 ? calculateFinancialValueForType('savings', savings) : 0
-      safeText(
-        document.getElementById('savingsValue'),
-        NumberFormat.formatKoreanNumber(savingsValue)
-      )
-
-      // 주식
-      safeText(document.getElementById('bondsOwnedStats'), bonds + countUnit)
-      safeText(
-        document.getElementById('bondsLifetimeStats'),
-        NumberFormat.formatStatsNumber(bondsLifetime, settings)
-      )
-      const bondsContribution =
-        totalEarningsForContribution > 0
-          ? ((bondsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('bondsContribution'), `(${bondsContribution}%)`)
-      const bondsValue = bonds > 0 ? calculateFinancialValueForType('bond', bonds) : 0
-      safeText(document.getElementById('bondsValue'), NumberFormat.formatKoreanNumber(bondsValue))
-
-      // 미국주식
-      safeText(document.getElementById('usStocksOwnedStats'), usStocks + countUnit)
-      safeText(
-        document.getElementById('usStocksLifetimeStats'),
-        NumberFormat.formatStatsNumber(usStocksLifetime, settings)
-      )
-      const usStocksContribution =
-        totalEarningsForContribution > 0
-          ? ((usStocksLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('usStocksContribution'), `(${usStocksContribution}%)`)
-      const usStocksValue = usStocks > 0 ? calculateFinancialValueForType('usStock', usStocks) : 0
-      safeText(
-        document.getElementById('usStocksValue'),
-        NumberFormat.formatKoreanNumber(usStocksValue)
-      )
-
-      // 코인
-      safeText(document.getElementById('cryptosOwnedStats'), cryptos + countUnit)
-      safeText(
-        document.getElementById('cryptosLifetimeStats'),
-        NumberFormat.formatStatsNumber(cryptosLifetime, settings)
-      )
-      const cryptosContribution =
-        totalEarningsForContribution > 0
-          ? ((cryptosLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('cryptosContribution'), `(${cryptosContribution}%)`)
-      const cryptosValue = cryptos > 0 ? calculateFinancialValueForType('crypto', cryptos) : 0
-      safeText(
-        document.getElementById('cryptosValue'),
-        NumberFormat.formatKoreanNumber(cryptosValue)
-      )
-
-      // 5. 부동산 상세 (수익 기여도 및 총 가치 추가)
-      // 빌라
-      const propertyUnitForStats = t('ui.unit.property')
-      safeText(document.getElementById('villasOwnedStats'), villas + propertyUnitForStats)
-      safeText(
-        document.getElementById('villasLifetimeStats'),
-        NumberFormat.formatCashDisplay(villasLifetime, settings)
-      )
-      const villasContribution =
-        totalEarningsForContribution > 0
-          ? ((villasLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('villasContribution'), `(${villasContribution}%)`)
-      const villasValue = villas > 0 ? calculatePropertyValueForType('villa', villas) : 0
-      safeText(
-        document.getElementById('villasValue'),
-        NumberFormat.formatCashDisplay(villasValue, settings)
-      )
-
-      // 오피스텔
-      safeText(document.getElementById('officetelsOwnedStats'), officetels + propertyUnitForStats)
-      safeText(
-        document.getElementById('officetelsLifetimeStats'),
-        NumberFormat.formatCashDisplay(officetelsLifetime, settings)
-      )
-      const officetelsContribution =
-        totalEarningsForContribution > 0
-          ? ((officetelsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('officetelsContribution'), `(${officetelsContribution}%)`)
-      const officetelsValue =
-        officetels > 0 ? calculatePropertyValueForType('officetel', officetels) : 0
-      safeText(
-        document.getElementById('officetelsValue'),
-        NumberFormat.formatCashDisplay(officetelsValue, settings)
-      )
-
-      // 아파트
-      safeText(document.getElementById('apartmentsOwnedStats'), apartments + propertyUnitForStats)
-      safeText(
-        document.getElementById('apartmentsLifetimeStats'),
-        NumberFormat.formatCashDisplay(apartmentsLifetime, settings)
-      )
-      const apartmentsContribution =
-        totalEarningsForContribution > 0
-          ? ((apartmentsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('apartmentsContribution'), `(${apartmentsContribution}%)`)
-      const apartmentsValue =
-        apartments > 0 ? calculatePropertyValueForType('apartment', apartments) : 0
-      safeText(
-        document.getElementById('apartmentsValue'),
-        NumberFormat.formatCashDisplay(apartmentsValue, settings)
-      )
-
-      // 상가
-      safeText(document.getElementById('shopsOwnedStats'), shops + propertyUnitForStats)
-      safeText(
-        document.getElementById('shopsLifetimeStats'),
-        NumberFormat.formatCashDisplay(shopsLifetime, settings)
-      )
-      const shopsContribution =
-        totalEarningsForContribution > 0
-          ? ((shopsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('shopsContribution'), `(${shopsContribution}%)`)
-      const shopsValue = shops > 0 ? calculatePropertyValueForType('shop', shops) : 0
-      safeText(
-        document.getElementById('shopsValue'),
-        NumberFormat.formatCashDisplay(shopsValue, settings)
-      )
-
-      // 빌딩
-      const propertyUnit = t('ui.unit.property')
-      safeText(document.getElementById('buildingsOwnedStats'), buildings + propertyUnit)
-      safeText(
-        document.getElementById('buildingsLifetimeStats'),
-        NumberFormat.formatCashDisplay(buildingsLifetime, settings)
-      )
-      const buildingsContribution =
-        totalEarningsForContribution > 0
-          ? ((buildingsLifetime / totalEarningsForContribution) * 100).toFixed(1)
-          : '0.0'
-      safeText(document.getElementById('buildingsContribution'), `(${buildingsContribution}%)`)
-      const buildingsValue =
-        buildings > 0 ? calculatePropertyValueForType('building', buildings) : 0
-      safeText(
-        document.getElementById('buildingsValue'),
-        NumberFormat.formatCashDisplay(buildingsValue, settings)
-      )
-
-      // 6. 효율 분석
-      const efficiencies = calculateEfficiencies()
-      safeText(document.getElementById('bestEfficiency'), efficiencies[0] || '-')
-      safeText(document.getElementById('secondEfficiency'), efficiencies[1] || '-')
-      safeText(document.getElementById('thirdEfficiency'), efficiencies[2] || '-')
-
-      // 7. 업적 그리드
-      updateAchievementGrid()
-
-      // 8. 빌드 시너지 업데이트
-      updateSynergyDisplay()
-
-      // 9. 리더보드는 통계 탭이 활성화될 때만 업데이트 (updateUI에서 매번 호출하지 않음)
-      // 리더보드 업데이트는 navBtns 이벤트 리스너에서 처리
-    } catch (e) {
-      console.error('[Stats] ❌ Stats tab update failed:', e)
-      console.error('[Stats] Error stack:', e.stack)
-      // Re-throw to make error visible in console
-      throw e
-    }
+    // 빌드 시너지 업데이트 (statsTab.js에는 없는 호출)
+    updateSynergyDisplay()
   }
-
-  // 리더보드 UI 업데이트 함수 (디바운싱 및 로딩/실패/타임아웃 상태 관리)
-  let __leaderboardLoading = false
-  let __leaderboardLastUpdate = 0
-  let __leaderboardUpdateTimer = null
-  const LEADERBOARD_UPDATE_INTERVAL = 10000 // 10초마다 업데이트
-  const LEADERBOARD_TIMEOUT = 7000 // 7초 타임아웃
-
-  // 플레이타임 포맷터 (ms 고정)
 
   // 금융상품 타입별 가치 계산
   function calculateFinancialValueForType(type, count) {
@@ -3986,91 +2176,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return value
   }
 
-  // 통계 섹션 잠금 상태 업데이트
-  function updateStatsLockStates() {
-    // 금융상품 잠금 상태
-    const statsProductMap = {
-      savings: { id: 'savingsOwnedStats', name: '적금' },
-      bond: { id: 'bondsOwnedStats', name: '주식' },
-      usStock: { id: 'usStocksOwnedStats', name: '미국주식' },
-      crypto: { id: 'cryptosOwnedStats', name: '코인' },
-    }
-
-    // 부동산 잠금 상태
-    const statsPropertyMap = {
-      villa: { id: 'villasOwnedStats', name: '빌라' },
-      officetel: { id: 'officetelsOwnedStats', name: '오피스텔' },
-      apartment: { id: 'apartmentsOwnedStats', name: '아파트' },
-      shop: { id: 'shopsOwnedStats', name: '상가' },
-      building: { id: 'buildingsOwnedStats', name: '빌딩' },
-    }
-
-    // 금융상품 잠금 상태 적용
-    Object.keys(statsProductMap).forEach(productName => {
-      const productInfo = statsProductMap[productName]
-      const statElement = document.getElementById(productInfo.id)
-      if (statElement) {
-        const assetRow = statElement.closest('.asset-row')
-        if (assetRow) {
-          const isLocked = !isProductUnlocked(productName)
-          assetRow.classList.toggle('locked', isLocked)
-        }
-      }
-    })
-
-    // 부동산 잠금 상태 적용
-    Object.keys(statsPropertyMap).forEach(propertyName => {
-      const propertyInfo = statsPropertyMap[propertyName]
-      const statElement = document.getElementById(propertyInfo.id)
-      if (statElement) {
-        const assetRow = statElement.closest('.asset-row')
-        if (assetRow) {
-          const isLocked = !isProductUnlocked(propertyName)
-          assetRow.classList.toggle('locked', isLocked)
-        }
-      }
-    })
-  }
-
   // 총 자산 가치 계산 (현재 보유 자산을 현재가로 환산)
   function calculateTotalAssetValue() {
-    let totalValue = 0
-
-    // 금융상품 가치 (보유 수량 전체를 구매가 기준으로 합산)
-    if (deposits > 0) {
-      totalValue += calculateFinancialValueForType('deposit', deposits)
-    }
-    if (savings > 0) {
-      totalValue += calculateFinancialValueForType('savings', savings)
-    }
-    if (bonds > 0) {
-      totalValue += calculateFinancialValueForType('bond', bonds)
-    }
-    if (usStocks > 0) {
-      totalValue += calculateFinancialValueForType('usStock', usStocks)
-    }
-    if (cryptos > 0) {
-      totalValue += calculateFinancialValueForType('crypto', cryptos)
-    }
-
-    // 부동산 가치 (보유 수량 전체를 구매가 기준으로 합산)
-    if (villas > 0) {
-      totalValue += calculatePropertyValueForType('villa', villas)
-    }
-    if (officetels > 0) {
-      totalValue += calculatePropertyValueForType('officetel', officetels)
-    }
-    if (apartments > 0) {
-      totalValue += calculatePropertyValueForType('apartment', apartments)
-    }
-    if (shops > 0) {
-      totalValue += calculatePropertyValueForType('shop', shops)
-    }
-    if (buildings > 0) {
-      totalValue += calculatePropertyValueForType('building', buildings)
-    }
-
-    return totalValue
+    return calculateFinancialValue() + calculatePropertyValue()
   }
 
   // 총 자산 = 현금 + 보유 자산 가치
@@ -4084,60 +2192,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function calculateTotalAssetValueFromSave(saveData) {
     if (!saveData) return 0
 
-    let totalValue = 0
     const cash = Number(saveData.cash || 0)
 
     // 금융상품 가치
-    const deposits = Number(saveData.deposits || 0)
-    const savings = Number(saveData.savings || 0)
-    const bonds = Number(saveData.bonds || 0)
-    const usStocks = Number(saveData.usStocks || 0)
-    const cryptos = Number(saveData.cryptos || 0)
-
-    for (let i = 0; i < deposits; i++) {
-      totalValue += getFinancialCost('deposit', i)
-    }
-    for (let i = 0; i < savings; i++) {
-      totalValue += getFinancialCost('savings', i)
-    }
-    for (let i = 0; i < bonds; i++) {
-      totalValue += getFinancialCost('bond', i)
-    }
-    for (let i = 0; i < usStocks; i++) {
-      totalValue += getFinancialCost('usStock', i)
-    }
-    for (let i = 0; i < cryptos; i++) {
-      totalValue += getFinancialCost('crypto', i)
-    }
+    const financialValue =
+      calculateFinancialValueForType('deposit', Number(saveData.deposits || 0)) +
+      calculateFinancialValueForType('savings', Number(saveData.savings || 0)) +
+      calculateFinancialValueForType('bond', Number(saveData.bonds || 0)) +
+      calculateFinancialValueForType('usStock', Number(saveData.usStocks || 0)) +
+      calculateFinancialValueForType('crypto', Number(saveData.cryptos || 0))
 
     // 부동산 가치
-    const villas = Number(saveData.villas || 0)
-    const officetels = Number(saveData.officetels || 0)
-    const apartments = Number(saveData.apartments || 0)
-    const shops = Number(saveData.shops || 0)
-    const buildings = Number(saveData.buildings || 0)
-    const towers_run = Number(saveData.towers_run || 0)
+    const propertyValue =
+      calculatePropertyValueForType('villa', Number(saveData.villas || 0)) +
+      calculatePropertyValueForType('officetel', Number(saveData.officetels || 0)) +
+      calculatePropertyValueForType('apartment', Number(saveData.apartments || 0)) +
+      calculatePropertyValueForType('shop', Number(saveData.shops || 0)) +
+      calculatePropertyValueForType('building', Number(saveData.buildings || 0)) +
+      calculatePropertyValueForType('tower', Number(saveData.towers_run || 0))
 
-    for (let i = 0; i < villas; i++) {
-      totalValue += getPropertyCost('villa', i)
-    }
-    for (let i = 0; i < officetels; i++) {
-      totalValue += getPropertyCost('officetel', i)
-    }
-    for (let i = 0; i < apartments; i++) {
-      totalValue += getPropertyCost('apartment', i)
-    }
-    for (let i = 0; i < shops; i++) {
-      totalValue += getPropertyCost('shop', i)
-    }
-    for (let i = 0; i < buildings; i++) {
-      totalValue += getPropertyCost('building', i)
-    }
-    for (let i = 0; i < towers_run; i++) {
-      totalValue += getPropertyCost('tower', i)
-    }
-
-    return cash + totalValue
+    return cash + financialValue + propertyValue
   }
 
   /**
@@ -4151,345 +2225,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return savedTotalPlayTime + Math.max(0, currentSessionTime)
   }
 
-  // 효율 분석 (개당 초당 수익 순위)
-  function calculateEfficiencies() {
-    const assets = []
-
-    // 금융상품
-    if (deposits > 0) {
-      assets.push({
-        name: getProductName('deposit'),
-        efficiency: FINANCIAL_INCOME.deposit,
-        count: deposits,
-      })
-    }
-    if (savings > 0) {
-      assets.push({
-        name: getProductName('savings'),
-        efficiency: FINANCIAL_INCOME.savings,
-        count: savings,
-      })
-    }
-    if (bonds > 0) {
-      assets.push({ name: getProductName('bond'), efficiency: FINANCIAL_INCOME.bond, count: bonds })
-    }
-    if (usStocks > 0) {
-      assets.push({
-        name: getProductName('usStock'),
-        efficiency: FINANCIAL_INCOME.usStock,
-        count: usStocks,
-      })
-    }
-    if (cryptos > 0) {
-      assets.push({
-        name: getProductName('crypto'),
-        efficiency: FINANCIAL_INCOME.crypto,
-        count: cryptos,
-      })
-    }
-
-    // 부동산
-    if (villas > 0) {
-      assets.push({
-        name: getProductName('villa'),
-        efficiency: BASE_RENT.villa * rentMultiplier,
-        count: villas,
-      })
-    }
-    if (officetels > 0) {
-      assets.push({
-        name: getProductName('officetel'),
-        efficiency: BASE_RENT.officetel * rentMultiplier,
-        count: officetels,
-      })
-    }
-    if (apartments > 0) {
-      assets.push({
-        name: getProductName('apartment'),
-        efficiency: BASE_RENT.apartment * rentMultiplier,
-        count: apartments,
-      })
-    }
-    if (shops > 0) {
-      assets.push({
-        name: getProductName('shop'),
-        efficiency: BASE_RENT.shop * rentMultiplier,
-        count: shops,
-      })
-    }
-    if (buildings > 0) {
-      assets.push({
-        name: getProductName('building'),
-        efficiency: BASE_RENT.building * rentMultiplier,
-        count: buildings,
-      })
-    }
-
-    // 효율 순으로 정렬
-    assets.sort((a, b) => b.efficiency - a.efficiency)
-
-    // 상위 3개 반환
-    const perSecUnit = t('stats.unit.perSec')
-    return assets
-      .slice(0, 3)
-      .map(
-        a =>
-          `${a.name} (${NumberFormat.formatNumberForLang(Math.floor(a.efficiency))}${t('ui.currency')}${perSecUnit}, ${a.count}${t('ui.unit.count')} ${t('ui.owned')})`
-      )
-  }
-
-  // 업적 그리드 업데이트
+  // 업적 그리드 업데이트 (achievementGrid.js 모듈로 위임)
   function updateAchievementGrid() {
-    const achievementGrid = document.getElementById('achievementGrid')
-    if (!achievementGrid) return
-
-    // 스크롤 중이면 업데이트를 지연 (디바운스)
-    const statsContent = achievementGrid.closest('.stats-content')
-    if (statsContent && __achievementScrollActive) {
-      __achievementUpdatePending = true
-      if (__achievementScrollDebounceTimer) {
-        clearTimeout(__achievementScrollDebounceTimer)
-      }
-      __achievementScrollDebounceTimer = setTimeout(() => {
-        __achievementScrollActive = false
-        if (__achievementUpdatePending) {
-          __achievementUpdatePending = false
-          updateAchievementGrid()
-        }
-      }, 300) // 스크롤 종료 후 300ms 대기
-      return
+    if (achievementGridInstance) {
+      achievementGridInstance.updateAchievementGrid()
     }
-
-    // ======= 업적 툴팁(포털) 시스템 =======
-    // - 툴팁 DOM은 1개만 사용 (겹침/누수/overflow 문제 방지)
-    // - 이벤트는 그리드에 위임
-    if (!window.__achievementTooltipPortalInitialized) {
-      window.__achievementTooltipPortalInitialized = true
-
-      const ensureTooltipEl = () => {
-        let el = document.getElementById('achievementTooltip')
-        if (!el) {
-          el = document.createElement('div')
-          el.id = 'achievementTooltip'
-          el.className = 'achievement-tooltip'
-          el.setAttribute('role', 'tooltip')
-          el.setAttribute('aria-hidden', 'true')
-          document.body.appendChild(el)
-        }
-        return el
-      }
-
-      const getAchText = achId => {
-        const ach = ACHIEVEMENTS.find(a => a.id === achId)
-        if (!ach) return ''
-        const achievementName = t(`achievement.${ach.id}.name`, {}, ach.name)
-        const achievementDesc = t(`achievement.${ach.id}.desc`, {}, ach.desc)
-        const statusText = ach.unlocked
-          ? t('achievement.status.unlocked')
-          : t('achievement.status.locked')
-        return `${achievementName}\n${achievementDesc}\n${statusText}`
-      }
-
-      const hideTooltip = () => {
-        const el = document.getElementById('achievementTooltip')
-        if (!el) return
-        el.classList.remove('active', 'bottom')
-        el.style.left = ''
-        el.style.top = ''
-        el.style.bottom = ''
-        el.style.opacity = ''
-        el.style.visibility = ''
-        el.style.pointerEvents = ''
-        el.setAttribute('aria-hidden', 'true')
-        window.__achievementTooltipAnchorId = null
-      }
-
-      const showTooltipForIcon = iconEl => {
-        const el = ensureTooltipEl()
-        const achId = iconEl?.dataset?.achievementId || iconEl?.id?.replace(/^ach_/, '')
-        if (!achId) return
-
-        // 동일 아이콘 재클릭: 토글
-        if (window.__achievementTooltipAnchorId === achId && el.classList.contains('active')) {
-          hideTooltip()
-          return
-        }
-
-        // 항상 1개만 보이도록 초기화
-        hideTooltip()
-
-        el.textContent = getAchText(achId)
-        el.setAttribute('aria-hidden', 'false')
-
-        // 측정을 위해 "보이되 투명/비활성" 상태로 먼저 활성화
-        el.classList.add('active')
-        el.style.opacity = '0'
-        el.style.visibility = 'hidden'
-        el.style.pointerEvents = 'none'
-        el.style.left = '0px'
-        el.style.top = '0px'
-        el.style.bottom = 'auto'
-
-        // 크기 측정
-        void el.offsetHeight
-        const tooltipRect = el.getBoundingClientRect()
-
-        const iconRect = iconEl.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-
-        // 아이콘 중앙 기준
-        let left = iconRect.left + iconRect.width / 2
-        let top = iconRect.top - tooltipRect.height - 8
-        let showBelow = false
-
-        if (top < 10) {
-          top = iconRect.bottom + 8
-          showBelow = true
-        }
-        if (top + tooltipRect.height > viewportHeight - 10) {
-          top = viewportHeight - tooltipRect.height - 10
-        }
-
-        // 좌/우 경계
-        if (left + tooltipRect.width / 2 > viewportWidth - 10) {
-          left = viewportWidth - tooltipRect.width / 2 - 10
-        }
-        if (left - tooltipRect.width / 2 < 10) {
-          left = tooltipRect.width / 2 + 10
-        }
-
-        el.style.left = `${left}px`
-        el.style.top = `${top}px`
-        el.style.bottom = 'auto'
-        el.classList.toggle('bottom', showBelow)
-
-        // 즉시 표시
-        el.style.visibility = 'visible'
-        el.style.opacity = '1'
-        el.style.pointerEvents = 'none' // 요구사항: 아이콘에서 벗어나면 사라짐 (툴팁 상호작용 불필요)
-
-        window.__achievementTooltipAnchorId = achId
-      }
-
-      // 클릭: 즉시 표시/토글
-      achievementGrid.addEventListener('click', e => {
-        const iconEl = e.target.closest('.achievement-icon')
-        if (!iconEl) return
-        e.stopPropagation()
-        showTooltipForIcon(iconEl)
-      })
-
-      // 아이콘에서 커서가 벗어나면 닫기
-      // mouseleave는 버블링이 없어 pointerout으로 위임 처리
-      achievementGrid.addEventListener('pointerout', e => {
-        const fromIcon = e.target.closest?.('.achievement-icon')
-        if (!fromIcon) return
-        // 아이콘 밖으로 나가는 순간 닫기 (요구사항)
-        hideTooltip()
-      })
-
-      // 바깥 클릭/스크롤/탭 전환 등으로 정리
-      document.addEventListener('click', () => hideTooltip(), true)
-      window.addEventListener('scroll', () => hideTooltip(), true)
-      window.addEventListener('resize', () => hideTooltip(), true)
-    }
-
-    // 이미 생성되어 있으면 상태만 업데이트 시도 (깜빡임 방지)
-    if (achievementGrid.children.length > 0) {
-      let unlockedCount = 0
-      let hasChanges = false
-
-      Object.values(ACHIEVEMENTS).forEach(ach => {
-        const icon = document.getElementById('ach_' + ach.id)
-        if (!icon) {
-          hasChanges = true // 아이콘이 없으면 재생성 필요
-          return
-        }
-
-        const wasUnlocked = icon.classList.contains('unlocked')
-        const isUnlocked = ach.unlocked
-
-        // 상태가 변경된 경우에만 DOM 조작 (깜빡임 최소화)
-        if (wasUnlocked !== isUnlocked) {
-          hasChanges = true
-          if (isUnlocked) {
-            icon.classList.add('unlocked')
-            icon.classList.remove('locked')
-          } else {
-            icon.classList.add('locked')
-            icon.classList.remove('unlocked')
-          }
-        }
-
-        if (isUnlocked) {
-          unlockedCount++
-        }
-
-        // 네이티브 title은 항상 최신으로 유지 (툴팁 대체/접근성)
-        const achievementName = t(`achievement.${ach.id}.name`, {}, ach.name)
-        const achievementDesc = t(`achievement.${ach.id}.desc`, {}, ach.desc)
-        const statusText = isUnlocked
-          ? t('achievement.status.unlocked')
-          : t('achievement.status.locked')
-        const newTitle = `${achievementName}\n${achievementDesc}\n${statusText}`
-
-        // title이 변경된 경우에만 업데이트 (불필요한 DOM 조작 방지)
-        if (icon.title !== newTitle) {
-          icon.title = newTitle
-        }
-      })
-
-      const totalAchievements = Object.keys(ACHIEVEMENTS).length
-      const progressEl = document.getElementById('achievementProgress')
-      if (progressEl) {
-        const newProgressText = `${unlockedCount}/${totalAchievements}`
-        if (progressEl.textContent !== newProgressText) {
-          safeText(progressEl, newProgressText)
-        }
-      }
-
-      // 변경사항이 없으면 재렌더링 스킵 (깜빡임 방지)
-      if (!hasChanges) {
-        return
-      }
-    }
-
-    // 여기까지 왔다는 것은:
-    // - 그리드가 비어 있거나(children.length === 0)
-    // - 또는 hasChanges=true로 "재생성 필요"가 감지된 경우
-    // 항상 클린 상태에서 다시 그리도록 전체 초기화
-    achievementGrid.innerHTML = ''
-    let unlockedCount = 0
-    const totalAchievements = Object.keys(ACHIEVEMENTS).length
-
-    Object.values(ACHIEVEMENTS).forEach(ach => {
-      const icon = document.createElement('div')
-      icon.className = 'achievement-icon'
-      icon.id = 'ach_' + ach.id
-      icon.dataset.achievementId = ach.id
-      icon.textContent = ach.icon
-      const achievementName = t(`achievement.${ach.id}.name`, {}, ach.name)
-      const achievementDesc = t(`achievement.${ach.id}.desc`, {}, ach.desc)
-      const statusText = ach.unlocked
-        ? t('achievement.status.unlocked')
-        : t('achievement.status.locked')
-      icon.title = `${achievementName}\n${achievementDesc}\n${statusText}`
-
-      if (ach.unlocked) {
-        icon.classList.add('unlocked')
-        unlockedCount++
-      } else {
-        icon.classList.add('locked')
-      }
-
-      achievementGrid.appendChild(icon)
-    })
-
-    safeText(
-      document.getElementById('achievementProgress'),
-      `${unlockedCount}/${totalAchievements}`
-    )
   }
 
   // ======= 리더보드 폴링 제어 (랭킹 탭 전용) =======
@@ -4524,39 +2264,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 설정 탭 진입 시 마이그레이션 충돌 체크 및 서버 닉네임 동기화
       if (targetTab === 'settingsTab') {
         try {
-          // 서버에서 최신 닉네임 가져오기 (로그인 상태인 경우)
-          ;(async () => {
-            try {
-              const user = await getUser()
-              if (user) {
-                const { getUserProfile } = await import('../../shared/auth/core.js')
-                const profile = await getUserProfile('seoulsurvival')
-                if (profile.success && profile.user?.nickname) {
-                  const serverNickname = profile.user.nickname
-                  // 서버 닉네임과 로컬 닉네임이 다르면 서버 닉네임으로 동기화
-                  if (playerNickname !== serverNickname) {
-                    playerNickname = serverNickname
-                    // 게임 저장에 닉네임 업데이트
-                    try {
-                      const saveData = localStorage.getItem(SAVE_KEY)
-                      if (saveData) {
-                        const data = JSON.parse(saveData)
-                        data.nickname = serverNickname
-                        localStorage.setItem(SAVE_KEY, JSON.stringify(data))
-                      }
-                    } catch (e) {
-                      console.warn('닉네임 저장 실패:', e)
-                    }
-                    // UI 업데이트
-                    updateUI()
-                    console.log('[SeoulSurvival] Nickname synced from server:', serverNickname)
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('서버 닉네임 동기화 실패:', e)
-            }
-          })()
+          syncNicknameFromServer('') // 서버에서 최신 닉네임 동기화
 
           const needsChange = localStorage.getItem('clicksurvivor_needsNicknameChange') === 'true'
           if (needsChange) {
@@ -4593,69 +2301,11 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   })
 
-  // 업적 영역 스크롤 최적화 설정
+  // 업적 영역 스크롤 최적화 설정 (achievementGrid.js 모듈로 위임)
   function setupAchievementScrollOptimization() {
-    const achievementGrid = document.getElementById('achievementGrid')
-    if (!achievementGrid) return
-
-    const statsContent = achievementGrid.closest('.stats-content')
-    if (!statsContent) return
-
-    // 이미 설정되어 있으면 스킵
-    if (statsContent.dataset.scrollOptimized === 'true') return
-    statsContent.dataset.scrollOptimized = 'true'
-
-    let lastScrollTop = statsContent.scrollTop
-    let lastScrollHeight = statsContent.scrollHeight
-    let scrollThrottleTimer = null
-
-    // 스크롤 이벤트 리스너
-    statsContent.addEventListener(
-      'scroll',
-      () => {
-        const currentScrollTop = statsContent.scrollTop
-        const currentScrollHeight = statsContent.scrollHeight
-        const clientHeight = statsContent.clientHeight
-
-        // 스크롤 활성 플래그 설정
-        __achievementScrollActive = true
-
-        // 스크롤 종료 디바운스
-        if (__achievementScrollDebounceTimer) {
-          clearTimeout(__achievementScrollDebounceTimer)
-        }
-        __achievementScrollDebounceTimer = setTimeout(() => {
-          __achievementScrollActive = false
-          if (__achievementUpdatePending) {
-            __achievementUpdatePending = false
-            updateAchievementGrid()
-          }
-        }, 300)
-
-        // DEV 모드에서만 계측 (200ms throttle)
-        if (__IS_DEV__) {
-          if (scrollThrottleTimer) return
-          scrollThrottleTimer = setTimeout(() => {
-            scrollThrottleTimer = null
-
-            // scrollHeight 변화 감지
-            if (currentScrollHeight !== lastScrollHeight) {
-              console.warn('[Achievement Scroll] scrollHeight changed during scroll:', {
-                before: lastScrollHeight,
-                after: currentScrollHeight,
-                scrollTop: currentScrollTop,
-                clientHeight: clientHeight,
-                reason: 'Layout change during scroll (likely cause of jank)',
-              })
-            }
-
-            lastScrollTop = currentScrollTop
-            lastScrollHeight = currentScrollHeight
-          }, 200)
-        }
-      },
-      { passive: true }
-    )
+    if (achievementGridInstance) {
+      achievementGridInstance.setupAchievementScrollOptimization()
+    }
   }
 
   updateUI() // 초기 UI 업데이트

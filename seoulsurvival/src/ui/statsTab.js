@@ -677,7 +677,7 @@ function calculatePropertyValueForType(type, count, getPropertyCost) {
 export function updateStatsTab(deps) {
   const { safeText, getRps, getClickIncome, state, settings, getFinancialCost, getPropertyCost } =
     deps
-  const now = deps.now ? deps.now() : Date.now
+  const now = deps.now || Date.now
 
   try {
     // 1. 핵심 지표

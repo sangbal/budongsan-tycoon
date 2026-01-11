@@ -14,16 +14,16 @@ import { CAREER_LEVELS as CAREER_BALANCE, BASE_CLICK_GAIN } from '../balance/ind
 import { DEFAULT_FINANCIAL_INCOME, DEFAULT_BASE_RENT } from '../balance/index.js'
 
 // Vite asset imports for career backgrounds
-import workBg01 from '../../assets/images/work_bg_01_alba_night.png'
-import workBg02 from '../../assets/images/work_bg_02_gyeyakjik_night.png'
-import workBg03 from '../../assets/images/work_bg_03_sawon_night.png'
-import workBg04 from '../../assets/images/work_bg_04_daeri_night.png'
-import workBg05 from '../../assets/images/work_bg_05_gwajang_night.png'
-import workBg06 from '../../assets/images/work_bg_06_chajang_night.png'
-import workBg07 from '../../assets/images/work_bg_07_bujang_night.png'
-import workBg08 from '../../assets/images/work_bg_08_sangmu_night.png'
-import workBg09 from '../../assets/images/work_bg_09_jeonmu_night.png'
-import workBg10 from '../../assets/images/work_bg_10_ceo_night.png'
+import workBg01 from '../../assets/images/work_bg_01_alba_night.webp'
+import workBg02 from '../../assets/images/work_bg_02_gyeyakjik_night.webp'
+import workBg03 from '../../assets/images/work_bg_03_sawon_night.webp'
+import workBg04 from '../../assets/images/work_bg_04_daeri_night.webp'
+import workBg05 from '../../assets/images/work_bg_05_gwajang_night.webp'
+import workBg06 from '../../assets/images/work_bg_06_chajang_night.webp'
+import workBg07 from '../../assets/images/work_bg_07_bujang_night.webp'
+import workBg08 from '../../assets/images/work_bg_08_sangmu_night.webp'
+import workBg09 from '../../assets/images/work_bg_09_jeonmu_night.webp'
+import workBg10 from '../../assets/images/work_bg_10_ceo_night.webp'
 
 // 직급별 배경 이미지 배열
 const careerBgImages = [
