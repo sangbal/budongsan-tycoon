@@ -187,9 +187,9 @@ export function updatePropertyUI({
       icon: '🏢',
     },
     apartment: {
-      item: 'apartmentItem',
-      count: 'apartmentCount',
-      currentPrice: 'apartmentCurrentPrice',
+      item: 'aptItem',
+      count: 'aptCount',
+      currentPrice: 'aptCurrentPrice',
       icon: '🏬',
     },
     shop: {

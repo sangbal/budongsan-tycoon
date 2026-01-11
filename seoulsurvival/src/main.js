@@ -1245,7 +1245,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI()
   }
 
-  elWork.addEventListener('click', e => {
+  // pointerdown으로 변경: 터치 즉시 반응하여 빠른 연타 인식률 개선
+  elWork.addEventListener('pointerdown', e => {
+    // 마우스 우클릭/중간버튼 무시
+    if (e.pointerType === 'mouse' && e.button !== 0) return
     handleWorkAction(e.clientX, e.clientY)
   })
 
@@ -1523,17 +1526,17 @@ document.addEventListener('DOMContentLoaded', () => {
     lastTickTime = now
     cash += getRps() * deltaTime
 
-    // 누적 생산량 계산 (Cookie Clicker 스타일)
-    depositsLifetime += deposits * FINANCIAL_INCOME.deposit * deltaTime
-    savingsLifetime += savings * FINANCIAL_INCOME.savings * deltaTime
-    bondsLifetime += bonds * FINANCIAL_INCOME.bond * deltaTime
-    usStocksLifetime += usStocks * FINANCIAL_INCOME.usStock * deltaTime
-    cryptosLifetime += cryptos * FINANCIAL_INCOME.crypto * deltaTime
-    villasLifetime += villas * BASE_RENT.villa * deltaTime
-    officetelsLifetime += officetels * BASE_RENT.officetel * deltaTime
-    apartmentsLifetime += apartments * BASE_RENT.apartment * deltaTime
-    shopsLifetime += shops * BASE_RENT.shop * deltaTime
-    buildingsLifetime += buildings * BASE_RENT.building * deltaTime
+    // 누적 생산량 계산 (시너지/프레스티지/마켓 배수 적용)
+    depositsLifetime += getFinancialIncome('deposit', deposits) * deltaTime
+    savingsLifetime += getFinancialIncome('savings', savings) * deltaTime
+    bondsLifetime += getFinancialIncome('bond', bonds) * deltaTime
+    usStocksLifetime += getFinancialIncome('usStock', usStocks) * deltaTime
+    cryptosLifetime += getFinancialIncome('crypto', cryptos) * deltaTime
+    villasLifetime += getPropertyIncome('villa', villas) * deltaTime
+    officetelsLifetime += getPropertyIncome('officetel', officetels) * deltaTime
+    apartmentsLifetime += getPropertyIncome('apartment', apartments) * deltaTime
+    shopsLifetime += getPropertyIncome('shop', shops) * deltaTime
+    buildingsLifetime += getPropertyIncome('building', buildings) * deltaTime
 
     updateUI()
   }, TICK)

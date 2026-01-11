@@ -28,7 +28,15 @@ export default {
   'product.usStock': 'US Stock',
   'product.crypto': 'Crypto',
 
-  // Property names
+  // Property names (for productUI.js)
+  'product.villa': 'Villa',
+  'product.officetel': 'Officetel',
+  'product.apartment': 'Apartment',
+  'product.shop': 'Shop',
+  'product.building': 'Building',
+  'product.tower': 'Seoul Tower',
+
+  // Property names (legacy)
   'property.villa': 'Villa',
   'property.officetel': 'Officetel',
   'property.apartment': 'Apartment',
@@ -45,6 +53,7 @@ export default {
   'button.no': 'No',
   'button.load': 'Load',
   'button.later': 'Later',
+  'button.newStart': 'New Start',
 
   // Messages (addLog)
   'msg.insufficientFunds': '💸 Insufficient funds. (Required: {amount})',
@@ -72,6 +81,7 @@ export default {
   'msg.manualSave': '💾 Manual save completed!',
   'msg.cloudSaved': '☁️ Saved to cloud.',
   'msg.cloudApplied': '☁️ Cloud save applied. Refreshing page...',
+  'msg.unlocked': '🔓 {product} unlocked!',
 
   // Modal messages
   'modal.error.nicknameLength.title': 'Nickname Length Error',
@@ -169,6 +179,8 @@ export default {
   'ui.leaderboard': 'Recorded on leaderboard',
   'ui.nextPromotion': '{remaining} clicks until next promotion',
   'ui.promotionAvailable': 'Promotion available!',
+  'ui.careerCompleted': '100% (Completed)',
+  'ui.careerMaxLevel': 'Max level achieved',
   'ui.remaining': 'remaining',
   'ui.progress': 'Progress',
   'ui.stats': 'Stats',

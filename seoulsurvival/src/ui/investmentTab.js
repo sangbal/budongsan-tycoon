@@ -721,6 +721,7 @@ export function createInvestmentTab(deps) {
         const result = handleTransaction('property', 'tower', deps.getTower())
         if (result.success) {
           deps.setTower(result.newCount)
+          deps.gameState.towers_lifetime++ // 영구 타워 카운터 증가
           showPurchaseSuccess(elBuyTower)
         }
         updateUI()

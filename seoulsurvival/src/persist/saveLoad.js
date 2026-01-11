@@ -53,14 +53,17 @@ export function createSaveLoadManager(deps) {
     __IS_DEV__,
   } = deps
 
-  // 저장 실패 카운터
+  // 저장 실패 카운터 및 재시도 설정
   let __saveFailCount = 0
   let __saveWarningShown = false
+  const MAX_RETRY_ATTEMPTS = 3
+  const RETRY_DELAYS = [1000, 2000, 4000] // 지수 백오프 (1초, 2초, 4초)
 
   /**
-   * 게임 데이터 저장 함수
+   * 게임 데이터 저장 함수 (재시도 메커니즘 포함)
+   * @param {number} retryCount - 현재 재시도 횟수 (내부용)
    */
-  function saveGame() {
+  function saveGame(retryCount = 0) {
     const saveData = {
       cash: gameVars.cash,
       totalClicks: gameVars.totalClicks,
@@ -133,6 +136,9 @@ export function createSaveLoadManager(deps) {
       gameVars.lastSaveTime = new Date()
       updateSaveStatus() // 저장 상태 UI 업데이트
 
+      // 성공 시 실패 카운터 초기화
+      __saveFailCount = 0
+
       // 로그인 사용자면 탭 숨김/닫기 시 플러시를 위해 대기 중인 저장으로 설정
       if (cloudState.__currentUser) {
         const saveTs = Number(saveData?.ts || 0) || 0
@@ -157,12 +163,25 @@ export function createSaveLoadManager(deps) {
         window.__lastLeaderboardUpdate = Date.now()
       }
     } catch (error) {
-      console.error('게임 저장 실패:', error)
-      // 저장 실패 시 사용자 알림 (연속 실패 시에만)
+      console.error(`게임 저장 실패 (시도 ${retryCount + 1}/${MAX_RETRY_ATTEMPTS}):`, error)
+
+      // 재시도 로직 (최대 3회)
+      if (retryCount < MAX_RETRY_ATTEMPTS - 1) {
+        const delay = RETRY_DELAYS[retryCount]
+        if (__IS_DEV__) {
+          console.log(`⏳ ${delay}ms 후 재시도...`)
+        }
+        setTimeout(() => {
+          saveGame(retryCount + 1)
+        }, delay)
+        return
+      }
+
+      // 최종 실패: 사용자에게 경고
       __saveFailCount = (__saveFailCount || 0) + 1
       if (__saveFailCount >= 3) {
         // 3회 이상 연속 실패 시 경고 표시
-        showSaveWarning()
+        showSaveWarning(error)
         __saveFailCount = 0 // 경고 후 카운트 리셋
       }
     }
@@ -170,10 +189,21 @@ export function createSaveLoadManager(deps) {
 
   /**
    * 저장 실패 경고 표시 (연속 실패 시)
+   * @param {Error} error - 에러 객체 (선택사항)
    */
-  function showSaveWarning() {
+  function showSaveWarning(error) {
     if (__saveWarningShown) return // 이미 경고 표시 중이면 스킵
     __saveWarningShown = true
+
+    // 에러 원인 분석 (저장 공간 부족 vs 기타)
+    const isQuotaExceeded =
+      error?.name === 'QuotaExceededError' ||
+      error?.message?.includes('quota') ||
+      error?.message?.includes('storage')
+
+    const message = isQuotaExceeded
+      ? '⚠️ 저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.'
+      : '⚠️ 게임 저장에 실패했습니다. 저장 공간을 확인해주세요.'
 
     const warning = document.createElement('div')
     warning.className = 'save-warning-toast'
@@ -191,7 +221,7 @@ export function createSaveLoadManager(deps) {
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       animation: slideUp 0.3s ease-out;
     `
-    warning.textContent = '⚠️ 게임 저장에 실패했습니다. 저장 공간을 확인해주세요.'
+    warning.textContent = message
     document.body.appendChild(warning)
 
     setTimeout(() => {
@@ -303,18 +333,12 @@ export function createSaveLoadManager(deps) {
       // 누적 플레이시간 시스템 복원
       if (data.totalPlayTime !== undefined) {
         gameVars.totalPlayTime = data.totalPlayTime
+      } else {
+        gameVars.totalPlayTime = 0
       }
       // 닉네임 복원
       gameVars.playerNickname = data.nickname || ''
-      if (data.sessionStartTime) {
-        // 이전 세션의 플레이시간을 누적 (정수로 보정)
-        const previousSessionTime = Math.max(0, Math.floor(Date.now() - data.sessionStartTime))
-        gameVars.totalPlayTime = Math.max(
-          0,
-          Math.floor(gameVars.totalPlayTime + previousSessionTime)
-        )
-      }
-      // 새 세션 시작
+      // 새 세션 시작 (이전 세션 시간은 이미 저장 시 totalPlayTime에 포함되어 있음)
       gameVars.sessionStartTime = Date.now()
 
       return true

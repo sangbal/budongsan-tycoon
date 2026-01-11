@@ -241,9 +241,9 @@ export function createGameUI(deps) {
             elCareerProgress.style.width = '100%'
             elCareerProgress.setAttribute('aria-valuenow', 100)
           }
-          safeText(elCareerProgressText, '100% (완료)')
+          safeText(elCareerProgressText, t('ui.careerCompleted'))
           if (elCareerRemaining) {
-            safeText(elCareerRemaining, '최고 직급 달성')
+            safeText(elCareerRemaining, t('ui.careerMaxLevel'))
           }
         }
       } catch (e) {
@@ -751,12 +751,21 @@ export function createGameUI(deps) {
       shop: '🏪',
       building: '🏙️',
     }
+    // HTML ID 매핑 (apartment는 aptItem으로 약칭 사용)
+    const itemIdMap = {
+      villa: 'villaItem',
+      officetel: 'officetelItem',
+      apartment: 'aptItem',
+      shop: 'shopItem',
+      building: 'buildingItem',
+    }
     const emoji = productMap[type] || ''
-    const titleEl = document.querySelector(`#${type}Item .title`)
+    const itemId = itemIdMap[type] || `${type}Item`
+    const titleEl = document.querySelector(`#${itemId} .title`)
     if (titleEl) titleEl.textContent = `${emoji} ${productName}`
 
     // 설명 업데이트
-    const descEls = document.querySelectorAll(`#${type}Item .desc`)
+    const descEls = document.querySelectorAll(`#${itemId} .desc`)
     if (descEls.length >= 4) {
       const perUnitText = t('product.desc.perUnit', {
         product: productName,

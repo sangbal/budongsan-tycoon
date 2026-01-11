@@ -28,7 +28,15 @@ export default {
   'product.usStock': '미국주식',
   'product.crypto': '코인',
 
-  // 부동산 이름
+  // 부동산 이름 (productUI.js 용)
+  'product.villa': '빌라',
+  'product.officetel': '오피스텔',
+  'product.apartment': '아파트',
+  'product.shop': '상가',
+  'product.building': '빌딩',
+  'product.tower': '서울타워',
+
+  // 부동산 이름 (레거시)
   'property.villa': '빌라',
   'property.officetel': '오피스텔',
   'property.apartment': '아파트',
@@ -72,6 +80,7 @@ export default {
   'msg.manualSave': '💾 수동 저장 완료!',
   'msg.cloudSaved': '☁️ 클라우드에 저장했습니다.',
   'msg.cloudApplied': '☁️ 클라우드 세이브를 적용했습니다. 페이지를 새로고침합니다...',
+  'msg.unlocked': '🔓 {product}이(가) 해금되었습니다!',
 
   // 모달 메시지
   'modal.error.nicknameLength.title': '닉네임 길이 오류',
@@ -119,6 +128,8 @@ export default {
   'modal.confirm.cloudSaveFound.message': '{message}',
   'modal.error.progressSwitchFailed.title': '오류',
   'modal.error.progressSwitchFailed.message': '진행 상황 전환에 실패했습니다.\n{error}',
+  'modal.confirm.progressSwitch.title': '진행 상황 선택',
+  'modal.confirm.progressSwitch.message': '{message}',
   'achievement.status.unlocked': '✅ 달성!',
   'achievement.status.locked': '🔒 미달성',
 
@@ -161,6 +172,10 @@ export default {
   'ui.prestige': '프레스티지 상품 (수익 없음)',
   'ui.leaderboard': '리더보드에 기록됨',
   'ui.nextPromotion': '다음 승진까지 {remaining}클릭 남음',
+  'ui.promotionAvailable': '승진 가능!',
+  'ui.careerCompleted': '100% (완료)',
+  'ui.careerMaxLevel': '최고 직급 달성',
+  'ui.remaining': '남은 시간',
   'ui.progress': '진행률',
   'ui.stats': '통계',
   'ui.ranking': '랭킹',

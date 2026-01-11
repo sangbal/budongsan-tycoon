@@ -97,14 +97,28 @@ export function createUpgradeManager(deps) {
       ([id, upgrade]) => upgrade.unlocked && !upgrade.purchased
     )
 
-    upgradeCount.textContent = `(${availableUpgrades.length})`
+    // 0일 때는 카운트 숨기기, 1개 이상일 때만 표시
+    if (availableUpgrades.length === 0) {
+      upgradeCount.style.display = 'none'
+    } else {
+      upgradeCount.style.display = ''
+      upgradeCount.textContent = `(${availableUpgrades.length})`
+    }
 
     const noUpgradesMsg = document.getElementById('noUpgradesMessage')
+    const upgradesSection = document.querySelector('.stats-section[data-section-id="upgrades"]')
+
     if (availableUpgrades.length === 0) {
       upgradeList.innerHTML = ''
       if (noUpgradesMsg) {
         noUpgradesMsg.textContent = t('ui.noUpgrades')
         noUpgradesMsg.style.display = 'block'
+      }
+      // 업그레이드가 0개면 자동으로 접기
+      if (upgradesSection && !upgradesSection.classList.contains('collapsed')) {
+        upgradesSection.classList.add('collapsed')
+        const toggle = upgradesSection.querySelector('.stats-toggle')
+        if (toggle) toggle.setAttribute('aria-expanded', 'false')
       }
       return
     }
