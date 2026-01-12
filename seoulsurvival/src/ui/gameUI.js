@@ -148,11 +148,14 @@ export function createGameUI(deps) {
           nicknameLabel.textContent = playerNickname || '-'
         }
         if (nicknameInfoItem) {
-          nicknameInfoItem.style.visibility = playerNickname ? 'visible' : 'hidden'
           if (playerNickname) {
+            nicknameInfoItem.style.visibility = 'visible'
+            nicknameInfoItem.style.display = 'flex'
             nicknameInfoItem.style.position = 'relative'
             nicknameInfoItem.style.pointerEvents = 'auto'
           } else {
+            nicknameInfoItem.style.visibility = 'hidden'
+            nicknameInfoItem.style.display = 'none'
             nicknameInfoItem.style.position = 'absolute'
             nicknameInfoItem.style.pointerEvents = 'none'
           }
@@ -162,11 +165,14 @@ export function createGameUI(deps) {
           'nicknameChangeButtonContainer'
         )
         if (nicknameChangeButtonContainer) {
-          nicknameChangeButtonContainer.style.visibility = playerNickname ? 'visible' : 'hidden'
           if (playerNickname) {
+            nicknameChangeButtonContainer.style.visibility = 'visible'
+            nicknameChangeButtonContainer.style.display = 'block'
             nicknameChangeButtonContainer.style.position = 'relative'
             nicknameChangeButtonContainer.style.pointerEvents = 'auto'
           } else {
+            nicknameChangeButtonContainer.style.visibility = 'hidden'
+            nicknameChangeButtonContainer.style.display = 'none'
             nicknameChangeButtonContainer.style.position = 'absolute'
             nicknameChangeButtonContainer.style.pointerEvents = 'none'
           }
