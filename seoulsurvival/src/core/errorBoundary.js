@@ -19,28 +19,18 @@ function handleGameError(error, context = 'Unknown', showModal = true) {
 
   // 사용자에게 에러 알림 (치명적인 경우만)
   if (showModal) {
-    Modal.show({
-      title: t('modal.error.gameError.title') || '오류 발생',
-      message:
-        t('modal.error.gameError.message') ||
+    Modal.openConfirmModal(
+      t('modal.error.gameError.title') || '오류 발생',
+      t('modal.error.gameError.message') ||
         `게임 실행 중 오류가 발생했습니다.\n${error.message}\n\n페이지를 새로고침 하시겠습니까?`,
-      buttons: [
-        {
-          text: t('ui.refresh') || '새로고침',
-          className: 'btn-primary',
-          onClick: () => {
-            window.location.reload()
-          },
-        },
-        {
-          text: t('ui.close') || '닫기',
-          className: 'btn-secondary',
-          onClick: () => {
-            Modal.hide()
-          },
-        },
-      ],
-    })
+      () => {
+        window.location.reload()
+      },
+      {
+        primaryLabel: t('ui.refresh') || '새로고침',
+        secondaryLabel: t('ui.close') || '닫기',
+      }
+    )
   }
 }
 
