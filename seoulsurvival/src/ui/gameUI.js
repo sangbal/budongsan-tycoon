@@ -148,14 +148,28 @@ export function createGameUI(deps) {
           nicknameLabel.textContent = playerNickname || '-'
         }
         if (nicknameInfoItem) {
-          nicknameInfoItem.style.display = playerNickname ? 'flex' : 'none'
+          nicknameInfoItem.style.visibility = playerNickname ? 'visible' : 'hidden'
+          if (playerNickname) {
+            nicknameInfoItem.style.position = 'relative'
+            nicknameInfoItem.style.pointerEvents = 'auto'
+          } else {
+            nicknameInfoItem.style.position = 'absolute'
+            nicknameInfoItem.style.pointerEvents = 'none'
+          }
         }
         // 닉네임 변경 버튼 표시/숨김
         const nicknameChangeButtonContainer = document.getElementById(
           'nicknameChangeButtonContainer'
         )
         if (nicknameChangeButtonContainer) {
-          nicknameChangeButtonContainer.style.display = playerNickname ? 'block' : 'none'
+          nicknameChangeButtonContainer.style.visibility = playerNickname ? 'visible' : 'hidden'
+          if (playerNickname) {
+            nicknameChangeButtonContainer.style.position = 'relative'
+            nicknameChangeButtonContainer.style.pointerEvents = 'auto'
+          } else {
+            nicknameChangeButtonContainer.style.position = 'absolute'
+            nicknameChangeButtonContainer.style.pointerEvents = 'none'
+          }
         }
 
         // 마이그레이션 충돌 배너 표시

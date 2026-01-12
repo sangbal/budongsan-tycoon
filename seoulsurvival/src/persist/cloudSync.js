@@ -542,7 +542,7 @@ export function createCloudSyncManager(deps) {
               // 설정 탭에 배너 표시를 위해 UI 업데이트
               setTimeout(() => {
                 updateUI()
-              }, 0)
+              }, 20)
             } else if (claimResult.success) {
               if (__IS_DEV__) {
                 console.warn('[Nickname Migration] 로그인 후 자동 claim 성공:', playerNickname)
@@ -605,7 +605,7 @@ export function createCloudSyncManager(deps) {
             // UI 업데이트
             setTimeout(() => {
               updateUI()
-            }, 0)
+            }, 20)
             if (__IS_DEV__) {
               console.warn('[SeoulSurvival] Nickname updated from event:', newNickname)
             }
@@ -636,7 +636,7 @@ export function createCloudSyncManager(deps) {
                   // UI 업데이트
                   setTimeout(() => {
                     updateUI()
-                  }, 0)
+                  }, 20)
                   if (__IS_DEV__) {
                     console.warn(
                       '[SeoulSurvival] Nickname updated from server:',
