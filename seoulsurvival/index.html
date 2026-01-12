@@ -2198,7 +2198,7 @@
     }
     
     /* 데스크톱(와이드): 5개 패널을 한 줄에 나열 (가로 스크롤 금지) */
-    @media (min-width: 1280px) {
+    @media (min-width: 1440px) {
       html, body {
         overflow-x: hidden; /* 페이지 가로 스크롤바 방지 */
       }
@@ -2313,7 +2313,26 @@
       .tab-content.active {
         display: block;
       }
-      
+
+      /* 노동 탭 모바일 폭 수정 - 강화 버전 */
+      #workTab {
+        width: 100% !important;
+        max-width: 100vw;
+      }
+      #workTab section.card {
+        width: 100% !important;
+        max-width: calc(100vw - 32px);
+        box-sizing: border-box;
+      }
+      #workTab .work {
+        width: 100% !important;
+      }
+      #workTab .career-progress-card,
+      #workTab .diary-card {
+        width: auto;
+        max-width: 100%;
+      }
+
       /* 통계 탭과 설정 탭 표시 */
       #statsTab, #settingsTab {
         display: none;
