@@ -10,6 +10,9 @@
  * - 저장 상태 UI 업데이트
  */
 
+// 리더보드 업데이트 쓰로틀링 (모듈 스코프)
+let _lastLeaderboardUpdate = 0
+
 /**
  * 저장/로드 매니저 팩토리 함수
  *
@@ -157,10 +160,10 @@ export function createSaveLoadManager(deps) {
       // 리더보드 업데이트 (닉네임이 있을 때만, 30초마다)
       if (
         gameVars.playerNickname &&
-        (!window.__lastLeaderboardUpdate || Date.now() - window.__lastLeaderboardUpdate > 30000)
+        (!_lastLeaderboardUpdate || Date.now() - _lastLeaderboardUpdate > 30000)
       ) {
         LeaderboardUI.updateLeaderboardEntry()
-        window.__lastLeaderboardUpdate = Date.now()
+        _lastLeaderboardUpdate = Date.now()
       }
     } catch (error) {
       console.error(`게임 저장 실패 (시도 ${retryCount + 1}/${MAX_RETRY_ATTEMPTS}):`, error)
@@ -202,35 +205,22 @@ export function createSaveLoadManager(deps) {
       error?.message?.includes('storage')
 
     const message = isQuotaExceeded
-      ? '⚠️ 저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.'
-      : '⚠️ 게임 저장에 실패했습니다. 저장 공간을 확인해주세요.'
+      ? t('error.quotaExceeded') || '저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.'
+      : t('error.saveFailed') || '게임 저장에 실패했습니다. 저장 공간을 확인해주세요.'
 
-    const warning = document.createElement('div')
-    warning.className = 'save-warning-toast'
-    warning.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 3000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      animation: slideUp 0.3s ease-out;
-    `
-    warning.textContent = message
-    document.body.appendChild(warning)
-
-    setTimeout(() => {
-      warning.style.animation = 'slideDown 0.3s ease-in forwards'
+    // Toast 시스템 사용 (window.toast가 있으면)
+    if (typeof window.toast?.error === 'function') {
+      window.toast.error(message, 5000)
+      // 5초 후 플래그 리셋
       setTimeout(() => {
-        if (warning.parentElement) warning.remove()
         __saveWarningShown = false
-      }, 300)
-    }, 5000)
+      }, 5000)
+    } else {
+      // 폴백: 기존 방식 (토스트가 아직 로드되지 않은 경우)
+      console.error('[Save Warning]', message)
+      alert(message)
+      __saveWarningShown = false
+    }
   }
 
   /**

@@ -6,17 +6,7 @@
 
 import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
-
-/**
- * 안전한 텍스트 설정
- * @param {HTMLElement} element - 대상 요소
- * @param {string} text - 설정할 텍스트
- */
-function safeText(element, text) {
-  if (element && text !== null && text !== undefined) {
-    element.textContent = String(text)
-  }
-}
+import { safeText } from './domUtils.js'
 
 /**
  * 커리어 이름 가져오기

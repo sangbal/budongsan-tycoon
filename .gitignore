@@ -47,6 +47,10 @@ pnpm-debug.log*
 # Local backup/archive (keep out of GitHub)
 _backup/
 
+# 백업 파일 (향후 실수 방지)
+**/*_backup*.js
+**/*.backup
+
 # Generated reports
 upgrade_report.md
 

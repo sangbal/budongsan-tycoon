@@ -58,6 +58,7 @@ import { GAME_VERSION } from './version.js'
 import * as NumberFormat from './utils/numberFormat.js'
 import * as Modal from './ui/modal.js'
 import * as Animations from './ui/animations.js'
+import { toastSuccess, toastError, toastInfo, toastWarning } from './ui/toast.js'
 import * as Diary from './systems/diary.js'
 import * as LeaderboardUI from './ui/leaderboardUI.js'
 import { updateSynergyDisplay } from './ui/synergyDisplay.js'
@@ -2351,32 +2352,42 @@ document.addEventListener('DOMContentLoaded', () => {
     )
   }
 
-  // 치트 코드 (테스트용 - 콘솔에서 사용 가능)
-  window.cheat = {
-    addCash: amount => {
-      cash += amount
-      updateUI()
-    },
-    unlockAllUpgrades: () => {
-      Object.values(UPGRADES).forEach(u => (u.unlocked = true))
-      updateUpgradeList()
-    },
-    unlockFirstUpgrade: () => {
-      const firstId = Object.keys(UPGRADES)[0]
-      UPGRADES[firstId].unlocked = true
-      updateUpgradeList()
-    },
-    setClicks: count => {
-      totalClicks = count
-      updateUI()
-      checkUpgradeUnlocks()
-    },
-    testUpgrade: () => {
-      const firstId = Object.keys(UPGRADES)[0]
-      UPGRADES[firstId].unlocked = true
-      cash += 10000000
-      updateUpgradeList()
-      updateUI()
-    },
+  // Toast 시스템을 window에 연결 (전역 접근용)
+  window.toast = {
+    success: toastSuccess,
+    error: toastError,
+    info: toastInfo,
+    warning: toastWarning,
+  }
+
+  // 치트 코드 (테스트용 - 개발 모드에서만 사용 가능)
+  if (__IS_DEV__) {
+    window.cheat = {
+      addCash: amount => {
+        cash += amount
+        updateUI()
+      },
+      unlockAllUpgrades: () => {
+        Object.values(UPGRADES).forEach(u => (u.unlocked = true))
+        updateUpgradeList()
+      },
+      unlockFirstUpgrade: () => {
+        const firstId = Object.keys(UPGRADES)[0]
+        UPGRADES[firstId].unlocked = true
+        updateUpgradeList()
+      },
+      setClicks: count => {
+        totalClicks = count
+        updateUI()
+        checkUpgradeUnlocks()
+      },
+      testUpgrade: () => {
+        const firstId = Object.keys(UPGRADES)[0]
+        UPGRADES[firstId].unlocked = true
+        cash += 10000000
+        updateUpgradeList()
+        updateUI()
+      },
+    }
   }
 })
