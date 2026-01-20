@@ -11,9 +11,11 @@ import {
   getSynergyMultiplier,
   applyPropertySynergyMultiplier,
   applyFinancialSynergyMultiplier,
+  applyClickSynergyMultiplier,
   updateCompletionistSynergy,
   getSynergyDisplayData,
 } from './synergy.js'
+import { gameState } from '../state/gameState.js'
 
 describe('Synergy System', () => {
   let mockState
@@ -196,28 +198,42 @@ describe('Synergy System', () => {
   })
 
   describe('updateCompletionistSynergy', () => {
-    it('모든 업그레이드 구매 시 true로 설정', () => {
+    beforeEach(() => {
+      // gameState 초기화
+      gameState.__completionistUnlocked = false
+    })
+
+    it('모든 업그레이드 구매 시 gameState.__completionistUnlocked = true', () => {
       const mockUpgrades = {
         upgrade1: { purchased: true },
         upgrade2: { purchased: true },
         upgrade3: { purchased: true },
       }
 
-      // gameState를 직접 수정하므로 별도 테스트 필요
-      // 여기서는 로직 검증만 수행
-      const allPurchased = Object.values(mockUpgrades).every(u => u.purchased)
-      expect(allPurchased).toBe(true)
+      updateCompletionistSynergy(mockUpgrades)
+
+      expect(gameState.__completionistUnlocked).toBe(true)
     })
 
-    it('일부 업그레이드 미구매 시 false', () => {
+    it('일부 업그레이드 미구매 시 gameState.__completionistUnlocked = false', () => {
       const mockUpgrades = {
         upgrade1: { purchased: true },
         upgrade2: { purchased: false },
         upgrade3: { purchased: true },
       }
 
-      const allPurchased = Object.values(mockUpgrades).every(u => u.purchased)
-      expect(allPurchased).toBe(false)
+      updateCompletionistSynergy(mockUpgrades)
+
+      expect(gameState.__completionistUnlocked).toBe(false)
+    })
+
+    it('빈 업그레이드 객체 시 true (vacuously true)', () => {
+      const mockUpgrades = {}
+
+      updateCompletionistSynergy(mockUpgrades)
+
+      // every()는 빈 배열에 대해 true 반환
+      expect(gameState.__completionistUnlocked).toBe(true)
     })
   })
 
@@ -252,6 +268,52 @@ describe('Synergy System', () => {
       const baseIncome = 100000
       const result = applyFinancialSynergyMultiplier(baseIncome, mockState)
       expect(result).toBe(125000)
+    })
+  })
+
+  describe('applyClickSynergyMultiplier', () => {
+    it('시너지 없으면 기본 클릭 수익 유지', () => {
+      const baseIncome = 10000
+      const result = applyClickSynergyMultiplier(baseIncome, mockState)
+      expect(result).toBe(10000)
+    })
+
+    it('완벽주의자 시너지 활성화 시 클릭 수익 x2', () => {
+      mockState.__completionistUnlocked = true
+
+      const baseIncome = 10000
+      const result = applyClickSynergyMultiplier(baseIncome, mockState)
+      expect(result).toBe(20000)
+    })
+
+    it('다각화 + 완벽주의자 시너지 중첩 시 클릭 수익에 all_income 적용', () => {
+      // 모든 상품 보유 (다각화)
+      mockState.deposits = 1
+      mockState.savings = 1
+      mockState.bonds = 1
+      mockState.usStocks = 1
+      mockState.cryptos = 1
+      mockState.villas = 1
+      mockState.officetels = 1
+      mockState.apartments = 1
+      mockState.shops = 1
+      mockState.buildings = 1
+      // 완벽주의자
+      mockState.__completionistUnlocked = true
+
+      const baseIncome = 10000
+      const result = applyClickSynergyMultiplier(baseIncome, mockState)
+      // Diversification (1.15) × Completionist (2.0) = 2.3
+      expect(result).toBe(23000)
+    })
+
+    it('서울 지배자 시너지 클릭 수익에도 적용 (all_income)', () => {
+      mockState.buildings = 5
+
+      const baseIncome = 10000
+      const result = applyClickSynergyMultiplier(baseIncome, mockState)
+      // Seoul Ruler (1.5)
+      expect(result).toBe(15000)
     })
   })
 

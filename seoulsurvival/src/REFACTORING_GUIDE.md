@@ -7,6 +7,7 @@
 #### 생성된 파일
 
 ##### `seoulsurvival/src/systems/nicknameManager.js`
+
 - **책임**: 닉네임 관리 전담
 - **함수**:
   - `ensureNicknameModal()` - 닉네임이 없으면 모달 오픈 (중복 방지)
@@ -19,6 +20,7 @@
 - **원본 위치**: `main.js` 라인 1275-1443, 5462-5671
 
 ##### `seoulsurvival/src/persist/saveLoad.js`
+
 - **책임**: 게임 데이터 저장/로드
 - **함수**:
   - `saveGame()` - 게임 데이터 저장 (localStorage + 클라우드 대기열)
@@ -35,6 +37,7 @@
 ### main.js 통합 (미완료)
 
 현재 상태:
+
 - ✅ 새 모듈 생성 완료
 - ✅ main.js에 import 추가 완료
 - ✅ 빌드 테스트 통과
@@ -51,20 +54,40 @@ main.js에서 Factory가 접근할 전역 변수를 getter/setter 객체로 래�
 
 // ======= 저장/로드 매니저 초기화 (Factory 패턴) =======
 const gameVars = {
-  get cash() { return cash },
-  set cash(val) { cash = val },
-  get totalClicks() { return totalClicks },
-  set totalClicks(val) { totalClicks = val },
+  get cash() {
+    return cash
+  },
+  set cash(val) {
+    cash = val
+  },
+  get totalClicks() {
+    return totalClicks
+  },
+  set totalClicks(val) {
+    totalClicks = val
+  },
   // ... (모든 게임 상태 변수)
 }
 
 const cloudState = {
-  get __currentUser() { return __currentUser },
-  set __currentUser(val) { __currentUser = val },
-  get __cloudPendingSave() { return __cloudPendingSave },
-  set __cloudPendingSave(val) { __cloudPendingSave = val },
-  get __lastCloudUploadedSaveTs() { return __lastCloudUploadedSaveTs },
-  set __lastCloudUploadedSaveTs(val) { __lastCloudUploadedSaveTs = val },
+  get __currentUser() {
+    return __currentUser
+  },
+  set __currentUser(val) {
+    __currentUser = val
+  },
+  get __cloudPendingSave() {
+    return __cloudPendingSave
+  },
+  set __cloudPendingSave(val) {
+    __cloudPendingSave = val
+  },
+  get __lastCloudUploadedSaveTs() {
+    return __lastCloudUploadedSaveTs
+  },
+  set __lastCloudUploadedSaveTs(val) {
+    __lastCloudUploadedSaveTs = val
+  },
 }
 ```
 
@@ -107,7 +130,9 @@ const nicknameManager = createNicknameManager({
   LeaderboardUI,
   upsertCloudSave,
   getPlayerNickname: () => playerNickname,
-  setPlayerNickname: (val) => { playerNickname = val },
+  setPlayerNickname: val => {
+    playerNickname = val
+  },
   __IS_DEV__,
 })
 ```
@@ -175,18 +200,22 @@ if (nicknameConflictChangeBtn) {
 ## 향후 리팩토링 계획
 
 ### Phase 2: 게임 루프 분리
+
 - `seoulsurvival/src/core/gameLoop.js`
 - `startGameLoop()`, `updateGameTick()`, `calculateOfflineIncome()`
 
 ### Phase 3: 경제 시스템 통합
+
 - `seoulsurvival/src/economy/income.js` (이미 존재)
 - `seoulsurvival/src/economy/pricing.js` (이미 존재)
 
 ### Phase 4: UI 시스템 통합
+
 - `seoulsurvival/src/ui/tabSystem.js`
 - `switchTab()`, `updateUI()`, `updateStatsTab()`
 
 ### Phase 5: main.js 최종 정리
+
 - 목표: 1000라인 이하
 - 역할: 모듈 import + 초기화 + 이벤트 리스너 등록만 담당
 

@@ -51,8 +51,10 @@
   },
   "dependencies": {
     "@sentry/browser": "^10.32.1",
+    "pixi.js": "^8.15.0",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "zustand": "^5.0.10"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

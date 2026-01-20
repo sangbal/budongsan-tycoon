@@ -687,7 +687,53 @@
 <a name='L622'></a><a href='#L622'>622</a>
 <a name='L623'></a><a href='#L623'>623</a>
 <a name='L624'></a><a href='#L624'>624</a>
-<a name='L625'></a><a href='#L625'>625</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a>
+<a name='L630'></a><a href='#L630'>630</a>
+<a name='L631'></a><a href='#L631'>631</a>
+<a name='L632'></a><a href='#L632'>632</a>
+<a name='L633'></a><a href='#L633'>633</a>
+<a name='L634'></a><a href='#L634'>634</a>
+<a name='L635'></a><a href='#L635'>635</a>
+<a name='L636'></a><a href='#L636'>636</a>
+<a name='L637'></a><a href='#L637'>637</a>
+<a name='L638'></a><a href='#L638'>638</a>
+<a name='L639'></a><a href='#L639'>639</a>
+<a name='L640'></a><a href='#L640'>640</a>
+<a name='L641'></a><a href='#L641'>641</a>
+<a name='L642'></a><a href='#L642'>642</a>
+<a name='L643'></a><a href='#L643'>643</a>
+<a name='L644'></a><a href='#L644'>644</a>
+<a name='L645'></a><a href='#L645'>645</a>
+<a name='L646'></a><a href='#L646'>646</a>
+<a name='L647'></a><a href='#L647'>647</a>
+<a name='L648'></a><a href='#L648'>648</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1341,7 +1387,15 @@ export default {
   'product.usStock': '미국주식',
   'product.crypto': '코인',
 &nbsp;
-  // 부동산 이름
+  // 부동산 이름 (productUI.js 용)
+  'product.villa': '빌라',
+  'product.officetel': '오피스텔',
+  'product.apartment': '아파트',
+  'product.shop': '상가',
+  'product.building': '빌딩',
+  'product.tower': '서울타워',
+&nbsp;
+  // 부동산 이름 (레거시)
   'property.villa': '빌라',
   'property.officetel': '오피스텔',
   'property.apartment': '아파트',
@@ -1385,6 +1439,12 @@ export default {
   'msg.manualSave': '💾 수동 저장 완료!',
   'msg.cloudSaved': '☁️ 클라우드에 저장했습니다.',
   'msg.cloudApplied': '☁️ 클라우드 세이브를 적용했습니다. 페이지를 새로고침합니다...',
+  'msg.unlocked': '🔓 {product}이(가) 해금되었습니다!',
+&nbsp;
+  // 에러 메시지 (토스트 알림)
+  'error.saveFailed': '게임 저장에 실패했습니다. 잠시 후 다시 시도됩니다.',
+  'error.cloudSaveFailed': '클라우드 저장에 실패했습니다. 로컬 저장은 정상입니다.',
+  'error.quotaExceeded': '저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.',
 &nbsp;
   // 모달 메시지
   'modal.error.nicknameLength.title': '닉네임 길이 오류',
@@ -1412,6 +1472,9 @@ export default {
   'modal.error.noSaveData.title': '저장 데이터 없음',
   'modal.error.noSaveData.message':
     '로컬 저장 데이터가 없습니다. 먼저 게임을 진행한 뒤 저장해 주세요.',
+  'modal.error.gameError.title': '오류 발생',
+  'modal.error.gameError.message':
+    '게임 실행 중 오류가 발생했습니다.\n{message}\n\n페이지를 새로고침 하시겠습니까?',
   'modal.error.invalidSaveData.title': '오류',
   'modal.error.invalidSaveData.message': '로컬 저장 데이터 형식이 올바르지 않습니다.',
   'modal.error.uploadFailed.title': '업로드 실패',
@@ -1432,6 +1495,8 @@ export default {
   'modal.confirm.cloudSaveFound.message': '{message}',
   'modal.error.progressSwitchFailed.title': '오류',
   'modal.error.progressSwitchFailed.message': '진행 상황 전환에 실패했습니다.\n{error}',
+  'modal.confirm.progressSwitch.title': '진행 상황 선택',
+  'modal.confirm.progressSwitch.message': '{message}',
   'achievement.status.unlocked': '✅ 달성!',
   'achievement.status.locked': '🔒 미달성',
 &nbsp;
@@ -1474,6 +1539,10 @@ export default {
   'ui.prestige': '프레스티지 상품 (수익 없음)',
   'ui.leaderboard': '리더보드에 기록됨',
   'ui.nextPromotion': '다음 승진까지 {remaining}클릭 남음',
+  'ui.promotionAvailable': '승진 가능!',
+  'ui.careerCompleted': '100% (완료)',
+  'ui.careerMaxLevel': '최고 직급 달성',
+  'ui.remaining': '남은 시간',
   'ui.progress': '진행률',
   'ui.stats': '통계',
   'ui.ranking': '랭킹',
@@ -1942,7 +2011,7 @@ export default {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-10T08:02:03.896Z
+                at 2026-01-18T11:25:57.836Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

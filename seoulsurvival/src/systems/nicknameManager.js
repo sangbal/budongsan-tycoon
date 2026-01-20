@@ -56,6 +56,9 @@ export function createNicknameManager(deps) {
 
   // 세션 플래그: 닉네임 모달이 이미 표시되었는지 추적
   let __nicknameModalShown = false
+  // 무한 재귀 방지: 재시도 횟수 제한
+  let __nicknameRetryCount = 0
+  const MAX_NICKNAME_RETRIES = 5
 
   /**
    * 로컬 저장에서 최종 닉네임을 확인하고 반환
@@ -129,6 +132,15 @@ export function createNicknameManager(deps) {
           }
           Modal.openInfoModal(t('modal.error.nicknameFormat.title'), errorMessage, '⚠️')
           __nicknameModalShown = false
+          __nicknameRetryCount++
+          // 무한 재귀 방지: 최대 재시도 횟수 초과 시 중단
+          if (__nicknameRetryCount >= MAX_NICKNAME_RETRIES) {
+            if (__IS_DEV__) {
+              console.warn('[Nickname] 최대 재시도 횟수 초과, 모달 중단')
+            }
+            __nicknameRetryCount = 0
+            return
+          }
           ensureNicknameModal()
           return
         }
@@ -141,6 +153,7 @@ export function createNicknameManager(deps) {
         if (!user) {
           // 비로그인: 로컬만 저장
           setPlayerNickname(normalized)
+          __nicknameRetryCount = 0 // 성공 시 재시도 카운터 리셋
           saveGame()
           Diary.addLog(t('msg.nicknameSet', { nickname: getPlayerNickname() }))
           Diary.addLog(t('settings.nickname.change.loginRequired'))
@@ -173,11 +186,21 @@ export function createNicknameManager(deps) {
               )
             }
             __nicknameModalShown = false
+            __nicknameRetryCount++
+            // 무한 재귀 방지: 최대 재시도 횟수 초과 시 중단
+            if (__nicknameRetryCount >= MAX_NICKNAME_RETRIES) {
+              if (__IS_DEV__) {
+                console.warn('[Nickname] 최대 재시도 횟수 초과, 모달 중단')
+              }
+              __nicknameRetryCount = 0
+              return
+            }
             ensureNicknameModal()
             return
           }
 
           // 성공
+          __nicknameRetryCount = 0 // 성공 시 재시도 카운터 리셋
           setPlayerNickname(normalized)
           saveGame()
           Diary.addLog(t('msg.nicknameSet', { nickname: getPlayerNickname() }))
@@ -210,6 +233,15 @@ export function createNicknameManager(deps) {
             '⚠️'
           )
           __nicknameModalShown = false
+          __nicknameRetryCount++
+          // 무한 재귀 방지: 최대 재시도 횟수 초과 시 중단
+          if (__nicknameRetryCount >= MAX_NICKNAME_RETRIES) {
+            if (__IS_DEV__) {
+              console.warn('[Nickname] 최대 재시도 횟수 초과 (에러), 모달 중단')
+            }
+            __nicknameRetryCount = 0
+            return
+          }
           ensureNicknameModal()
         }
       }

@@ -409,7 +409,7 @@ export function createSaveLoadManager(deps) {
       Diary.addLog(t('msg.saveExported'))
     } catch (error) {
       console.error('저장 내보내기 실패:', error)
-      alert('저장 내보내기 중 오류가 발생했습니다.')
+      alert(t('error.saveExport'))
     }
   }
 
@@ -429,13 +429,13 @@ export function createSaveLoadManager(deps) {
           }, 1000)
         } catch (error) {
           console.error('저장 파일 파싱 실패:', error)
-          alert('저장 파일 형식이 올바르지 않습니다.')
+          alert(t('error.saveImportFormat'))
         }
       }
       reader.readAsText(file)
     } catch (error) {
       console.error('저장 가져오기 실패:', error)
-      alert('저장 가져오기 중 오류가 발생했습니다.')
+      alert(t('error.saveImport'))
     }
   }
 

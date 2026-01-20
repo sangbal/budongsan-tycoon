@@ -118,11 +118,11 @@ function showInAppBrowserWarningIfNeeded() {
   const banner = document.createElement('div')
   banner.className = 'inapp-warning-banner'
   banner.innerHTML = `
-    이 브라우저에서는 Google 로그인이 제한될 수 있습니다.<br />
-    <strong>Chrome / Safari 등 기본 브라우저에서 다시 열어 주세요.</strong>
+    ${t('inapp.banner.message')}<br />
+    <strong>${t('inapp.banner.hint')}</strong>
     <div class="inapp-warning-actions">
-      <button type="button" class="btn-small" id="copyGameUrlBtn">URL 복사</button>
-      <button type="button" class="btn-small" id="closeInappWarningBtn">확인</button>
+      <button type="button" class="btn-small" id="copyGameUrlBtn">${t('inapp.banner.copyBtn')}</button>
+      <button type="button" class="btn-small" id="closeInappWarningBtn">${t('inapp.banner.closeBtn')}</button>
     </div>
   `
   document.body.prepend(banner)
@@ -135,7 +135,7 @@ function showInAppBrowserWarningIfNeeded() {
         // 클립보드 API 시도 (HTTPS/localhost에서 동작)
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(url)
-          alert('주소가 복사되었습니다.\nChrome/Safari 주소창에 붙여넣어 열어 주세요.')
+          alert(t('inapp.copied'))
           return
         }
         // Fallback: execCommand 사용
@@ -150,17 +150,17 @@ function showInAppBrowserWarningIfNeeded() {
         try {
           const successful = document.execCommand('copy')
           if (successful) {
-            alert('주소가 복사되었습니다.\nChrome/Safari 주소창에 붙여넣어 열어 주세요.')
+            alert(t('inapp.copied'))
           } else {
             throw new Error('execCommand failed')
           }
         } catch (err) {
-          alert(url + '\n위 주소를 복사해서 Chrome/Safari에서 직접 열어 주세요.')
+          alert(t('inapp.copyFallback', { url }))
         } finally {
           document.body.removeChild(textArea)
         }
       } catch (err) {
-        alert(url + '\n위 주소를 복사해서 Chrome/Safari에서 직접 열어 주세요.')
+        alert(t('inapp.copyFallback', { url }))
       }
     })
   }
@@ -250,37 +250,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // NOTE: safeText, safeHTML, safeClass는 './ui/domUtils.js'에서 import됨
   const fmt = new Intl.NumberFormat('ko-KR')
 
-  let cash = 0
+  // cash는 gameState.cash 사용 (SSOT 마이그레이션)
 
-  // 누적 플레이시간 시스템 (전역 변수)
-  let totalPlayTime = 0 // 누적 플레이시간 (밀리초)
-  let sessionStartTime = Date.now() // 현재 세션 시작 시간
-  let gameStartTime = Date.now() // 게임 시작 시간 (호환성 유지)
+  // 누적 플레이시간 시스템 - gameState 사용 (SSOT 마이그레이션)
+  // totalPlayTime, sessionStartTime, gameStartTime → gameState.xxx
 
-  // 금융상품 보유 수량
-  let deposits = 0 // 예금
-  let savings = 0 // 적금
-  let bonds = 0 // 국내주식
-  let usStocks = 0 // 미국주식
-  let cryptos = 0 // 코인
+  // 금융상품 보유 수량 - gameState 사용 (SSOT 마이그레이션)
+  // deposits, savings, bonds, usStocks, cryptos → gameState.xxx
 
-  // 금융상품 누적 생산량 (Cookie Clicker 스타일)
-  let depositsLifetime = 0
-  let savingsLifetime = 0
-  let bondsLifetime = 0
-  let usStocksLifetime = 0
-  let cryptosLifetime = 0
+  // 금융상품 누적 생산량 - gameState 사용 (SSOT 마이그레이션)
+  // depositsLifetime, savingsLifetime, bondsLifetime, usStocksLifetime, cryptosLifetime → gameState.xxx
 
-  // 부동산 누적 생산량
-  let villasLifetime = 0
-  let officetelsLifetime = 0
-  let apartmentsLifetime = 0
-  let shopsLifetime = 0
-  let buildingsLifetime = 0
+  // 부동산 누적 생산량 - gameState 사용 (SSOT 마이그레이션)
+  // villasLifetime, officetelsLifetime, apartmentsLifetime, shopsLifetime, buildingsLifetime → gameState.xxx
 
-  // 구매 수량 선택 시스템
-  let purchaseMode = 'buy' // 'buy' or 'sell'
-  let purchaseQuantity = 1 // 1, 10, 100
+  // 구매 수량 선택 시스템 - gameState 사용 (SSOT 마이그레이션)
+  // purchaseMode, purchaseQuantity → gameState.xxx
 
   // achievementGrid 모듈 인스턴스
   let achievementGridInstance = null
@@ -288,15 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // buttonStateManager 모듈 인스턴스
   let buttonStateManager = null
 
-  // 자동 저장 시스템
+  // 자동 저장 시스템 - gameState 사용 (SSOT 마이그레이션)
   // NOTE: SAVE_KEY, CLOUD_RESTORE_BLOCK_KEY, CLOUD_RESTORE_SKIP_KEY는 './state/gameState.js'에서 import됨
-  let lastSaveTime = new Date()
+  // lastSaveTime → gameState.lastSaveTime
 
-  // 닉네임 (리더보드용)
-  let playerNickname = ''
-
-  // 닉네임 모달 세션 플래그 (이번 세션에서 이미 모달을 열었는지)
-  let __nicknameModalShown = false
+  // 닉네임 (리더보드용) - gameState 사용 (SSOT 마이그레이션)
+  // playerNickname, __nicknameModalShown → gameState.xxx
 
   // cloudSyncManager는 상단에서 선언됨
 
@@ -323,36 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
     upgradeManager
   */
 
-  // 부동산 보유 수량
-  let villas = 0 // 빌라
-  let officetels = 0 // 오피스텔
-  let apartments = 0 // 아파트
-  let shops = 0 // 상가
-  let buildings = 0 // 빌딩
-  let towers_run = 0 // 서울타워 (현재 런에서 획득)
-  let towers_lifetime = 0 // 서울타워 (계정 누적, 프레스티지 유지)
+  // 부동산 보유 수량 - gameState 사용 (SSOT 마이그레이션)
+  // villas, officetels, apartments, shops, buildings, towers_run, towers_lifetime → gameState.xxx
 
-  // 해금 상태 추적 (버그 수정: 중복 해금 알림 방지)
-  const unlockedProducts = {
-    deposit: true,
-    savings: false,
-    bond: false,
-    villa: false,
-    officetel: false,
-    apartment: false,
-    shop: false,
-    building: false,
-    tower: false,
-  }
+  // 해금 상태 추적 - gameState.unlockedProducts 사용 (중복 제거됨)
+  // 실제 해금 로직은 investmentTab.js에서 관리
 
   // Note: FINANCIAL_INCOME, BASE_RENT, resetIncomeTablesToDefault,
   // reapplyIncomeTableAffectingUpgradeEffects는 gameState.js에서 이미 import됨
 
-  // 업그레이드 배수
-  let clickMultiplier = 1 // 노동 효율 배수
-  let rentMultiplier = 1 // 월세 수익 배수
-  let autoClickEnabled = false // 자동 클릭 활성화 여부
-  let managerLevel = 0 // 관리인 레벨
+  // 업그레이드 배수 - gameState 사용 (SSOT 마이그레이션)
+  // clickMultiplier, rentMultiplier, autoClickEnabled, managerLevel → gameState.xxx
 
   // 설정 옵션
   // NOTE: SETTINGS_KEY는 './state/gameState.js'에서 import됨
@@ -362,9 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
     shortNumbers: false, // 짧은 숫자 표시 (기본값: 끔)
   }
 
-  // 노동 커리어 시스템 (현실적 승진)
-  let careerLevel = 0 // 현재 커리어 레벨
-  let totalLaborIncome = 0 // 총 노동 수익
+  // 노동 커리어 시스템 - gameState 사용 (SSOT 마이그레이션)
+  // careerLevel, totalLaborIncome → gameState.xxx
 
   // Note: CAREER_LEVELS는 gameState.js에서 이미 bgImage와 함께 import됨
 
@@ -376,23 +338,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 가격은 이제 동적으로 계산됨 (getPropertyCost 함수 사용)
 
-  // 업그레이드 비용 - 새로운 경제 시스템에 맞게 조정
-  let rentCost = 1000000000 // 월세 수익률 업: 10억원
-  let mgrCost = 5000000000 // 관리인 고용: 50억원
+  // 업그레이드 비용 - gameState 사용 (SSOT 마이그레이션)
+  // rentCost, mgrCost → gameState.xxx
 
   // BASE_CLICK_GAIN - balance/career.js에서 import됨
 
-  // 부동산 시장 이벤트 시스템
-  let marketMultiplier = 1.0 // 시장 수익 배수
-  let marketEventEndTime = 0 // 이벤트 종료 시간
-
-  // 시장 이벤트 시스템 (상품별 세분화)
-  let currentMarketEvent = null
+  // 부동산 시장 이벤트 시스템 - gameState 사용 (SSOT 마이그레이션)
+  // marketMultiplier, marketEventEndTime, currentMarketEvent → gameState.xxx
 
   // MARKET_EVENTS - balance/marketEvents.js에서 import됨
 
-  // 업적 시스템
-  let totalClicks = 0 // 총 클릭 수 추적
+  // 업적 시스템 - gameState 사용 (SSOT 마이그레이션)
+  // totalClicks → gameState.totalClicks
 
   // ACHIEVEMENTS 배열은 팩토리 함수로 생성
   let ACHIEVEMENTS = null
@@ -503,9 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 유틸 =======
   // NOTE: getTotalFinancialProducts, getTotalProperties는 './state/gameState.js'에서 import됨
-  // 로컬 상태 기반 래퍼 함수 (기존 호출 패턴 유지)
-  const getTotalFinancialProducts = () => deposits + savings + bonds + usStocks + cryptos
-  const getTotalProperties = () => villas + officetels + apartments + shops + buildings
+  // 중복 정의 제거됨 - import된 함수 사용
 
   // (단순화) 랜덤 변동 제거: 초당 수익은 예측 가능하게 유지하고,
   // 변동성은 '시장 이벤트'만으로 표현합니다.
@@ -514,10 +469,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 오토 업무 처리 시스템 UI 상태 동기화
   function updateAutoWorkUI() {
     if (elWorkArea) {
-      elWorkArea.classList.toggle('auto-click-enabled', autoClickEnabled)
+      elWorkArea.classList.toggle('auto-click-enabled', gameState.autoClickEnabled)
     }
     if (elAutoWorkIndicator) {
-      elAutoWorkIndicator.style.display = autoClickEnabled ? '' : 'none'
+      elAutoWorkIndicator.style.display = gameState.autoClickEnabled ? '' : 'none'
     }
   }
 
@@ -530,8 +485,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const profile = await getUserProfile('seoulsurvival')
       if (!profile.success || !profile.user?.nickname) return
       const serverNickname = profile.user.nickname
-      if (playerNickname === serverNickname) return
-      playerNickname = serverNickname
+      if (gameState.playerNickname === serverNickname) return
+      gameState.playerNickname = serverNickname
       try {
         const saveData = localStorage.getItem(SAVE_KEY)
         if (saveData) {
@@ -552,44 +507,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= UPGRADES 및 ACHIEVEMENTS 팩토리 함수로 생성 =======
   // 필요한 모든 의존성을 주입하여 UPGRADES 객체 생성
   UPGRADES = createUpgrades({
-    getCareerLevel: () => careerLevel,
-    getClickMultiplier: () => clickMultiplier,
+    getCareerLevel: () => gameState.careerLevel,
+    getClickMultiplier: () => gameState.clickMultiplier,
     setClickMultiplier: v => {
-      clickMultiplier = v
+      gameState.clickMultiplier = v
     },
-    getTotalClicks: () => totalClicks,
-    getDeposits: () => deposits,
-    getSavings: () => savings,
-    getBonds: () => bonds,
-    getUsStocks: () => usStocks,
-    getCryptos: () => cryptos,
-    getVillas: () => villas,
-    getOfficetels: () => officetels,
-    getApartments: () => apartments,
-    getShops: () => shops,
-    getBuildings: () => buildings,
+    getTotalClicks: () => gameState.totalClicks,
+    getDeposits: () => gameState.deposits,
+    getSavings: () => gameState.savings,
+    getBonds: () => gameState.bonds,
+    getUsStocks: () => gameState.usStocks,
+    getCryptos: () => gameState.cryptos,
+    getVillas: () => gameState.villas,
+    getOfficetels: () => gameState.officetels,
+    getApartments: () => gameState.apartments,
+    getShops: () => gameState.shops,
+    getBuildings: () => gameState.buildings,
     getTotalProperties,
     updateAutoWorkUI,
     setAutoClickEnabled: enabled => {
-      autoClickEnabled = enabled
+      gameState.autoClickEnabled = enabled
     },
     incrementManagerLevel: () => {
-      managerLevel++
+      gameState.managerLevel++
     },
     FINANCIAL_INCOME,
     BASE_RENT,
-    getRentMultiplier: () => rentMultiplier,
+    getRentMultiplier: () => gameState.rentMultiplier,
     setRentMultiplier: v => {
-      rentMultiplier = v
+      gameState.rentMultiplier = v
     },
   })
 
   // upgradeManager 초기화
   upgradeManager = createUpgradeManager({
     UPGRADES,
-    getCash: () => cash,
+    getCash: () => gameState.cash,
     setCash: newCash => {
-      cash = newCash
+      gameState.cash = newCash
     },
     CAREER_LEVELS,
   })
@@ -598,21 +553,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ACHIEVEMENTS 배열 생성
   ACHIEVEMENTS = createAchievements({
-    getTotalClicks: () => totalClicks,
-    getDeposits: () => deposits,
-    getSavings: () => savings,
-    getBonds: () => bonds,
-    getUsStocks: () => usStocks,
-    getCryptos: () => cryptos,
-    getVillas: () => villas,
-    getOfficetels: () => officetels,
-    getApartments: () => apartments,
-    getShops: () => shops,
-    getBuildings: () => buildings,
+    getTotalClicks: () => gameState.totalClicks,
+    getDeposits: () => gameState.deposits,
+    getSavings: () => gameState.savings,
+    getBonds: () => gameState.bonds,
+    getUsStocks: () => gameState.usStocks,
+    getCryptos: () => gameState.cryptos,
+    getVillas: () => gameState.villas,
+    getOfficetels: () => gameState.officetels,
+    getApartments: () => gameState.apartments,
+    getShops: () => gameState.shops,
+    getBuildings: () => gameState.buildings,
     getTotalProperties,
     getTotalAssets,
-    getCareerLevel: () => careerLevel,
-    getTowersLifetime: () => towers_lifetime,
+    getCareerLevel: () => gameState.careerLevel,
+    getTowersLifetime: () => gameState.towers_lifetime,
     UPGRADES,
     getFinancialCost,
   })
@@ -721,49 +676,49 @@ document.addEventListener('DOMContentLoaded', () => {
   // 래퍼 함수 (원래 이름 유지, 전역 변수를 모듈 함수에 전달)
 
   function getClickIncome() {
-    return calculateClickIncome(careerLevel, clickMultiplier)
+    return calculateClickIncome(gameState.careerLevel, gameState.clickMultiplier)
   }
 
   function getCurrentCareer() {
-    return getCareerByLevel(careerLevel)
+    return getCareerByLevel(gameState.careerLevel)
   }
 
   function getNextCareer() {
-    return getNextCareerByLevel(careerLevel)
+    return getNextCareerByLevel(gameState.careerLevel)
   }
 
   function getRps() {
     const state = {
-      deposits,
-      savings,
-      bonds,
-      usStocks,
-      cryptos,
-      villas,
-      officetels,
-      apartments,
-      shops,
-      buildings,
-      rentMultiplier,
-      marketMultiplier,
+      deposits: gameState.deposits,
+      savings: gameState.savings,
+      bonds: gameState.bonds,
+      usStocks: gameState.usStocks,
+      cryptos: gameState.cryptos,
+      villas: gameState.villas,
+      officetels: gameState.officetels,
+      apartments: gameState.apartments,
+      shops: gameState.shops,
+      buildings: gameState.buildings,
+      rentMultiplier: gameState.rentMultiplier,
+      marketMultiplier: gameState.marketMultiplier,
     }
     return calculateRps(state, getMarketEventMultiplier)
   }
 
   function getTotalIncomeForContribution() {
     const state = {
-      deposits,
-      savings,
-      bonds,
-      usStocks,
-      cryptos,
-      villas,
-      officetels,
-      apartments,
-      shops,
-      buildings,
-      rentMultiplier,
-      marketMultiplier,
+      deposits: gameState.deposits,
+      savings: gameState.savings,
+      bonds: gameState.bonds,
+      usStocks: gameState.usStocks,
+      cryptos: gameState.cryptos,
+      villas: gameState.villas,
+      officetels: gameState.officetels,
+      apartments: gameState.apartments,
+      shops: gameState.shops,
+      buildings: gameState.buildings,
+      rentMultiplier: gameState.rentMultiplier,
+      marketMultiplier: gameState.marketMultiplier,
     }
     return calculateTotalIncomeForContribution(state, getMarketEventMultiplier)
   }
@@ -779,14 +734,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 자동 승진 체크 함수 (클릭 수 기준)
   function checkCareerPromotion() {
     const nextCareer = getNextCareer()
-    if (nextCareer && totalClicks >= nextCareer.requiredClicks) {
-      const oldCareerLevel = careerLevel
-      careerLevel += 1
+    if (nextCareer && gameState.totalClicks >= nextCareer.requiredClicks) {
+      const oldCareerLevel = gameState.careerLevel
+      gameState.careerLevel += 1
       const newCareer = getCurrentCareer()
       const clickIncome = getClickIncome()
       Diary.addLog(
         t('msg.promoted', {
-          career: getCareerName(careerLevel),
+          career: getCareerName(gameState.careerLevel),
           income: NumberFormat.formatKoreanNumber(clickIncome),
         })
       )
@@ -828,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCareerEl.setAttribute(
           'aria-label',
           t('msg.promoted', {
-            career: getCareerName(careerLevel),
+            career: getCareerName(gameState.careerLevel),
             income: NumberFormat.formatKoreanNumber(clickIncome),
           })
         )
@@ -899,67 +854,67 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 투자 탭 UI 시스템 초기화 =======
   const investmentTab = createInvestmentTab({
     // State getters/setters
-    getCash: () => cash,
+    getCash: () => gameState.cash,
     setCash: newCash => {
-      cash = newCash
+      gameState.cash = newCash
     },
-    getPurchaseMode: () => purchaseMode,
-    getPurchaseQuantity: () => purchaseQuantity,
+    getPurchaseMode: () => gameState.purchaseMode,
+    getPurchaseQuantity: () => gameState.purchaseQuantity,
     getSettings: () => settings,
-    getCurrentMarketEvent: () => currentMarketEvent,
-    getMarketEventEndTime: () => marketEventEndTime,
+    getCurrentMarketEvent: () => gameState.currentMarketEvent,
+    getMarketEventEndTime: () => gameState.marketEventEndTime,
     setCurrentMarketEvent: event => {
-      currentMarketEvent = event
+      gameState.currentMarketEvent = event
     },
     setMarketEventEndTime: time => {
-      marketEventEndTime = time
+      gameState.marketEventEndTime = time
     },
-    getCareerLevel: () => careerLevel,
+    getCareerLevel: () => gameState.careerLevel,
 
     // Product counts (getters/setters)
-    getDeposits: () => deposits,
+    getDeposits: () => gameState.deposits,
     setDeposits: count => {
-      deposits = count
+      gameState.deposits = count
     },
-    getSavings: () => savings,
+    getSavings: () => gameState.savings,
     setSavings: count => {
-      savings = count
+      gameState.savings = count
     },
-    getBonds: () => bonds,
+    getBonds: () => gameState.bonds,
     setBonds: count => {
-      bonds = count
+      gameState.bonds = count
     },
-    getUsStocks: () => usStocks,
+    getUsStocks: () => gameState.usStocks,
     setUsStocks: count => {
-      usStocks = count
+      gameState.usStocks = count
     },
-    getCryptos: () => cryptos,
+    getCryptos: () => gameState.cryptos,
     setCryptos: count => {
-      cryptos = count
+      gameState.cryptos = count
     },
-    getVillas: () => villas,
+    getVillas: () => gameState.villas,
     setVillas: count => {
-      villas = count
+      gameState.villas = count
     },
-    getOfficetels: () => officetels,
+    getOfficetels: () => gameState.officetels,
     setOfficetels: count => {
-      officetels = count
+      gameState.officetels = count
     },
-    getApartments: () => apartments,
+    getApartments: () => gameState.apartments,
     setApartments: count => {
-      apartments = count
+      gameState.apartments = count
     },
-    getShops: () => shops,
+    getShops: () => gameState.shops,
     setShops: count => {
-      shops = count
+      gameState.shops = count
     },
-    getBuildings: () => buildings,
+    getBuildings: () => gameState.buildings,
     setBuildings: count => {
-      buildings = count
+      gameState.buildings = count
     },
-    getTower: () => towers_run,
+    getTower: () => gameState.towers_run,
     setTower: count => {
-      towers_run = count
+      gameState.towers_run = count
     },
 
     // Helper functions
@@ -994,19 +949,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= buttonStateManager 초기화 =======
   buttonStateManager = createButtonStateManager({
     // State getters
-    getCash: () => cash,
-    getPurchaseMode: () => purchaseMode,
-    getPurchaseQuantity: () => purchaseQuantity,
-    getDeposits: () => deposits,
-    getSavings: () => savings,
-    getBonds: () => bonds,
-    getUsStocks: () => usStocks,
-    getCryptos: () => cryptos,
-    getVillas: () => villas,
-    getOfficetels: () => officetels,
-    getApartments: () => apartments,
-    getShops: () => shops,
-    getBuildings: () => buildings,
+    getCash: () => gameState.cash,
+    getPurchaseMode: () => gameState.purchaseMode,
+    getPurchaseQuantity: () => gameState.purchaseQuantity,
+    getDeposits: () => gameState.deposits,
+    getSavings: () => gameState.savings,
+    getBonds: () => gameState.bonds,
+    getUsStocks: () => gameState.usStocks,
+    getCryptos: () => gameState.cryptos,
+    getVillas: () => gameState.villas,
+    getOfficetels: () => gameState.officetels,
+    getApartments: () => gameState.apartments,
+    getShops: () => gameState.shops,
+    getBuildings: () => gameState.buildings,
     // Helper functions
     getFinancialCost,
     getPropertyCost,
@@ -1028,53 +983,53 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= gameUI 모듈 초기화 =======
   gameUIInstance = createGameUI({
     // State getters
-    getCash: () => cash,
-    getDeposits: () => deposits,
-    getSavings: () => savings,
-    getBonds: () => bonds,
-    getUsStocks: () => usStocks,
-    getCryptos: () => cryptos,
-    getVillas: () => villas,
-    getOfficetels: () => officetels,
-    getApartments: () => apartments,
-    getShops: () => shops,
-    getBuildings: () => buildings,
-    getTowersRun: () => towers_run,
-    getTowersLifetime: () => towers_lifetime,
-    getDepositsLifetime: () => depositsLifetime,
-    getSavingsLifetime: () => savingsLifetime,
-    getBondsLifetime: () => bondsLifetime,
-    getUsStocksLifetime: () => usStocksLifetime,
-    getCryptosLifetime: () => cryptosLifetime,
-    getVillasLifetime: () => villasLifetime,
-    getOfficetelsLifetime: () => officetelsLifetime,
-    getApartmentsLifetime: () => apartmentsLifetime,
-    getShopsLifetime: () => shopsLifetime,
-    getBuildingsLifetime: () => buildingsLifetime,
-    getPurchaseMode: () => purchaseMode,
-    getPurchaseQuantity: () => purchaseQuantity,
-    getPlayerNickname: () => playerNickname,
-    getTotalClicks: () => totalClicks,
-    getCareerLevel: () => careerLevel,
-    getClickMultiplier: () => clickMultiplier,
-    getRentMultiplier: () => rentMultiplier,
-    getMarketMultiplier: () => marketMultiplier,
+    getCash: () => gameState.cash,
+    getDeposits: () => gameState.deposits,
+    getSavings: () => gameState.savings,
+    getBonds: () => gameState.bonds,
+    getUsStocks: () => gameState.usStocks,
+    getCryptos: () => gameState.cryptos,
+    getVillas: () => gameState.villas,
+    getOfficetels: () => gameState.officetels,
+    getApartments: () => gameState.apartments,
+    getShops: () => gameState.shops,
+    getBuildings: () => gameState.buildings,
+    getTowersRun: () => gameState.towers_run,
+    getTowersLifetime: () => gameState.towers_lifetime,
+    getDepositsLifetime: () => gameState.depositsLifetime,
+    getSavingsLifetime: () => gameState.savingsLifetime,
+    getBondsLifetime: () => gameState.bondsLifetime,
+    getUsStocksLifetime: () => gameState.usStocksLifetime,
+    getCryptosLifetime: () => gameState.cryptosLifetime,
+    getVillasLifetime: () => gameState.villasLifetime,
+    getOfficetelsLifetime: () => gameState.officetelsLifetime,
+    getApartmentsLifetime: () => gameState.apartmentsLifetime,
+    getShopsLifetime: () => gameState.shopsLifetime,
+    getBuildingsLifetime: () => gameState.buildingsLifetime,
+    getPurchaseMode: () => gameState.purchaseMode,
+    getPurchaseQuantity: () => gameState.purchaseQuantity,
+    getPlayerNickname: () => gameState.playerNickname,
+    getTotalClicks: () => gameState.totalClicks,
+    getCareerLevel: () => gameState.careerLevel,
+    getClickMultiplier: () => gameState.clickMultiplier,
+    getRentMultiplier: () => gameState.rentMultiplier,
+    getMarketMultiplier: () => gameState.marketMultiplier,
     getSettings: () => settings,
-    getGameStartTime: () => gameStartTime,
-    getSessionStartTime: () => sessionStartTime,
+    getGameStartTime: () => gameState.gameStartTime,
+    getSessionStartTime: () => gameState.sessionStartTime,
 
     // State setters
     setTotalClicks: v => {
-      totalClicks = v
+      gameState.totalClicks = v
     },
     setDeposits: v => {
-      deposits = v
+      gameState.deposits = v
     },
     setSavings: v => {
-      savings = v
+      gameState.savings = v
     },
     setBonds: v => {
-      bonds = v
+      gameState.bonds = v
     },
 
     // Helper functions
@@ -1151,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 구매 수량 선택 시스템 =======
   const setupModeBtn = (btn, mode, other) => {
     btn?.addEventListener('click', () => {
-      purchaseMode = mode
+      gameState.purchaseMode = mode
       btn.classList.add('active')
       other?.classList.remove('active')
       updateUI()
@@ -1159,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const setupQtyBtn = (btn, qty, others) => {
     btn?.addEventListener('click', () => {
-      purchaseQuantity = qty
+      gameState.purchaseQuantity = qty
       btn.classList.add('active')
       others.forEach(o => o?.classList.remove('active'))
       updateUI()
@@ -1190,9 +1145,9 @@ document.addEventListener('DOMContentLoaded', () => {
       Animations.createFallingCookie(clientX ?? 0, clientY ?? 0)
     }
 
-    cash += income
-    totalClicks += 1 // 클릭 수 증가
-    totalLaborIncome += income // 총 노동 수익 증가
+    gameState.cash += income
+    gameState.totalClicks += 1 // 클릭 수 증가
+    gameState.totalLaborIncome += income // 총 노동 수익 증가
 
     // 미니 목표 알림: 다음 업그레이드까지 남은 클릭 수 체크
     const lockedUpgrades = Object.entries(UPGRADES)
@@ -1203,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match) {
           return { id, requiredClicks: parseInt(match[1]), upgrade: u }
         }
-        // careerLevel 체크인 경우
+        // gameState.careerLevel 체크인 경우
         const careerMatch = conditionStr.match(/careerLevel\s*>=\s*(\d+)/)
         if (careerMatch) {
           return {
@@ -1219,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (lockedUpgrades.length > 0) {
       const nextUpgrade = lockedUpgrades[0]
-      const remaining = nextUpgrade.requiredClicks - totalClicks
+      const remaining = nextUpgrade.requiredClicks - gameState.totalClicks
 
       // 50클릭, 25클릭, 10클릭, 5클릭 남았을 때 알림
       if (remaining === 50 || remaining === 25 || remaining === 10 || remaining === 5) {
@@ -1257,10 +1212,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function shareGame() {
     const gameUrl = window.location.href
     const gameTitle = 'Capital Clicker: Seoul Survival'
-    const gameDescription = `💰 부동산과 금융 투자로 부자가 되는 게임!\n현재 자산: ${NumberFormat.formatCashDisplay(cash, settings)}\n초당 수익: ${NumberFormat.formatCashDisplay(getRps(), settings)}`
+    const gameDescription = t('share.description', {
+      assets: NumberFormat.formatCashDisplay(gameState.cash, settings),
+      rps: NumberFormat.formatCashDisplay(getRps(), settings),
+    })
     // 요구사항: 공유 버튼은 Web Share API만 사용 (링크 복사 fallback 제거)
     if (!navigator.share) {
-      Diary.addLog('❌ 이 기기/브라우저에서는 공유하기를 지원하지 않습니다.')
+      Diary.addLog(t('share.notSupported'))
       return
     }
 
@@ -1270,12 +1228,12 @@ document.addEventListener('DOMContentLoaded', () => {
         text: gameDescription,
         url: gameUrl,
       })
-      Diary.addLog('✅ 게임이 공유되었습니다!')
+      Diary.addLog(t('share.success'))
     } catch (err) {
       // 사용자가 공유 UI를 닫은 경우는 조용히 무시
       if (err?.name !== 'AbortError') {
-        console.error('공유 실패:', err)
-        Diary.addLog('❌ 공유에 실패했습니다.')
+        console.error('Share failed:', err)
+        Diary.addLog(t('share.failed'))
       }
     }
   }
@@ -1300,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.external && typeof window.external.AddFavorite === 'function') {
       try {
         window.external.AddFavorite(url, title)
-        Diary.addLog('⭐ 즐겨찾기에 추가되었습니다.')
+        Diary.addLog(t('favorite.added'))
         return
       } catch {
         // 실패하면 아래 안내로 fallback
@@ -1308,24 +1266,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let message = ''
-    let modalTitle = '즐겨찾기 / 홈 화면에 추가'
-    let icon = '⭐'
+    const modalTitle = t('favorite.title')
+    const icon = '⭐'
 
     if (isMobile) {
       if (isIOS) {
-        message =
-          'iPhone/iPad에서는 Safari 하단의 공유 버튼(□↑)을 누른 뒤\n' +
-          '"홈 화면에 추가"를 선택하면 바탕화면에 게임 아이콘이 만들어집니다.'
+        message = t('favorite.ios')
       } else if (isAndroid) {
-        message =
-          'Android에서는 브라우저 오른쪽 위 메뉴(⋮)에서\n' +
-          '"홈 화면에 추가" 또는 "앱 설치"를 선택하면 바탕화면에 게임 아이콘이 만들어집니다.'
+        message = t('favorite.android')
       } else {
-        message = '이 기기에서는 브라우저의 메뉴에서 "홈 화면에 추가" 기능을 사용해 주세요.'
+        message = t('favorite.otherMobile')
       }
     } else {
       const shortcut = isMac ? '⌘ + D' : 'Ctrl + D'
-      message = `${shortcut} 를 눌러 이 페이지를 브라우저 즐겨찾기에 추가할 수 있습니다.`
+      message = t('favorite.desktop', { shortcut })
     }
 
     Modal.openInfoModal(modalTitle, message, icon)
@@ -1357,33 +1311,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // 런(현재 게임) 보유 수량 일괄 초기화 함수
   function resetRunHoldings() {
     // 금융상품 초기화
-    deposits = 0
-    savings = 0
-    bonds = 0
-    usStocks = 0
-    cryptos = 0
+    gameState.deposits = 0
+    gameState.savings = 0
+    gameState.bonds = 0
+    gameState.usStocks = 0
+    gameState.cryptos = 0
 
     // 부동산 초기화
-    villas = 0
-    officetels = 0
-    apartments = 0
-    shops = 0
-    buildings = 0
+    gameState.villas = 0
+    gameState.officetels = 0
+    gameState.apartments = 0
+    gameState.shops = 0
+    gameState.buildings = 0
 
     // 타워 런 초기화 (towers_lifetime은 유지)
-    towers_run = 0
+    gameState.towers_run = 0
 
     // Lifetime 변수 초기화
-    depositsLifetime = 0
-    savingsLifetime = 0
-    bondsLifetime = 0
-    usStocksLifetime = 0
-    cryptosLifetime = 0
-    villasLifetime = 0
-    officetelsLifetime = 0
-    apartmentsLifetime = 0
-    shopsLifetime = 0
-    buildingsLifetime = 0
+    gameState.depositsLifetime = 0
+    gameState.savingsLifetime = 0
+    gameState.bondsLifetime = 0
+    gameState.usStocksLifetime = 0
+    gameState.cryptosLifetime = 0
+    gameState.villasLifetime = 0
+    gameState.officetelsLifetime = 0
+    gameState.apartmentsLifetime = 0
+    gameState.shopsLifetime = 0
+    gameState.buildingsLifetime = 0
 
     if (__IS_DEV__) {
       console.debug('[resetRunHoldings] 초기화 완료')
@@ -1398,14 +1352,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // towers_lifetime은 유지, towers_run은 초기화
       // 자산/보유/진행도 초기화
       // 프레스티지 보너스: 스타트 자금 적용
-      cash = 1000 + getStartingCash() // 초기 자본 + 프레스티지 보너스
-      totalClicks = 0
-      totalLaborIncome = 0
-      careerLevel = 0
-      clickMultiplier = 1
-      rentMultiplier = 1
-      autoClickEnabled = false
-      managerLevel = 0
+      gameState.cash = 1000 + getStartingCash() // 초기 자본 + 프레스티지 보너스
+      gameState.totalClicks = 0
+      gameState.totalLaborIncome = 0
+      gameState.careerLevel = 0
+      gameState.clickMultiplier = 1
+      gameState.rentMultiplier = 1
+      gameState.autoClickEnabled = false
+      gameState.managerLevel = 0
 
       // 모든 보유 수량 일괄 초기화 (상품 정의 기반)
       resetRunHoldings()
@@ -1417,14 +1371,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 시장 이벤트 초기화
-      currentMarketEvent = null
-      marketEventEndTime = 0
-      marketMultiplier = 1.0
+      gameState.currentMarketEvent = null
+      gameState.marketEventEndTime = 0
+      gameState.marketMultiplier = 1.0
 
       // 업적은 유지 (계정 누적)
 
       // 세션 시간 초기화
-      sessionStartTime = Date.now()
+      gameState.sessionStartTime = Date.now()
 
       // AI 업무 처리 및 노동 UI 상태 동기화
       updateAutoWorkUI()
@@ -1446,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 리더보드 즉시 업데이트 (프레스티지는 중요 이벤트)
-      if (playerNickname) {
+      if (gameState.playerNickname) {
         try {
           await LeaderboardUI.updateLeaderboardEntry(true) // forceImmediate: 프레스티지는 즉시 업데이트
         } catch (error) {
@@ -1455,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        Diary.addLog('🗼 새로운 시작. 다시 한 번.')
+        Diary.addLog(t('msg.prestigeComplete'))
       } catch (diaryError) {
         console.error('일기장 로그 실패:', diaryError)
         // 일기장 오류는 치명적이지 않으므로 무시
@@ -1525,19 +1479,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = performance.now()
     const deltaTime = Math.min((now - lastTickTime) / 1000, 1) // 최대 1초 제한 (비정상 지연 방지)
     lastTickTime = now
-    cash += getRps() * deltaTime
+    gameState.cash += getRps() * deltaTime
 
     // 누적 생산량 계산 (시너지/프레스티지/마켓 배수 적용)
-    depositsLifetime += getFinancialIncome('deposit', deposits) * deltaTime
-    savingsLifetime += getFinancialIncome('savings', savings) * deltaTime
-    bondsLifetime += getFinancialIncome('bond', bonds) * deltaTime
-    usStocksLifetime += getFinancialIncome('usStock', usStocks) * deltaTime
-    cryptosLifetime += getFinancialIncome('crypto', cryptos) * deltaTime
-    villasLifetime += getPropertyIncome('villa', villas) * deltaTime
-    officetelsLifetime += getPropertyIncome('officetel', officetels) * deltaTime
-    apartmentsLifetime += getPropertyIncome('apartment', apartments) * deltaTime
-    shopsLifetime += getPropertyIncome('shop', shops) * deltaTime
-    buildingsLifetime += getPropertyIncome('building', buildings) * deltaTime
+    gameState.depositsLifetime += getFinancialIncome('deposit', gameState.deposits) * deltaTime
+    gameState.savingsLifetime += getFinancialIncome('savings', gameState.savings) * deltaTime
+    gameState.bondsLifetime += getFinancialIncome('bond', gameState.bonds) * deltaTime
+    gameState.usStocksLifetime += getFinancialIncome('usStock', gameState.usStocks) * deltaTime
+    gameState.cryptosLifetime += getFinancialIncome('crypto', gameState.cryptos) * deltaTime
+    gameState.villasLifetime += getPropertyIncome('villa', gameState.villas) * deltaTime
+    gameState.officetelsLifetime += getPropertyIncome('officetel', gameState.officetels) * deltaTime
+    gameState.apartmentsLifetime += getPropertyIncome('apartment', gameState.apartments) * deltaTime
+    gameState.shopsLifetime += getPropertyIncome('shop', gameState.shops) * deltaTime
+    gameState.buildingsLifetime += getPropertyIncome('building', gameState.buildings) * deltaTime
 
     updateUI()
   }, TICK)
@@ -1551,11 +1505,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 오토클릭 시스템 =======
   setInterval(() => {
-    if (autoClickEnabled) {
+    if (gameState.autoClickEnabled) {
       const income = getClickIncome()
-      cash += income
-      totalClicks += 1
-      totalLaborIncome += income
+      gameState.cash += income
+      gameState.totalClicks += 1
+      gameState.totalLaborIncome += income
       checkCareerPromotion()
 
       // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
@@ -1576,8 +1530,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ) {
         // 기본 income(1배)은 이미 지급됨 → 총 10배가 되도록 추가 9배 지급
         const bonusIncome = income * 9
-        cash += bonusIncome
-        totalLaborIncome += bonusIncome
+        gameState.cash += bonusIncome
+        gameState.totalLaborIncome += bonusIncome
       }
     }
   }, 1000) // 1초마다
@@ -1586,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2-5분마다 랜덤하게 시장 이벤트 발생
   setInterval(
     () => {
-      if (marketEventEndTime === 0) {
+      if (gameState.marketEventEndTime === 0) {
         // 현재 이벤트가 진행 중이 아닐 때만
         startMarketEvent()
       }
@@ -1609,7 +1563,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ======= 일기장 시스템 초기화 (loadGame 이후에 초기화하여 정확한 gameStartTime 사용) =======
     if (elLog) {
-      Diary.initDiary(elLog, { gameStartTime, sessionStartTime })
+      Diary.initDiary(elLog, {
+        gameStartTime: gameState.gameStartTime,
+        sessionStartTime: gameState.sessionStartTime,
+      })
     }
 
     // 게임 로드 후 서버에서 최신 닉네임 동기화
@@ -1641,12 +1598,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======= 리더보드 UI 시스템 초기화 =======
   LeaderboardUI.initLeaderboardUI(() => ({
-    playerNickname,
-    cash,
+    playerNickname: gameState.playerNickname,
+    cash: gameState.cash,
     calculateTotalAssetValue,
-    sessionStartTime,
-    totalPlayTime,
-    towers_lifetime,
+    sessionStartTime: gameState.sessionStartTime,
+    totalPlayTime: gameState.totalPlayTime,
+    towers_lifetime: gameState.towers_lifetime,
     __IS_DEV__,
   }))
 
@@ -1668,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 직급 표시 업데이트
     const currentCareerEl = document.getElementById('currentCareer')
     if (currentCareerEl) {
-      safeText(currentCareerEl, getCareerName(careerLevel))
+      safeText(currentCareerEl, getCareerName(gameState.careerLevel))
     }
 
     // UI 업데이트 호출 (직급, 상품 이름 등이 포함됨)
@@ -1733,15 +1690,15 @@ document.addEventListener('DOMContentLoaded', () => {
     CLOUD_RESTORE_SKIP_KEY,
     calculateTotalAssetValueFromSave,
     calculatePlayTimeMsFromSave,
-    sessionStartTime,
+    sessionStartTime: gameState.sessionStartTime,
     updateUI,
     LeaderboardUI,
     onAuthStateChange,
     claimNickname,
     normalizeNickname,
-    getPlayerNickname: () => playerNickname,
+    getPlayerNickname: () => gameState.playerNickname,
     setPlayerNickname: value => {
-      playerNickname = value
+      gameState.playerNickname = value
     },
     __IS_DEV__,
   })
@@ -1751,238 +1708,238 @@ document.addEventListener('DOMContentLoaded', () => {
     SAVE_KEY,
     gameVars: {
       get cash() {
-        return cash
+        return gameState.cash
       },
       set cash(v) {
-        cash = v
+        gameState.cash = v
       },
       get totalClicks() {
-        return totalClicks
+        return gameState.totalClicks
       },
       set totalClicks(v) {
-        totalClicks = v
+        gameState.totalClicks = v
       },
       get totalLaborIncome() {
-        return totalLaborIncome
+        return gameState.totalLaborIncome
       },
       set totalLaborIncome(v) {
-        totalLaborIncome = v
+        gameState.totalLaborIncome = v
       },
       get careerLevel() {
-        return careerLevel
+        return gameState.careerLevel
       },
       set careerLevel(v) {
-        careerLevel = v
+        gameState.careerLevel = v
       },
       get clickMultiplier() {
-        return clickMultiplier
+        return gameState.clickMultiplier
       },
       set clickMultiplier(v) {
-        clickMultiplier = v
+        gameState.clickMultiplier = v
       },
       get rentMultiplier() {
-        return rentMultiplier
+        return gameState.rentMultiplier
       },
       set rentMultiplier(v) {
-        rentMultiplier = v
+        gameState.rentMultiplier = v
       },
       get autoClickEnabled() {
-        return autoClickEnabled
+        return gameState.autoClickEnabled
       },
       set autoClickEnabled(v) {
-        autoClickEnabled = v
+        gameState.autoClickEnabled = v
       },
       get managerLevel() {
-        return managerLevel
+        return gameState.managerLevel
       },
       set managerLevel(v) {
-        managerLevel = v
+        gameState.managerLevel = v
       },
       get rentCost() {
-        return rentCost
+        return gameState.rentCost
       },
       set rentCost(v) {
-        rentCost = v
+        gameState.rentCost = v
       },
       get mgrCost() {
-        return mgrCost
+        return gameState.mgrCost
       },
       set mgrCost(v) {
-        mgrCost = v
+        gameState.mgrCost = v
       },
       get deposits() {
-        return deposits
+        return gameState.deposits
       },
       set deposits(v) {
-        deposits = v
+        gameState.deposits = v
       },
       get savings() {
-        return savings
+        return gameState.savings
       },
       set savings(v) {
-        savings = v
+        gameState.savings = v
       },
       get bonds() {
-        return bonds
+        return gameState.bonds
       },
       set bonds(v) {
-        bonds = v
+        gameState.bonds = v
       },
       get usStocks() {
-        return usStocks
+        return gameState.usStocks
       },
       set usStocks(v) {
-        usStocks = v
+        gameState.usStocks = v
       },
       get cryptos() {
-        return cryptos
+        return gameState.cryptos
       },
       set cryptos(v) {
-        cryptos = v
+        gameState.cryptos = v
       },
       get depositsLifetime() {
-        return depositsLifetime
+        return gameState.depositsLifetime
       },
       set depositsLifetime(v) {
-        depositsLifetime = v
+        gameState.depositsLifetime = v
       },
       get savingsLifetime() {
-        return savingsLifetime
+        return gameState.savingsLifetime
       },
       set savingsLifetime(v) {
-        savingsLifetime = v
+        gameState.savingsLifetime = v
       },
       get bondsLifetime() {
-        return bondsLifetime
+        return gameState.bondsLifetime
       },
       set bondsLifetime(v) {
-        bondsLifetime = v
+        gameState.bondsLifetime = v
       },
       get usStocksLifetime() {
-        return usStocksLifetime
+        return gameState.usStocksLifetime
       },
       set usStocksLifetime(v) {
-        usStocksLifetime = v
+        gameState.usStocksLifetime = v
       },
       get cryptosLifetime() {
-        return cryptosLifetime
+        return gameState.cryptosLifetime
       },
       set cryptosLifetime(v) {
-        cryptosLifetime = v
+        gameState.cryptosLifetime = v
       },
       get villas() {
-        return villas
+        return gameState.villas
       },
       set villas(v) {
-        villas = v
+        gameState.villas = v
       },
       get officetels() {
-        return officetels
+        return gameState.officetels
       },
       set officetels(v) {
-        officetels = v
+        gameState.officetels = v
       },
       get apartments() {
-        return apartments
+        return gameState.apartments
       },
       set apartments(v) {
-        apartments = v
+        gameState.apartments = v
       },
       get shops() {
-        return shops
+        return gameState.shops
       },
       set shops(v) {
-        shops = v
+        gameState.shops = v
       },
       get buildings() {
-        return buildings
+        return gameState.buildings
       },
       set buildings(v) {
-        buildings = v
+        gameState.buildings = v
       },
       get towers_run() {
-        return towers_run
+        return gameState.towers_run
       },
       set towers_run(v) {
-        towers_run = v
+        gameState.towers_run = v
       },
       get towers_lifetime() {
-        return towers_lifetime
+        return gameState.towers_lifetime
       },
       set towers_lifetime(v) {
-        towers_lifetime = v
+        gameState.towers_lifetime = v
       },
       get villasLifetime() {
-        return villasLifetime
+        return gameState.villasLifetime
       },
       set villasLifetime(v) {
-        villasLifetime = v
+        gameState.villasLifetime = v
       },
       get officetelsLifetime() {
-        return officetelsLifetime
+        return gameState.officetelsLifetime
       },
       set officetelsLifetime(v) {
-        officetelsLifetime = v
+        gameState.officetelsLifetime = v
       },
       get apartmentsLifetime() {
-        return apartmentsLifetime
+        return gameState.apartmentsLifetime
       },
       set apartmentsLifetime(v) {
-        apartmentsLifetime = v
+        gameState.apartmentsLifetime = v
       },
       get shopsLifetime() {
-        return shopsLifetime
+        return gameState.shopsLifetime
       },
       set shopsLifetime(v) {
-        shopsLifetime = v
+        gameState.shopsLifetime = v
       },
       get buildingsLifetime() {
-        return buildingsLifetime
+        return gameState.buildingsLifetime
       },
       set buildingsLifetime(v) {
-        buildingsLifetime = v
+        gameState.buildingsLifetime = v
       },
       get marketMultiplier() {
-        return marketMultiplier
+        return gameState.marketMultiplier
       },
       set marketMultiplier(v) {
-        marketMultiplier = v
+        gameState.marketMultiplier = v
       },
       get marketEventEndTime() {
-        return marketEventEndTime
+        return gameState.marketEventEndTime
       },
       set marketEventEndTime(v) {
-        marketEventEndTime = v
+        gameState.marketEventEndTime = v
       },
       get gameStartTime() {
-        return gameStartTime
+        return gameState.gameStartTime
       },
       set gameStartTime(v) {
-        gameStartTime = v
+        gameState.gameStartTime = v
       },
       get totalPlayTime() {
-        return totalPlayTime
+        return gameState.totalPlayTime
       },
       set totalPlayTime(v) {
-        totalPlayTime = v
+        gameState.totalPlayTime = v
       },
       get sessionStartTime() {
-        return sessionStartTime
+        return gameState.sessionStartTime
       },
       set sessionStartTime(v) {
-        sessionStartTime = v
+        gameState.sessionStartTime = v
       },
       get playerNickname() {
-        return playerNickname
+        return gameState.playerNickname
       },
       set playerNickname(v) {
-        playerNickname = v
+        gameState.playerNickname = v
       },
       get lastSaveTime() {
-        return lastSaveTime
+        return gameState.lastSaveTime
       },
       set lastSaveTime(v) {
-        lastSaveTime = v
+        gameState.lastSaveTime = v
       },
     },
     UPGRADES,
@@ -2038,9 +1995,9 @@ document.addEventListener('DOMContentLoaded', () => {
     Diary,
     LeaderboardUI,
     upsertCloudSave: cloudSyncManager ? cloudSyncManager.upsertCloudSave : null,
-    getPlayerNickname: () => playerNickname,
+    getPlayerNickname: () => gameState.playerNickname,
     setPlayerNickname: value => {
-      playerNickname = value
+      gameState.playerNickname = value
     },
     __IS_DEV__,
   })
@@ -2089,22 +2046,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 금융상품 총 가치 계산 (ForType 함수 활용)
   function calculateFinancialValue() {
     return (
-      calculateFinancialValueForType('deposit', deposits) +
-      calculateFinancialValueForType('savings', savings) +
-      calculateFinancialValueForType('bond', bonds) +
-      calculateFinancialValueForType('usStock', usStocks) +
-      calculateFinancialValueForType('crypto', cryptos)
+      calculateFinancialValueForType('deposit', gameState.deposits) +
+      calculateFinancialValueForType('savings', gameState.savings) +
+      calculateFinancialValueForType('bond', gameState.bonds) +
+      calculateFinancialValueForType('usStock', gameState.usStocks) +
+      calculateFinancialValueForType('crypto', gameState.cryptos)
     )
   }
 
   // 부동산 총 가치 계산 (ForType 함수 활용)
   function calculatePropertyValue() {
     return (
-      calculatePropertyValueForType('villa', villas) +
-      calculatePropertyValueForType('officetel', officetels) +
-      calculatePropertyValueForType('apartment', apartments) +
-      calculatePropertyValueForType('shop', shops) +
-      calculatePropertyValueForType('building', buildings)
+      calculatePropertyValueForType('villa', gameState.villas) +
+      calculatePropertyValueForType('officetel', gameState.officetels) +
+      calculatePropertyValueForType('apartment', gameState.apartments) +
+      calculatePropertyValueForType('shop', gameState.shops) +
+      calculatePropertyValueForType('building', gameState.buildings)
     )
   }
 
@@ -2124,37 +2081,37 @@ document.addEventListener('DOMContentLoaded', () => {
       getProductName,
       isProductUnlocked,
       state: {
-        cash,
-        deposits,
-        savings,
-        bonds,
-        usStocks,
-        cryptos,
-        depositsLifetime,
-        savingsLifetime,
-        bondsLifetime,
-        usStocksLifetime,
-        cryptosLifetime,
-        villas,
-        officetels,
-        apartments,
-        shops,
-        buildings,
-        villasLifetime,
-        officetelsLifetime,
-        apartmentsLifetime,
-        shopsLifetime,
-        buildingsLifetime,
-        totalLaborIncome,
-        totalClicks,
-        sessionStartTime,
-        totalPlayTime,
+        cash: gameState.cash,
+        deposits: gameState.deposits,
+        savings: gameState.savings,
+        bonds: gameState.bonds,
+        usStocks: gameState.usStocks,
+        cryptos: gameState.cryptos,
+        depositsLifetime: gameState.depositsLifetime,
+        savingsLifetime: gameState.savingsLifetime,
+        bondsLifetime: gameState.bondsLifetime,
+        usStocksLifetime: gameState.usStocksLifetime,
+        cryptosLifetime: gameState.cryptosLifetime,
+        villas: gameState.villas,
+        officetels: gameState.officetels,
+        apartments: gameState.apartments,
+        shops: gameState.shops,
+        buildings: gameState.buildings,
+        villasLifetime: gameState.villasLifetime,
+        officetelsLifetime: gameState.officetelsLifetime,
+        apartmentsLifetime: gameState.apartmentsLifetime,
+        shopsLifetime: gameState.shopsLifetime,
+        buildingsLifetime: gameState.buildingsLifetime,
+        totalLaborIncome: gameState.totalLaborIncome,
+        totalClicks: gameState.totalClicks,
+        sessionStartTime: gameState.sessionStartTime,
+        totalPlayTime: gameState.totalPlayTime,
       },
       settings,
       ACHIEVEMENTS,
       FINANCIAL_INCOME,
       BASE_RENT,
-      rentMultiplier,
+      rentMultiplier: gameState.rentMultiplier,
       now: () => Date.now(),
     })
 
@@ -2187,7 +2144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 총 자산 = 현금 + 보유 자산 가치
   function getTotalAssets() {
-    return cash + calculateTotalAssetValue()
+    return gameState.cash + calculateTotalAssetValue()
   }
 
   /**
@@ -2364,7 +2321,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (__IS_DEV__) {
     window.cheat = {
       addCash: amount => {
-        cash += amount
+        gameState.cash += amount
         updateUI()
       },
       unlockAllUpgrades: () => {
@@ -2377,14 +2334,14 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUpgradeList()
       },
       setClicks: count => {
-        totalClicks = count
+        gameState.totalClicks = count
         updateUI()
         checkUpgradeUnlocks()
       },
       testUpgrade: () => {
         const firstId = Object.keys(UPGRADES)[0]
         UPGRADES[firstId].unlocked = true
-        cash += 10000000
+        gameState.cash += 10000000
         updateUpgradeList()
         updateUI()
       },

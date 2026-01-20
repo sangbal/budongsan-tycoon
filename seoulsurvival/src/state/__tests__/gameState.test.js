@@ -10,11 +10,15 @@ import {
   getTotalFinancialProducts,
   getTotalProperties,
   resetIncomeTablesToDefault,
+  reapplyIncomeTableAffectingUpgradeEffects,
   FINANCIAL_INCOME,
   BASE_RENT,
   CAREER_LEVELS,
   SAVE_KEY,
   SETTINGS_KEY,
+  CLOUD_RESTORE_BLOCK_KEY,
+  CLOUD_RESTORE_SKIP_KEY,
+  BASE_CLICK_GAIN,
 } from '../gameState.js'
 
 describe('gameState 초기 상태', () => {
@@ -196,5 +200,224 @@ describe('gameState 저장 키 상수', () => {
 
   it('SETTINGS_KEY 정의됨', () => {
     expect(SETTINGS_KEY).toBe('capitalClicker_settings')
+  })
+
+  it('CLOUD_RESTORE_BLOCK_KEY 정의됨', () => {
+    expect(CLOUD_RESTORE_BLOCK_KEY).toBe('ss_blockCloudRestoreUntilNicknameDone')
+  })
+
+  it('CLOUD_RESTORE_SKIP_KEY 정의됨', () => {
+    expect(CLOUD_RESTORE_SKIP_KEY).toBe('ss_skipCloudRestoreOnce')
+  })
+})
+
+describe('reapplyIncomeTableAffectingUpgradeEffects', () => {
+  beforeEach(() => {
+    // 테스트 전 수익 테이블 초기화
+    resetIncomeTablesToDefault()
+  })
+
+  it('빈 UPGRADES 객체 처리', () => {
+    const UPGRADES = {}
+    expect(() => reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)).not.toThrow()
+  })
+
+  it('구매하지 않은 업그레이드는 건너뛰기', () => {
+    const UPGRADES = {
+      test_upgrade: {
+        purchased: false,
+        effect: () => {
+          FINANCIAL_INCOME.deposit = 999
+        },
+      },
+    }
+
+    reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
+
+    // 적용되지 않아야 함
+    expect(FINANCIAL_INCOME.deposit).toBe(50)
+  })
+
+  it('effect 함수가 없는 업그레이드는 건너뛰기', () => {
+    const UPGRADES = {
+      test_upgrade: {
+        purchased: true,
+        effect: 'not a function',
+      },
+    }
+
+    expect(() => reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)).not.toThrow()
+  })
+
+  it('FINANCIAL_INCOME에 영향 주지 않는 업그레이드는 건너뛰기', () => {
+    let effectCalled = false
+    const UPGRADES = {
+      test_upgrade: {
+        purchased: true,
+        effect: () => {
+          effectCalled = true
+        },
+      },
+    }
+
+    reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
+
+    // 수익 테이블에 영향 주지 않으므로 호출 안 함
+    expect(effectCalled).toBe(false)
+  })
+
+  it('FINANCIAL_INCOME에 영향 주는 업그레이드 적용', () => {
+    const UPGRADES = {
+      deposit_boost: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.deposit = 100
+        },
+      },
+    }
+
+    reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
+
+    expect(FINANCIAL_INCOME.deposit).toBe(100)
+  })
+
+  it('BASE_RENT에 영향 주는 업그레이드 적용', () => {
+    const UPGRADES = {
+      rent_boost: {
+        purchased: true,
+        effect: function () {
+          BASE_RENT.villa = 100_000
+        },
+      },
+    }
+
+    reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
+
+    expect(BASE_RENT.villa).toBe(100_000)
+  })
+
+  it('effect 함수 예외 발생 시 계속 진행', () => {
+    const UPGRADES = {
+      broken_upgrade: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.deposit = 100
+          throw new Error('Test error')
+        },
+      },
+      working_upgrade: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.savings = 200
+        },
+      },
+    }
+
+    expect(() => reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)).not.toThrow()
+
+    // 첫 번째 업그레이드는 예외 전에 적용됨
+    expect(FINANCIAL_INCOME.deposit).toBe(100)
+  })
+
+  it('여러 업그레이드 순차 적용', () => {
+    const UPGRADES = {
+      boost1: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.deposit *= 2
+        },
+      },
+      boost2: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.savings *= 3
+        },
+      },
+    }
+
+    reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
+
+    expect(FINANCIAL_INCOME.deposit).toBe(100) // 50 * 2
+    expect(FINANCIAL_INCOME.savings).toBe(2250) // 750 * 3
+  })
+
+  it('null 또는 undefined 업그레이드 건너뛰기', () => {
+    const UPGRADES = {
+      valid: {
+        purchased: true,
+        effect: function () {
+          FINANCIAL_INCOME.deposit = 150
+        },
+      },
+      nullUpgrade: null,
+      undefinedUpgrade: undefined,
+    }
+
+    expect(() => reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)).not.toThrow()
+    expect(FINANCIAL_INCOME.deposit).toBe(150)
+  })
+})
+
+describe('BASE_CLICK_GAIN 상수', () => {
+  it('BASE_CLICK_GAIN 정의됨', () => {
+    expect(BASE_CLICK_GAIN).toBe(10000) // 1만원
+  })
+})
+
+describe('gameState 추가 속성', () => {
+  it('totalPlayTime 초기값 0', () => {
+    expect(gameState.totalPlayTime).toBe(0)
+  })
+
+  it('sessionStartTime이 타임스탬프', () => {
+    expect(typeof gameState.sessionStartTime).toBe('number')
+    expect(gameState.sessionStartTime).toBeGreaterThan(0)
+  })
+
+  it('lastSaveTime이 Date 객체', () => {
+    expect(gameState.lastSaveTime instanceof Date).toBe(true)
+  })
+
+  it('towers_run 초기값 0', () => {
+    expect(gameState.towers_run).toBe(0)
+  })
+
+  it('towers_lifetime 초기값 0', () => {
+    expect(gameState.towers_lifetime).toBe(0)
+  })
+
+  it('settings 객체 구조', () => {
+    expect(gameState.settings).toBeDefined()
+    expect(typeof gameState.settings.particles).toBe('boolean')
+    expect(typeof gameState.settings.fancyGraphics).toBe('boolean')
+    expect(typeof gameState.settings.shortNumbers).toBe('boolean')
+  })
+
+  it('unlockedProducts 구조 확인', () => {
+    const products = gameState.unlockedProducts
+    expect(products.deposit).toBe(true)
+    expect(typeof products.savings).toBe('boolean')
+    expect(typeof products.bond).toBe('boolean')
+    expect(typeof products.usStock).toBe('boolean')
+    expect(typeof products.crypto).toBe('boolean')
+    expect(typeof products.villa).toBe('boolean')
+    expect(typeof products.officetel).toBe('boolean')
+    expect(typeof products.apartment).toBe('boolean')
+    expect(typeof products.shop).toBe('boolean')
+    expect(typeof products.building).toBe('boolean')
+    expect(typeof products.tower).toBe('boolean')
+  })
+
+  it('누적 생산량 속성 존재', () => {
+    expect(gameState.depositsLifetime).toBeDefined()
+    expect(gameState.savingsLifetime).toBeDefined()
+    expect(gameState.bondsLifetime).toBeDefined()
+    expect(gameState.usStocksLifetime).toBeDefined()
+    expect(gameState.cryptosLifetime).toBeDefined()
+    expect(gameState.villasLifetime).toBeDefined()
+    expect(gameState.officetelsLifetime).toBeDefined()
+    expect(gameState.apartmentsLifetime).toBeDefined()
+    expect(gameState.shopsLifetime).toBeDefined()
+    expect(gameState.buildingsLifetime).toBeDefined()
   })
 })

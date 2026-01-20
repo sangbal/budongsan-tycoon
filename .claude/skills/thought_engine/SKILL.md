@@ -1,11 +1,13 @@
 # Thought Engine 스킬 그룹
 
 ## 개요
+
 복잡한 문제 해결, 단계별 추론, 라이브러리 문서 컨텍스트 제공을 담당합니다. AI의 인지 능력을 강화하는 고급 도구입니다.
 
 ## 포함된 MCP 서버
 
 ### 1. **sequential-thinking**
+
 - **용도**: 복잡한 문제를 단계적으로 분석 및 해결
 - **주요 기능**:
   - 멀티 단계 추론 (Chain of Thought)
@@ -28,6 +30,7 @@
   - 복잡한 의존성 관리
 
 ### 2. **context7**
+
 - **용도**: 라이브러리 및 프레임워크 문서 실시간 검색
 - **주요 기능**:
   - 500+ 인기 라이브러리 문서 접근
@@ -64,6 +67,7 @@ Context7 (라이브러리 문서 검색)
 ## 사용 예시
 
 ### 시나리오 1: 복잡한 아키텍처 설계
+
 ```
 문제: "main.js를 12개의 모듈로 리팩토링하는 전략을 세워줘"
 
@@ -81,6 +85,7 @@ Context7 (라이브러리 문서 검색)
 ```
 
 ### 시나리오 2: 버그 분석 및 수정
+
 ```
 문제: "TypeError: Cannot read property 'x' of undefined"
 
@@ -100,16 +105,19 @@ Context7 (라이브러리 문서 검색)
 ## 토큰 최적화 효과
 
 **순차적 사고 (sequential-thinking)**:
+
 - 🎯 정확도 향상: 직관적 답변 → 검증된 답변
 - 🔍 자체 검토: 오류 감지 및 수정
 - 📊 투명성: 추론 과정 확인 가능
 
 **컨텍스트 (context7)**:
+
 - 📚 최신 정보: 검색 결과 우선 (웹 검색 재실행 불필요)
 - ⚡ 빠른 응답: 캐시된 문서 사용
 - 💰 토큰 절약: 긴 문서 요약 필요 없음
 
 ## 권한 설정
+
 - ✅ 복잡한 분석 시 필수 사용
 - ✅ 라이브러리 문서 검색
 - ✅ 아키텍처 설계 지원
@@ -117,10 +125,10 @@ Context7 (라이브러리 문서 검색)
 
 ## 추천 조합 (스킬 그룹 연동)
 
-| 작업 | 필요 스킬 |
-|------|---------|
-| 버그 수정 | thought_engine + developer |
-| 성능 최적화 | thought_engine + researcher |
-| 아키텍처 리뉴얼 | thought_engine + developer |
+| 작업               | 필요 스킬                   |
+| ------------------ | --------------------------- |
+| 버그 수정          | thought_engine + developer  |
+| 성능 최적화        | thought_engine + researcher |
+| 아키텍처 리뉴얼    | thought_engine + developer  |
 | 새 라이브러리 학습 | thought_engine + researcher |
-| 테스트 작성 | thought_engine + developer |
+| 테스트 작성        | thought_engine + developer  |

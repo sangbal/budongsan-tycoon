@@ -138,7 +138,6 @@
   - 번역 범위: 약 400개 텍스트 (탭, 버튼, 상품명, 업적, 업그레이드, 시장 이벤트, 모달, 일기장, 통계 등)
   - 숫자 포맷: `formatNumberForLang()` 함수로 한국어(만/억/조)와 영어(K/M/B/T) 단위 지원
 - **유틸/모듈 분리**
-
   - `seoulsurvival/src/economy/pricing.js`: 금융/부동산 **구매/판매 비용** 계산(등비 합)
   - `seoulsurvival/src/systems/market.js`: 시장 이벤트 스케줄/배수 계산(모듈형)
   - `seoulsurvival/src/systems/achievements.js`: 업적 체크/알림(모듈형)

@@ -83,6 +83,11 @@ export default {
   'msg.cloudApplied': '☁️ Cloud save applied. Refreshing page...',
   'msg.unlocked': '🔓 {product} unlocked!',
 
+  // Error messages (Toast notifications)
+  'error.saveFailed': 'Game save failed. Will retry shortly.',
+  'error.cloudSaveFailed': 'Cloud save failed. Local save is still working.',
+  'error.quotaExceeded': 'Storage quota exceeded. Please clear browser data.',
+
   // Modal messages
   'modal.error.nicknameLength.title': 'Nickname Length Error',
   'modal.error.nicknameLength.message': 'Nickname must be 1-6 characters.',
@@ -111,6 +116,9 @@ export default {
   'modal.error.noSaveData.title': 'No Save Data',
   'modal.error.noSaveData.message':
     'No local save data found. Please play the game first and then save.',
+  'modal.error.gameError.title': 'Error Occurred',
+  'modal.error.gameError.message':
+    'An error occurred while running the game.\n{message}\n\nWould you like to refresh the page?',
   'modal.error.invalidSaveData.title': 'Error',
   'modal.error.invalidSaveData.message': 'Local save data format is invalid.',
   'modal.error.uploadFailed.title': 'Upload Failed',
@@ -153,6 +161,11 @@ export default {
   'header.financial': '💰 Financial',
   'header.properties': '🏢 Properties',
   'header.rps': '📈 Per Sec',
+  // Header labels (separated from icons for responsive)
+  'header.cash.label': 'Cash',
+  'header.financial.label': 'Financial',
+  'header.properties.label': 'Properties',
+  'header.rps.label': 'Per Sec',
   'header.favorite_btn': 'Favorite',
   'header.share_btn': 'Share',
 
@@ -257,6 +270,8 @@ export default {
   'ranking.table.assets': 'Assets',
   'ranking.table.playtime': 'Cumulative',
   'ranking.table.playtime.full': 'Cumulative Time',
+  'ranking.table.lastActive': 'Active',
+  'ranking.table.lastActive.full': 'Last Active',
 
   // Settings tab
   'settings.gameTitle': 'Game Title',
@@ -357,8 +372,33 @@ export default {
   'diary.leaveRecord': 'Leaving a record.',
 
   // Unlock messages
+  'msg.unlock.deposit': '❌ Deposit is still locked.',
   'msg.unlock.savings': '❌ Savings requires at least 1 Deposit to unlock.',
   'msg.unlock.bond': '❌ Domestic Stock requires at least 1 Savings to unlock.',
+  'msg.unlock.usStock': '❌ US Stock requires at least 1 Domestic Stock to unlock.',
+  'msg.unlock.crypto': '❌ Crypto requires at least 1 US Stock to unlock.',
+  'msg.unlock.villa': '❌ Villa requires at least 1 Crypto to unlock.',
+  'msg.unlock.officetel': '❌ Officetel requires at least 1 Villa to unlock.',
+  'msg.unlock.apartment': '❌ Apartment requires at least 1 Officetel to unlock.',
+  'msg.unlock.shop': '❌ Shop requires at least 1 Apartment to unlock.',
+  'msg.unlock.building': '❌ Building requires at least 1 Shop to unlock.',
+  'msg.unlock.tower': '❌ Seoul Tower requires CEO rank and at least 1 Building.',
+
+  // Unlock hints (for tooltips)
+  'unlock.hint.savings': 'Requires 1 Deposit',
+  'unlock.hint.bond': 'Requires 1 Savings',
+  'unlock.hint.usStock': 'Requires 1 Domestic Stock',
+  'unlock.hint.crypto': 'Requires 1 US Stock',
+  'unlock.hint.villa': 'Requires 1 Crypto',
+  'unlock.hint.officetel': 'Requires 1 Villa',
+  'unlock.hint.apartment': 'Requires 1 Officetel',
+  'unlock.hint.shop': 'Requires 1 Apartment',
+  'unlock.hint.building': 'Requires 1 Shop',
+  'unlock.hint.tower': 'Requires CEO rank and 1+ Building',
+
+  // Market event UI
+  'ui.marketEventDefault': 'Market Event',
+  'ui.marketEventRemaining': '{seconds} sec left',
 
   // Achievement translations (dynamically added)
   // Achievement translations are generated dynamically from ACHIEVEMENTS array in main.js
@@ -650,4 +690,111 @@ export default {
   'synergy.active': 'Active',
   'synergy.inactive': 'Inactive',
   'synergy.none': 'No active synergies.',
+
+  // Additional UI elements
+  'button.retry': 'Retry',
+  'ui.refresh': 'Refresh',
+  'ui.close': 'Close',
+  'ui.anonymous': 'Anonymous',
+
+  // Ranking/Leaderboard additional
+  'ranking.notConfigured': 'Leaderboard setup is not complete. Please check back later.',
+  'ranking.timeout': 'Failed to load leaderboard (timeout)',
+  'ranking.unknownError': 'Unknown error',
+  'ranking.noRecordsYet': 'No leaderboard records yet.',
+  'ranking.loadingMyRank': 'Loading my rank...',
+  'ranking.networkErrorMyRank': 'Network error: Cannot load my rank.',
+  'ranking.cannotLoadMyRank': 'Cannot load my rank.',
+  'ranking.errorLoadingMyRank': 'Error occurred while loading my rank.',
+  'ranking.top10Rank': 'Top 10 Rank',
+  'ranking.myActualRank': 'My Actual Rank',
+  'ranking.rankSuffix': '',
+  'ranking.error.forbidden': 'Permission denied to load leaderboard.',
+  'ranking.error.config': 'Leaderboard config error: Please check Supabase settings.',
+  'ranking.error.schema': 'Leaderboard table not configured. Contact administrator.',
+  'ranking.error.network': 'Network error: Cannot load leaderboard.',
+  'ranking.error.generic': 'Cannot load leaderboard:',
+
+  // Error messages
+  'error.loginFailed': 'Login failed. Please try again.',
+
+  // Prestige additional
+  'prestige.discount': 'discount',
+  'prestige.effect.active': 'Active',
+
+  // Market Events
+  'event.gangnamBoom.name': 'Gangnam Apartment Boom',
+  'event.gangnamBoom.desc':
+    'Rising rally from Gangnam apartments boosts residential property income.',
+  'event.jeonseCrisis.name': 'Lease Demand Surge',
+  'event.jeonseCrisis.desc':
+    'Surge in lease demand dramatically increases villa/officetel rental income.',
+  'event.commercialBoom.name': 'Commercial District Revival',
+  'event.commercialBoom.desc': 'Commercial recovery greatly increases shop income.',
+  'event.officeDemand.name': 'Office Demand Surge',
+  'event.officeDemand.desc': 'Office expansion dramatically increases building-centric income.',
+  'event.rateCut.name': 'Central Bank Rate Cut',
+  'event.rateCut.desc': 'Rate cut weakens deposits/savings, strengthens stocks.',
+  'event.stockBoom.name': 'Stock Market Boom',
+  'event.stockBoom.desc': 'Risk-on sentiment greatly increases stock-centric income.',
+  'event.fedQE.name': 'Fed Quantitative Easing',
+  'event.fedQE.desc': 'Dollar liquidity expansion increases US stock/crypto income.',
+  'event.bitcoinSurge.name': 'Bitcoin Surge',
+  'event.bitcoinSurge.desc': 'Cryptocurrency rally greatly increases crypto income.',
+  'event.financialCrisis.name': 'Financial Crisis',
+  'event.financialCrisis.desc': 'Risk aversion impacts stocks/crypto/commercial real estate.',
+  'event.bankCrisis.name': 'Bank Crisis',
+  'event.bankCrisis.desc': 'Bank confidence drop slows deposit/savings income.',
+  'event.stockCrash.name': 'Stock Market Crash',
+  'event.stockCrash.desc': 'Stock/risk asset crash greatly decreases income.',
+  'event.cryptoRegulation.name': 'Crypto Regulation',
+  'event.cryptoRegulation.desc': 'Regulatory crackdown decreases crypto income.',
+
+  // Share/Favorite
+  'share.description':
+    '💰 A game about getting rich through real estate and financial investments!\nCurrent Assets: {assets}\nPer Second: {rps}',
+  'share.notSupported': '❌ Sharing is not supported on this device/browser.',
+  'share.success': '✅ Game shared successfully!',
+  'share.failed': '❌ Failed to share.',
+  'favorite.added': '⭐ Added to favorites.',
+  'favorite.title': 'Add to Favorites / Home Screen',
+  'favorite.ios':
+    'On iPhone/iPad, tap the share button (□↑) at the bottom of Safari,\nthen select "Add to Home Screen" to create a game icon on your home screen.',
+  'favorite.android':
+    'On Android, tap the menu (⋮) at the top right of your browser,\nthen select "Add to Home Screen" or "Install App" to create a game icon.',
+  'favorite.otherMobile':
+    'On this device, please use the "Add to Home Screen" option in your browser menu.',
+  'favorite.desktop': 'Press {shortcut} to add this page to your browser favorites.',
+
+  // In-app browser warning
+  'inapp.copied': 'URL copied.\nPaste it in Chrome/Safari address bar to open.',
+  'inapp.copyFallback': '{url}\nCopy the URL above and open it in Chrome/Safari.',
+  'inapp.banner.message': 'Google login may be restricted in this browser.',
+  'inapp.banner.hint': 'Please reopen in Chrome / Safari.',
+  'inapp.banner.copyBtn': 'Copy URL',
+  'inapp.banner.closeBtn': 'OK',
+
+  // Ending modal
+  'ending.title': '🎉 Ending',
+  'ending.message':
+    '🗼 Seoul Tower Complete 🗼\n\n' +
+    'From part-timer to CEO.\n' +
+    'From deposit to Seoul Tower.\n\n' +
+    'Your name is now engraved in the heart of Seoul.\n\n' +
+    'Seoul Tower 🗼 acquired ({count} total)\n\n' +
+    'Time for a new beginning.',
+
+  // Prestige messages
+  'msg.prestigeComplete': '🗼 A new beginning. Once more.',
+
+  // Synergy messages
+  'msg.synergyActivated': '🔗 Synergy activated: {name} - {desc}',
+
+  // Upgrade error messages
+  'msg.upgradeEffectError': '⚠️ Error applying upgrade effect',
+
+  // Save/Load error messages
+  'error.saveExport': 'An error occurred while exporting save.',
+  'error.saveImportFormat': 'Invalid save file format.',
+  'error.saveImport': 'An error occurred while importing save.',
 }

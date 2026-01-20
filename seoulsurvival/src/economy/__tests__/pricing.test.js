@@ -127,6 +127,22 @@ describe('getPropertySellPrice', () => {
     const sellPrice = getPropertySellPrice('villa', 10, 0)
     expect(sellPrice).toBe(0)
   })
+
+  it('보유량보다 많이 판매 시도 시 보유량만큼만 계산', () => {
+    // count=3, quantity=10 → 실제로는 3개만 판매
+    const sellPrice = getPropertySellPrice('villa', 3, 10)
+    // 3개 판매 가격과 동일해야 함
+    const expectedPrice = getPropertySellPrice('villa', 3, 3)
+    expect(sellPrice).toBe(expectedPrice)
+  })
+
+  it('빌라 여러 개 일괄 판매', () => {
+    const sellPrice = getPropertySellPrice('villa', 5, 5)
+    expect(sellPrice).toBeGreaterThan(0)
+    // 5개 판매는 첫 구매 5개 비용과 같아야 함 (SELL_RATE = 1.0)
+    const buyCost = getPropertyCost('villa', 0, 5)
+    expect(sellPrice).toBe(buyCost)
+  })
 })
 
 describe('getPriceMultiplierByTier', () => {

@@ -407,18 +407,20 @@ export async function updateLeaderboard(
     const safePlayTimeMs = toBigIntSafe(playTimeMs, 'play_time_ms')
     const safeTowerCount = toBigIntSafe(towerCount, 'tower_count')
 
-    // 현재 payload 생성
+    // 현재 payload 생성 (nickname은 key로 비교)
+    const normalizedNick = normalizeNickname(nickname || '익명')
     const currentPayload = {
-      nickname: normalizeNickname(nickname || '익명'),
+      nickname_key: normalizedNick.key, // 비교용 key
+      nickname_raw: normalizedNick.raw, // 저장용 raw
       total_assets: safeTotalAssets,
       play_time_ms: safePlayTimeMs,
       tower_count: safeTowerCount,
     }
 
-    // 캐시 비교: 동일한 payload면 스킵
+    // 캐시 비교: 동일한 payload면 스킵 (nickname은 key로 비교)
     if (
       __lastUpdatePayload &&
-      __lastUpdatePayload.nickname === currentPayload.nickname &&
+      __lastUpdatePayload.nickname_key === currentPayload.nickname_key &&
       __lastUpdatePayload.total_assets === currentPayload.total_assets &&
       __lastUpdatePayload.play_time_ms === currentPayload.play_time_ms &&
       __lastUpdatePayload.tower_count === currentPayload.tower_count
@@ -457,14 +459,25 @@ export async function updateLeaderboard(
       return { success: false, error: 'Supabase client not available' }
     }
 
-    // Upsert leaderboard entry
+    // 닉네임 검증 (클라이언트 측 1차 검증, 서버 RLS로 2차 보장)
+    const validation = validateNickname(normalizedNick.raw)
+    if (!validation.ok) {
+      if (__IS_DEV__) {
+        console.warn('[LB] Nickname validation failed:', validation.reasonKey)
+      }
+      // 검증 실패 시 기본 닉네임 사용
+      normalizedNick.raw = '익명'
+      normalizedNick.key = '익명'
+    }
+
+    // Upsert leaderboard entry (정규화된 닉네임 사용)
     const { data, error } = await supabase
       .from('leaderboard')
       .upsert(
         {
           user_id: user.id,
           game_slug: GAME_SLUG,
-          nickname: nickname || '익명',
+          nickname: normalizedNick.raw,
           total_assets: safeTotalAssets,
           play_time_ms: safePlayTimeMs,
           tower_count: safeTowerCount,

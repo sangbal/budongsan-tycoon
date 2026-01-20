@@ -61,7 +61,7 @@ export function t(key, params = {}, fallback = null) {
       return fallback
     }
     // PROD에서는 fallback 문자열, DEV에서는 key도 표시 (디버깅용)
-    return __IS_DEV__ ? key : key.startsWith('upgrade.') ? '알 수 없는 업그레이드' : '알 수 없음'
+    return __IS_DEV__ ? key : key.startsWith('upgrade.') ? 'Unknown Upgrade' : 'Unknown'
   }
 
   // 파라미터 치환: {key} 형식

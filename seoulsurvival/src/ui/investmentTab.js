@@ -272,7 +272,7 @@ export function createInvestmentTab(deps) {
    */
   function showMarketEventNotification(event) {
     if (!event) return
-    Diary.addLog(`📈 ${event.name}`)
+    Diary.addLog(`📈 ${t(event.nameKey) || event.id}`)
   }
 
   /**
@@ -413,8 +413,10 @@ export function createInvestmentTab(deps) {
         }
 
         // 툴팁: 이벤트명 + 남은 시간 + 배수
-        const evName = currentMarketEvent?.name ? String(currentMarketEvent.name) : '시장 이벤트'
-        t.badge.title = `${evName} · 남은 ${remainingSec}초 · ${multText}`
+        const evName = currentMarketEvent?.name
+          ? String(currentMarketEvent.name)
+          : t('ui.marketEventDefault')
+        t.badge.title = `${evName} · ${t('ui.marketEventRemaining', { seconds: remainingSec })} · ${multText}`
       }
     } catch (e) {
       // UI 보조 기능이므로 실패해도 게임 진행은 유지
@@ -427,18 +429,18 @@ export function createInvestmentTab(deps) {
   function updateProductLockStates() {
     if (__IS_DEV__) console.log('[Unlock] updateProductLockStates called')
 
-    // 해금 조건 메시지
+    // 해금 조건 메시지 (i18n 적용)
     const unlockHints = {
-      savings: '예금 1개 필요',
-      bond: '적금 1개 필요',
-      usStock: '국내주식 1개 필요',
-      crypto: '미국주식 1개 필요',
-      villa: '코인 1개 필요',
-      officetel: '빌라 1채 필요',
-      apartment: '오피스텔 1채 필요',
-      shop: '아파트 1채 필요',
-      building: '상가 1채 필요',
-      tower: 'CEO 달성 및 빌딩 1개 이상 필요',
+      savings: t('unlock.hint.savings'),
+      bond: t('unlock.hint.bond'),
+      usStock: t('unlock.hint.usStock'),
+      crypto: t('unlock.hint.crypto'),
+      villa: t('unlock.hint.villa'),
+      officetel: t('unlock.hint.officetel'),
+      apartment: t('unlock.hint.apartment'),
+      shop: t('unlock.hint.shop'),
+      building: t('unlock.hint.building'),
+      tower: t('unlock.hint.tower'),
     }
 
     const products = [
@@ -554,7 +556,7 @@ export function createInvestmentTab(deps) {
     if (elBuyDeposit) {
       elBuyDeposit.addEventListener('click', () => {
         if (!isProductUnlocked('deposit')) {
-          Diary.addLog('❌ 예금은 아직 잠겨있습니다.')
+          Diary.addLog(t('msg.unlock.deposit'))
           return
         }
         const result = handleTransaction('financial', 'deposit', getDeposits())
@@ -602,7 +604,7 @@ export function createInvestmentTab(deps) {
     if (elBuyUsStock) {
       elBuyUsStock.addEventListener('click', () => {
         if (!isProductUnlocked('usStock')) {
-          Diary.addLog('❌ 미국주식은 국내주식을 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.usStock'))
           return
         }
         const result = handleTransaction('financial', 'usStock', getUsStocks())
@@ -618,7 +620,7 @@ export function createInvestmentTab(deps) {
     if (elBuyCrypto) {
       elBuyCrypto.addEventListener('click', () => {
         if (!isProductUnlocked('crypto')) {
-          Diary.addLog('❌ 코인은 미국주식을 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.crypto'))
           return
         }
         const result = handleTransaction('financial', 'crypto', getCryptos())
@@ -635,7 +637,7 @@ export function createInvestmentTab(deps) {
     if (elBuyVilla) {
       elBuyVilla.addEventListener('click', () => {
         if (!isProductUnlocked('villa')) {
-          Diary.addLog('❌ 빌라는 코인을 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.villa'))
           return
         }
         const result = handleTransaction('property', 'villa', getVillas())
@@ -651,7 +653,7 @@ export function createInvestmentTab(deps) {
     if (elBuyOfficetel) {
       elBuyOfficetel.addEventListener('click', () => {
         if (!isProductUnlocked('officetel')) {
-          Diary.addLog('❌ 오피스텔은 빌라를 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.officetel'))
           return
         }
         const result = handleTransaction('property', 'officetel', getOfficetels())
@@ -667,7 +669,7 @@ export function createInvestmentTab(deps) {
     if (elBuyApartment) {
       elBuyApartment.addEventListener('click', () => {
         if (!isProductUnlocked('apartment')) {
-          Diary.addLog('❌ 아파트는 오피스텔을 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.apartment'))
           return
         }
         const result = handleTransaction('property', 'apartment', getApartments())
@@ -683,7 +685,7 @@ export function createInvestmentTab(deps) {
     if (elBuyShop) {
       elBuyShop.addEventListener('click', () => {
         if (!isProductUnlocked('shop')) {
-          Diary.addLog('❌ 상가는 아파트를 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.shop'))
           return
         }
         const result = handleTransaction('property', 'shop', getShops())
@@ -699,7 +701,7 @@ export function createInvestmentTab(deps) {
     if (elBuyBuilding) {
       elBuyBuilding.addEventListener('click', () => {
         if (!isProductUnlocked('building')) {
-          Diary.addLog('❌ 빌딩은 상가를 1개 이상 보유해야 해금됩니다.')
+          Diary.addLog(t('msg.unlock.building'))
           return
         }
         const result = handleTransaction('property', 'building', getBuildings())
@@ -715,7 +717,7 @@ export function createInvestmentTab(deps) {
     if (elBuyTower) {
       elBuyTower.addEventListener('click', () => {
         if (!isProductUnlocked('tower')) {
-          Diary.addLog('❌ 서울타워는 CEO 달성 및 빌딩 1개 이상이 필요합니다.')
+          Diary.addLog(t('msg.unlock.tower'))
           return
         }
         const result = handleTransaction('property', 'tower', deps.getTower())

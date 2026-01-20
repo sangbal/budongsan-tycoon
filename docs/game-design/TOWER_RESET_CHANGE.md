@@ -13,10 +13,10 @@
 ```javascript
 // secondaryLabel이 명시적으로 'none'이거나 options.hideSecondary가 true면 취소 버튼 숨김
 if (options.hideSecondary === true || options.secondaryLabel === 'none') {
-  elModalSecondary.style.display = 'none';
+  elModalSecondary.style.display = 'none'
 } else {
-  elModalSecondary.style.display = 'inline-flex';
-  elModalSecondary.textContent = options.secondaryLabel || '아니오';
+  elModalSecondary.style.display = 'inline-flex'
+  elModalSecondary.textContent = options.secondaryLabel || '아니오'
 }
 ```
 
@@ -25,55 +25,57 @@ if (options.hideSecondary === true || options.secondaryLabel === 'none') {
 타워 구매 이벤트 핸들러에서 `showEndingModal` 함수를 호출하는 부분을 찾아서, 다음처럼 수정해야 합니다:
 
 **이전 코드 (예상)**:
+
 ```javascript
 function showEndingModal(towerCount) {
-  const message = `🗼 서울타워 완성 🗼\n\n...`;
-  openInfoModal('🎉 엔딩', message, '🗼');
-  
-  const originalOnClick = elModalPrimary.onclick;
+  const message = `🗼 서울타워 완성 🗼\n\n...`
+  openInfoModal('🎉 엔딩', message, '🗼')
+
+  const originalOnClick = elModalPrimary.onclick
   elModalPrimary.onclick = () => {
-    closeModal();
+    closeModal()
     openConfirmModal(
       '🔄 새 게임 시작',
       '서울타워를 완성했습니다!\n\n새 게임을 시작하시겠습니까?\n(현재 진행은 초기화됩니다)',
       () => {
-        resetGame();
-        addLog('🗼 새로운 시작. 다시 한 번.');
+        resetGame()
+        addLog('🗼 새로운 시작. 다시 한 번.')
       },
       {
         icon: '🗼',
         primaryLabel: '새 게임 시작',
-        secondaryLabel: t('button.later')  // ❌ 이 부분 제거
+        secondaryLabel: t('button.later'), // ❌ 이 부분 제거
       }
-    );
-  };
+    )
+  }
 }
 ```
 
 **수정 후 코드**:
+
 ```javascript
 function showEndingModal(towerCount) {
-  const message = `🗼 서울타워 완성 🗼\n\n...`;
-  openInfoModal('🎉 엔딩', message, '🗼');
-  
-  const originalOnClick = elModalPrimary.onclick;
+  const message = `🗼 서울타워 완성 🗼\n\n...`
+  openInfoModal('🎉 엔딩', message, '🗼')
+
+  const originalOnClick = elModalPrimary.onclick
   elModalPrimary.onclick = () => {
-    closeModal();
+    closeModal()
     // 무조건 새 게임 시작 (나중에 옵션 제거)
     openConfirmModal(
       '🔄 새 게임 시작',
       '서울타워를 완성했습니다!\n\n새 게임을 시작하시겠습니까?\n(현재 진행은 초기화됩니다)',
       () => {
-        resetGame();
-        addLog('🗼 새로운 시작. 다시 한 번.');
+        resetGame()
+        addLog('🗼 새로운 시작. 다시 한 번.')
       },
       {
         icon: '🗼',
         primaryLabel: '새 게임 시작',
-        hideSecondary: true  // ✅ 취소 버튼 숨김
+        hideSecondary: true, // ✅ 취소 버튼 숨김
       }
-    );
-  };
+    )
+  }
 }
 ```
 
@@ -81,24 +83,24 @@ function showEndingModal(towerCount) {
 
 ```javascript
 function showEndingModal(towerCount) {
-  const message = `🗼 서울타워 완성 🗼\n\n...`;
-  openInfoModal('🎉 엔딩', message, '🗼');
-  
-  const originalOnClick = elModalPrimary.onclick;
+  const message = `🗼 서울타워 완성 🗼\n\n...`
+  openInfoModal('🎉 엔딩', message, '🗼')
+
+  const originalOnClick = elModalPrimary.onclick
   elModalPrimary.onclick = () => {
-    closeModal();
+    closeModal()
     // 확인 다이얼로그 없이 바로 리셋
-    addLog('🔄 게임을 초기화합니다...');
-    localStorage.removeItem(SAVE_KEY);
+    addLog('🔄 게임을 초기화합니다...')
+    localStorage.removeItem(SAVE_KEY)
     try {
-      sessionStorage.setItem(CLOUD_RESTORE_SKIP_KEY, '1');
-      sessionStorage.setItem(CLOUD_RESTORE_BLOCK_KEY, '1');
+      sessionStorage.setItem(CLOUD_RESTORE_SKIP_KEY, '1')
+      sessionStorage.setItem(CLOUD_RESTORE_BLOCK_KEY, '1')
     } catch (e) {
-      console.warn('sessionStorage set 실패:', e);
+      console.warn('sessionStorage set 실패:', e)
     }
-    addLog('🗼 새로운 시작. 다시 한 번.');
-    location.reload();
-  };
+    addLog('🗼 새로운 시작. 다시 한 번.')
+    location.reload()
+  }
 }
 ```
 
@@ -112,19 +114,3 @@ function showEndingModal(towerCount) {
 
 - `openConfirmModal` 함수는 이미 `hideSecondary` 옵션을 지원하도록 수정되었습니다.
 - 타워 구매 기능이 아직 구현되지 않았다면, 구현 시 위의 코드를 참고하세요.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

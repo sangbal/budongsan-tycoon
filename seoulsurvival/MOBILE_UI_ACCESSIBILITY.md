@@ -11,6 +11,7 @@
 ### 1. ARIA 라벨 추가 (WCAG 4.1.2 Name, Role, Value)
 
 #### Before
+
 ```html
 <nav class="bottom-nav">
   <button class="nav-btn active" data-tab="workTab">
@@ -21,6 +22,7 @@
 ```
 
 #### After
+
 ```html
 <nav class="bottom-nav" role="navigation" aria-label="주요 메뉴">
   <button
@@ -38,6 +40,7 @@
 ```
 
 **개선 효과**:
+
 - 스크린 리더가 현재 탭 상태를 정확히 읽어줌
 - 탭 역할과 선택 상태를 명확히 전달
 - 각 버튼의 목적을 구체적으로 설명
@@ -46,8 +49,8 @@
 
 #### 추가된 단축키
 
-| 단축키 | 기능 | 용도 |
-|--------|------|------|
+| 단축키    | 기능    | 용도         |
+| --------- | ------- | ------------ |
 | `Alt + 1` | 노동 탭 | 빠른 탭 전환 |
 | `Alt + 2` | 투자 탭 | 빠른 탭 전환 |
 | `Alt + 3` | 통계 탭 | 빠른 탭 전환 |
@@ -55,16 +58,17 @@
 | `Alt + 5` | 설정 탭 | 빠른 탭 전환 |
 
 #### 구현 코드 (main.js)
+
 ```javascript
 // 탭 전환: Alt + 1-5 (접근성)
 if (e.altKey && e.key >= '1' && e.key <= '5') {
   e.preventDefault()
   const tabMapping = {
-    '1': 'workTab',
-    '2': 'shopTab',
-    '3': 'statsTab',
-    '4': 'rankingTab',
-    '5': 'settingsTab'
+    1: 'workTab',
+    2: 'shopTab',
+    3: 'statsTab',
+    4: 'rankingTab',
+    5: 'settingsTab',
   }
   const targetTab = tabMapping[e.key]
   const targetBtn = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`)
@@ -75,6 +79,7 @@ if (e.altKey && e.key >= '1' && e.key <= '5') {
 ```
 
 **개선 효과**:
+
 - 마우스 없이 전체 게임 플레이 가능
 - 키보드 사용자의 작업 효율 향상
 - 보조 기술 사용자 지원
@@ -82,6 +87,7 @@ if (e.altKey && e.key >= '1' && e.key <= '5') {
 ### 3. 포커스 표시 개선 (WCAG 2.4.7 Focus Visible)
 
 #### CSS 스타일
+
 ```css
 /* 키보드 포커스 스타일 (접근성) */
 .nav-btn:focus-visible {
@@ -92,6 +98,7 @@ if (e.altKey && e.key >= '1' && e.key <= '5') {
 ```
 
 **개선 효과**:
+
 - 키보드 포커스 위치를 명확히 표시
 - 색상 대비 충분 (AAA 기준 충족)
 - 마우스 클릭 시에는 표시되지 않아 시각적 정리
@@ -99,17 +106,19 @@ if (e.altKey && e.key >= '1' && e.key <= '5') {
 ### 4. ARIA 상태 동기화
 
 #### JavaScript 로직
+
 ```javascript
 navBtns.forEach(navBtn => {
   navBtn.classList.remove('active')
-  navBtn.setAttribute('aria-selected', 'false')  // 추가됨
+  navBtn.setAttribute('aria-selected', 'false') // 추가됨
 })
 
 btn.classList.add('active')
-btn.setAttribute('aria-selected', 'true')  // 추가됨
+btn.setAttribute('aria-selected', 'true') // 추가됨
 ```
 
 **개선 효과**:
+
 - 시각적 상태와 의미론적 상태가 일치
 - 스크린 리더가 실시간 탭 전환 감지
 - ARIA live region 역할 수행
@@ -117,6 +126,7 @@ btn.setAttribute('aria-selected', 'true')  // 추가됨
 ### 5. 햅틱 피드백 (모바일 UX 향상)
 
 #### 구현
+
 ```javascript
 // 햅틱 피드백 (지원되는 경우)
 if ('vibrate' in navigator) {
@@ -125,6 +135,7 @@ if ('vibrate' in navigator) {
 ```
 
 **개선 효과**:
+
 - 터치 피드백 제공 (10ms 진동)
 - 모바일 네이티브 앱과 유사한 경험
 - 시각 장애인 사용자에게 추가 피드백
@@ -132,6 +143,7 @@ if ('vibrate' in navigator) {
 ### 6. Skip Navigation 링크 (WCAG 2.4.1 Bypass Blocks)
 
 #### HTML
+
 ```html
 <a href="#main-content" class="skip-link">본문으로 바로가기</a>
 
@@ -141,6 +153,7 @@ if ('vibrate' in navigator) {
 ```
 
 #### CSS
+
 ```css
 .skip-link {
   position: absolute;
@@ -163,6 +176,7 @@ if ('vibrate' in navigator) {
 ```
 
 **개선 효과**:
+
 - 스크린 리더 사용자가 헤더를 건너뛰고 메인 컨텐츠로 이동
 - Tab 키 한 번으로 본문 접근 가능
 - WCAG 2.4.1 기준 충족
@@ -171,24 +185,24 @@ if ('vibrate' in navigator) {
 
 ### WCAG 2.1 Level AA 체크리스트
 
-| 기준 | 항목 | 상태 | 비고 |
-|------|------|------|------|
-| 1.3.1 | Info and Relationships | ✅ | ARIA 라벨 완성 |
-| 2.1.1 | Keyboard | ✅ | Alt+1-5 단축키 |
-| 2.4.1 | Bypass Blocks | ✅ | Skip Navigation |
-| 2.4.3 | Focus Order | ✅ | 논리적 탭 순서 |
-| 2.4.7 | Focus Visible | ✅ | 명확한 포커스 표시 |
-| 4.1.2 | Name, Role, Value | ✅ | ARIA 속성 완전 |
-| 4.1.3 | Status Messages | ✅ | aria-selected 동기화 |
+| 기준  | 항목                   | 상태 | 비고                 |
+| ----- | ---------------------- | ---- | -------------------- |
+| 1.3.1 | Info and Relationships | ✅   | ARIA 라벨 완성       |
+| 2.1.1 | Keyboard               | ✅   | Alt+1-5 단축키       |
+| 2.4.1 | Bypass Blocks          | ✅   | Skip Navigation      |
+| 2.4.3 | Focus Order            | ✅   | 논리적 탭 순서       |
+| 2.4.7 | Focus Visible          | ✅   | 명확한 포커스 표시   |
+| 4.1.2 | Name, Role, Value      | ✅   | ARIA 속성 완전       |
+| 4.1.3 | Status Messages        | ✅   | aria-selected 동기화 |
 
 ### 예상 Lighthouse 점수
 
-| 항목 | Before | After | 목표 |
-|------|--------|-------|------|
-| Accessibility | 88 | **97** ✅ | 95+ |
-| ARIA 라벨 커버리지 | 60% | **100%** ✅ | 100% |
-| 키보드 네비게이션 | 부분 지원 | **완전 지원** ✅ | 완전 |
-| 포커스 표시 | 일부 누락 | **모두 표시** ✅ | 완전 |
+| 항목               | Before    | After            | 목표 |
+| ------------------ | --------- | ---------------- | ---- |
+| Accessibility      | 88        | **97** ✅        | 95+  |
+| ARIA 라벨 커버리지 | 60%       | **100%** ✅      | 100% |
+| 키보드 네비게이션  | 부분 지원 | **완전 지원** ✅ | 완전 |
+| 포커스 표시        | 일부 누락 | **모두 표시** ✅ | 완전 |
 
 ## 구현 파일
 
@@ -261,7 +275,9 @@ test('모바일 탭바 접근성', async ({ page }) => {
 
   // 키보드 네비게이션 확인
   await page.keyboard.press('Alt+2')
-  expect(await page.locator('.nav-btn[data-tab="shopTab"]').getAttribute('aria-selected')).toBe('true')
+  expect(await page.locator('.nav-btn[data-tab="shopTab"]').getAttribute('aria-selected')).toBe(
+    'true'
+  )
 
   // Skip Navigation 확인
   await page.keyboard.press('Tab')
@@ -273,16 +289,19 @@ test('모바일 탭바 접근성', async ({ page }) => {
 ## 다음 단계
 
 ### 단기 (1주)
+
 - [ ] Playwright 접근성 테스트 자동화
 - [ ] Lighthouse CI 통합 (Accessibility 95+ 강제)
 - [ ] 색상 대비 검증 (모든 UI 요소 WCAG AA 충족)
 
 ### 중기 (1개월)
+
 - [ ] 다크/라이트 모드 토글 추가
 - [ ] 고대비 모드 (WCAG AAA)
 - [ ] 애니메이션 감소 옵션 (prefers-reduced-motion)
 
 ### 장기 (3개월)
+
 - [ ] 튜토리얼 시스템 구현
 - [ ] 음성 안내 (Web Speech API)
 - [ ] 다국어 접근성 지원 (i18n)

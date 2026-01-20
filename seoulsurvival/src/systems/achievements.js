@@ -1,4 +1,5 @@
 // 업적 시스템
+import { t } from '../i18n/index.js'
 
 /**
  * @param {Array<{unlocked:boolean, condition:Function, name:string, desc:string}>} achievements
@@ -12,7 +13,7 @@ export function createAchievementsSystem(achievements, deps) {
       if (!achievement.unlocked && achievement.condition()) {
         achievement.unlocked = true
         notify(achievement)
-        addLog(`🏆 업적 달성: ${achievement.name} - ${achievement.desc}`)
+        addLog(t('msg.achievementUnlocked', { name: achievement.name, desc: achievement.desc }))
       }
     })
   }

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('모바일 탭바 접근성 테스트', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/seoulsurvival/')
+    await page.goto('/seoulsurvival/')
     // 모바일 뷰포트 설정 (iPhone 12)
     await page.setViewportSize({ width: 390, height: 844 })
     // 페이지 로딩 대기
@@ -215,7 +215,7 @@ test.describe('모바일 탭바 접근성 테스트', () => {
 
 test.describe('Lighthouse 접근성 검증', () => {
   test('Lighthouse Accessibility 점수 95+ (모바일)', async ({ page }) => {
-    await page.goto('http://localhost:5173/seoulsurvival/')
+    await page.goto('/seoulsurvival/')
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Lighthouse 점수는 별도의 CI 파이프라인에서 측정

@@ -9,6 +9,7 @@
 ## 📊 현재 상태 요약
 
 ### ✅ 잘 되어 있는 것
+
 - Vite 6 최신 빌드 시스템
 - Playwright E2E 테스트 프레임워크
 - GitHub Actions 자동 배포 파이프라인
@@ -17,6 +18,7 @@
 - 상세한 문서화 (ARCHITECTURE.md, DEVLOG.md)
 
 ### ⚠️ 개선이 필요한 것
+
 - 코드 품질 도구 부재 (Linter, Formatter)
 - 단위 테스트 없음 (E2E만 존재)
 - TypeScript 설정 부분적 (MMA Manager만)
@@ -39,6 +41,7 @@
 **효과**: ⭐⭐⭐⭐⭐
 
 #### 설치 패키지
+
 ```bash
 npm install -D eslint prettier
 npm install -D eslint-plugin-react eslint-plugin-react-hooks
@@ -47,11 +50,13 @@ npm install -D eslint-config-prettier eslint-plugin-prettier
 ```
 
 #### 설정 파일
+
 - `.eslintrc.json` - ESLint 규칙
 - `.prettierrc.json` - 코드 포맷팅 규칙
 - `.prettierignore` - 포맷팅 제외 파일
 
 #### package.json 스크립트 추가
+
 ```json
 {
   "scripts": {
@@ -64,6 +69,7 @@ npm install -D eslint-config-prettier eslint-plugin-prettier
 ```
 
 #### 예상 효과
+
 - 9,789줄 Seoul Survival main.js에서 잠재적 버그 발견 가능
 - 코드 스타일 자동 통일
 - VSCode/Cursor 자동 포맷팅 지원
@@ -78,12 +84,14 @@ npm install -D eslint-config-prettier eslint-plugin-prettier
 **효과**: ⭐⭐⭐⭐
 
 #### Phase 1: TypeScript 설정 추가
+
 ```bash
 npm install -D typescript
 npx tsc --init
 ```
 
 #### Phase 2: 우선 순위별 마이그레이션
+
 1. **공통 모듈** (`shared/`) - 가장 많이 재사용됨
    - `shared/auth/config.js` → `config.ts`
    - `shared/cloudSave.js` → `cloudSave.ts`
@@ -95,6 +103,7 @@ npx tsc --init
 3. **Seoul Survival** (나중에, 리팩토링 후)
 
 #### package.json 스크립트 추가
+
 ```json
 {
   "scripts": {
@@ -116,6 +125,7 @@ npx tsc --init
 **효과**: ⭐⭐⭐⭐⭐
 
 #### 설치
+
 ```bash
 npm install -D vitest @vitest/ui
 npm install -D @testing-library/react @testing-library/jest-dom
@@ -123,6 +133,7 @@ npm install -D @testing-library/user-event
 ```
 
 #### package.json 스크립트
+
 ```json
 {
   "scripts": {
@@ -135,6 +146,7 @@ npm install -D @testing-library/user-event
 ```
 
 #### 우선 테스트 작성 대상
+
 1. **경제 시스템** (`seoulsurvival/src/economy/`)
    - 가격 계산 로직
    - 수익 계산 로직
@@ -148,6 +160,7 @@ npm install -D @testing-library/user-event
    - `economyEngine.ts` 경제 엔진
 
 #### 예상 커버리지 목표
+
 - Phase 1: 30% (핵심 로직)
 - Phase 2: 50% (대부분 로직)
 - Phase 3: 70%+ (UI 제외)
@@ -162,6 +175,7 @@ npm install -D @testing-library/user-event
 **효과**: ⭐⭐⭐⭐
 
 #### `.github/workflows/test.yml` 생성
+
 ```yaml
 name: Test
 
@@ -184,7 +198,7 @@ jobs:
       - run: npm run type-check
       - run: npm run test:unit
       - run: npm run build
-      - run: npm run test  # E2E
+      - run: npm run test # E2E
 ```
 
 ---
@@ -199,6 +213,7 @@ jobs:
 **효과**: ⭐⭐⭐⭐⭐
 
 #### 현재 구조 분석
+
 ```
 seoulsurvival/src/main.js (9,789줄)
   ├─ 전역 상태 변수들 (~200줄)
@@ -211,6 +226,7 @@ seoulsurvival/src/main.js (9,789줄)
 ```
 
 #### 목표 구조
+
 ```
 seoulsurvival/src/
   ├─ main.js (엔트리 포인트, ~200줄)
@@ -234,12 +250,14 @@ seoulsurvival/src/
 ```
 
 #### 마이그레이션 전략
+
 1. **Phase 1**: 유틸리티 함수 분리 (1주)
 2. **Phase 2**: 시스템 모듈 분리 (1주)
 3. **Phase 3**: UI 모듈 분리 (1주)
 4. **Phase 4**: 통합 테스트 + 버그 수정
 
 #### 사용할 도구
+
 - Sequential Thinking MCP로 의존성 분석
 - AST 파서로 함수 추출 자동화 가능
 
@@ -253,6 +271,7 @@ seoulsurvival/src/
 **효과**: ⭐⭐
 
 #### 정리 대상
+
 ```bash
 ./legacy/                          # 레거시 게임 코드
 ./mma-promotion-manager/backup/   # 백업 폴더
@@ -261,7 +280,9 @@ seoulsurvival/src/
 ```
 
 #### 정리 방법
+
 1. **아카이브 브랜치 생성** (삭제 전 백업)
+
    ```bash
    git checkout -b archive/legacy-code-2026-01
    git add legacy/ mma-promotion-manager/backup/
@@ -270,6 +291,7 @@ seoulsurvival/src/
    ```
 
 2. **main 브랜치에서 삭제**
+
    ```bash
    git checkout main
    git rm -r legacy/ mma-promotion-manager/backup/
@@ -293,22 +315,23 @@ seoulsurvival/src/
 **효과**: ⭐⭐⭐⭐
 
 #### 도구 설치
+
 ```bash
 npm install -D rollup-plugin-visualizer
 ```
 
 #### vite.config.js 수정
+
 ```js
 import { visualizer } from 'rollup-plugin-visualizer'
 
 export default {
-  plugins: [
-    visualizer({ open: true, filename: 'dist/stats.html' })
-  ]
+  plugins: [visualizer({ open: true, filename: 'dist/stats.html' })],
 }
 ```
 
 #### 최적화 전략
+
 1. **코드 스플리팅** - 게임별 청크 분리
 2. **트리 셰이킹** - 미사용 코드 제거
 3. **이미지 최적화** - WebP 변환, lazy loading
@@ -324,6 +347,7 @@ export default {
 **효과**: ⭐⭐⭐
 
 #### GitHub Actions 통합
+
 ```yaml
 - name: Lighthouse CI
   run: |
@@ -332,6 +356,7 @@ export default {
 ```
 
 #### 목표 점수
+
 - Performance: 90+
 - Accessibility: 95+
 - Best Practices: 90+
@@ -349,18 +374,21 @@ export default {
 **효과**: ⭐⭐⭐⭐
 
 #### 설치
+
 ```bash
 npm install -D husky lint-staged
 npx husky init
 ```
 
 #### `.husky/pre-commit`
+
 ```bash
 #!/bin/sh
 npx lint-staged
 ```
 
 #### `package.json`
+
 ```json
 {
   "lint-staged": {
@@ -380,6 +408,7 @@ npx lint-staged
 **효과**: ⭐⭐⭐
 
 #### `.vscode/settings.json` 생성
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -395,6 +424,7 @@ npx lint-staged
 ```
 
 #### `.vscode/extensions.json`
+
 ```json
 {
   "recommendations": [
@@ -417,10 +447,12 @@ npx lint-staged
 **효과**: ⭐⭐⭐⭐
 
 #### 무료 플랜
+
 - 월 5,000 이벤트
 - 1개 프로젝트
 
 #### 통합 방법
+
 ```bash
 npm install @sentry/browser
 ```
@@ -432,7 +464,7 @@ import * as Sentry from '@sentry/browser'
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
-  tracesSampleRate: 0.1
+  tracesSampleRate: 0.1,
 })
 ```
 
@@ -446,6 +478,7 @@ Sentry.init({
 **효과**: ⭐⭐⭐
 
 #### 커스텀 이벤트 추적
+
 - 게임별 플레이 시간
 - 타워 구매 횟수
 - 업그레이드 선택 패턴
@@ -456,22 +489,26 @@ Sentry.init({
 ## 🚀 실행 로드맵
 
 ### Week 1-2: 기초 인프라
+
 - [ ] ESLint + Prettier 설정
 - [ ] Husky pre-commit hook
 - [ ] TypeScript 설정 (공통 모듈)
 - [ ] Vitest 설치 + 첫 테스트 작성
 
 ### Week 3-4: 테스트 & CI
+
 - [ ] 단위 테스트 확대 (30% 커버리지)
 - [ ] GitHub Actions 테스트 워크플로우
 - [ ] 레거시 코드 정리
 
 ### Month 2: 리팩토링
+
 - [ ] Seoul Survival main.js 모듈 분리
 - [ ] 공통 모듈 TypeScript 마이그레이션
 - [ ] 번들 크기 최적화
 
 ### Month 3: 고급 기능
+
 - [ ] Sentry 에러 트래킹
 - [ ] Lighthouse CI
 - [ ] 테스트 커버리지 70%+
@@ -480,13 +517,13 @@ Sentry.init({
 
 ## 📊 예상 효과
 
-| 개선 항목 | 현재 | 목표 | 기대 효과 |
-|----------|------|------|----------|
-| 코드 품질 | 수동 관리 | ESLint + Prettier | 버그 30% 감소 |
-| 테스트 커버리지 | E2E만 | 70%+ | 리팩토링 신뢰도 ↑ |
-| 번들 크기 | 측정 안 됨 | 20% 감소 | 로딩 속도 ↑ |
-| 타입 안전성 | 부분적 | 전체 TS | 런타임 에러 50% 감소 |
-| 배포 안정성 | 수동 검증 | 자동 CI/CD | 배포 실패 80% 감소 |
+| 개선 항목       | 현재       | 목표              | 기대 효과            |
+| --------------- | ---------- | ----------------- | -------------------- |
+| 코드 품질       | 수동 관리  | ESLint + Prettier | 버그 30% 감소        |
+| 테스트 커버리지 | E2E만      | 70%+              | 리팩토링 신뢰도 ↑    |
+| 번들 크기       | 측정 안 됨 | 20% 감소          | 로딩 속도 ↑          |
+| 타입 안전성     | 부분적     | 전체 TS           | 런타임 에러 50% 감소 |
+| 배포 안정성     | 수동 검증  | 자동 CI/CD        | 배포 실패 80% 감소   |
 
 ---
 

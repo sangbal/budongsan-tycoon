@@ -80,6 +80,7 @@ npm run dev
 - **프로덕션**: `https://clicksurvivor.com`
 
 **개발 환경에서 로그인하려면**:
+
 1. Supabase 대시보드 → **Authentication** → **URL Configuration** → **Site URL**
 2. 개발 중에는 로컬 URL(`http://localhost:4173`)로 설정
 3. 프로덕션 배포 시 프로덕션 URL(`https://clicksurvivor.com`)로 변경
@@ -100,6 +101,7 @@ npm run dev
 ### Login 버튼이 여전히 비활성화됨
 
 1. **환경 변수 확인**:
+
    ```bash
    # PowerShell에서 확인
    echo $env:VITE_SUPABASE_URL
@@ -134,4 +136,3 @@ npm run dev
 - Vercel/Netlify: 프로젝트 설정 → Environment Variables
 
 자세한 내용은 `docs/PROD_SETUP.md`를 참조하세요.
-

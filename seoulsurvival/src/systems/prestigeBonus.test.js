@@ -12,6 +12,7 @@ import {
   getAllPrestigeMultipliers,
   getStartingCash,
   getBonusesByTier,
+  getPrestigeBonusInfoHTML,
 } from './prestigeBonus.js'
 import { gameState } from '../state/gameState.js'
 
@@ -285,6 +286,134 @@ describe('Prestige Bonus System', () => {
       // 수식: 1 + (towers - 9) * 0.5
       expect(ultimatePower.effect(10).multiplier).toBeCloseTo(1.5, 2) // 1 + (10-9)*0.5 = 1.5
       expect(ultimatePower.effect(15).multiplier).toBeCloseTo(4.0, 2) // 1 + (15-9)*0.5 = 4.0
+    })
+  })
+
+  describe('getPrestigeBonusInfoHTML', () => {
+    // 한글 번역을 반환하는 mockT
+    const mockTranslations = {
+      'prestige.hint.none': '첫 타워를 획득하면 프레스티지 보너스가 활성화됩니다.',
+      'prestige.discount': '할인',
+      'prestige.effect.unlocked': '해금됨',
+      'prestige.title': '프레스티지 보너스',
+    }
+    const mockT = (key, params, fallback) => mockTranslations[key] || fallback || key
+    const mockFormatNumber = n => n.toLocaleString() + '원'
+
+    it('타워 0개: 힌트 메시지 반환', () => {
+      gameState.towers_lifetime = 0
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('prestige-hint')
+      expect(html).toContain('첫 타워를 획득하면')
+    })
+
+    it('타워 1개: click_power 효과 표시', () => {
+      gameState.towers_lifetime = 1
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('prestige-bonus-list')
+      expect(html).toContain('x1.10') // click_power = 1 + 1*0.1 = 1.1
+      expect(html).toContain('👆') // click_master icon
+    })
+
+    it('타워 1개: auto_income 효과 표시', () => {
+      gameState.towers_lifetime = 1
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x1.05') // auto_income = 1 + 1*0.05 = 1.05
+      expect(html).toContain('🤖') // auto_income_boost icon
+    })
+
+    it('타워 1개: price_reduction 효과 표시 (할인율 포함)', () => {
+      gameState.towers_lifetime = 1
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x0.98') // price_reduction = 1 - 1*0.02 = 0.98
+      expect(html).toContain('2% 할인') // (1 - 0.98) * 100 = 2%
+      expect(html).toContain('💸') // discount_master icon
+    })
+
+    it('타워 1개: starting_cash 효과 표시', () => {
+      gameState.towers_lifetime = 1
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('1,000,000원') // mockFormatNumber이 "원" 추가
+      expect(html).toContain('💰') // starting_capital icon
+    })
+
+    it('타워 3개: upgrade_multiplier 효과 표시', () => {
+      gameState.towers_lifetime = 3
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x1.20') // upgrade_multiplier = 1 + (3-2)*0.2 = 1.2
+      expect(html).toContain('⚡') // upgrade_power icon
+    })
+
+    it('타워 3개: offline_time 효과 표시', () => {
+      gameState.towers_lifetime = 3
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x1.50') // offline_time = 1 + (3-2)*0.5 = 1.5
+      expect(html).toContain('⏰') // offline_boost icon
+    })
+
+    it('타워 5개: unlock_special 효과 표시', () => {
+      gameState.towers_lifetime = 5
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('해금됨')
+      expect(html).toContain('🎁') // special_upgrades icon
+    })
+
+    it('타워 5개: synergy_boost 효과 표시', () => {
+      gameState.towers_lifetime = 5
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('+25%') // (1.25 - 1) * 100 = 25%
+      expect(html).toContain('🔗') // synergy_master icon
+    })
+
+    it('타워 10개: tick_speed 효과 표시', () => {
+      gameState.towers_lifetime = 10
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x1.10') // tick_speed = 1 + (10-9)*0.1 = 1.1
+      expect(html).toContain('⏩') // time_warp icon
+    })
+
+    it('타워 10개: all_income 효과 표시', () => {
+      gameState.towers_lifetime = 10
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('x1.50') // all_income = 1 + (10-9)*0.5 = 1.5
+      expect(html).toContain('⭐') // ultimate_power icon
+    })
+
+    it('타워 개수가 제목에 표시되어야 함', () => {
+      gameState.towers_lifetime = 5
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('(5🗼)')
+    })
+
+    it('티어별 CSS 클래스가 적용되어야 함', () => {
+      gameState.towers_lifetime = 10
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      expect(html).toContain('tier-1')
+      expect(html).toContain('tier-2')
+      expect(html).toContain('tier-3')
+      expect(html).toContain('tier-4')
+    })
+
+    it('타워 5개: 정확한 할인율 표시', () => {
+      gameState.towers_lifetime = 5
+      const html = getPrestigeBonusInfoHTML(mockT, mockFormatNumber)
+
+      // price_reduction = 1 - 5*0.02 = 0.9
+      expect(html).toContain('x0.90')
+      expect(html).toContain('10% 할인')
     })
   })
 

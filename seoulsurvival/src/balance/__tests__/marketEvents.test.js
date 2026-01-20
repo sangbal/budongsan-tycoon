@@ -15,24 +15,37 @@ describe('Market Events Balance', () => {
 
     test('all events should have required properties', () => {
       MARKET_EVENTS.forEach((event, index) => {
-        expect(event, `Event ${index}`).toHaveProperty('name')
+        expect(event, `Event ${index}`).toHaveProperty('id')
+        expect(event, `Event ${index}`).toHaveProperty('nameKey')
+        expect(event, `Event ${index}`).toHaveProperty('descKey')
         expect(event, `Event ${index}`).toHaveProperty('duration')
         expect(event, `Event ${index}`).toHaveProperty('color')
         expect(event, `Event ${index}`).toHaveProperty('effects')
-        expect(event, `Event ${index}`).toHaveProperty('description')
       })
     })
 
-    test('all event names should be unique', () => {
-      const names = MARKET_EVENTS.map(e => e.name)
-      const uniqueNames = new Set(names)
-      expect(uniqueNames.size).toBe(names.length)
+    test('all event ids should be unique', () => {
+      const ids = MARKET_EVENTS.map(e => e.id)
+      const uniqueIds = new Set(ids)
+      expect(uniqueIds.size).toBe(ids.length)
     })
 
-    test('all event names should be non-empty strings', () => {
+    test('all event ids should be non-empty strings', () => {
       MARKET_EVENTS.forEach(event => {
-        expect(typeof event.name).toBe('string')
-        expect(event.name.length).toBeGreaterThan(0)
+        expect(typeof event.id).toBe('string')
+        expect(event.id.length).toBeGreaterThan(0)
+      })
+    })
+
+    test('all nameKeys should follow i18n pattern', () => {
+      MARKET_EVENTS.forEach(event => {
+        expect(event.nameKey).toMatch(/^event\.\w+\.name$/)
+      })
+    })
+
+    test('all descKeys should follow i18n pattern', () => {
+      MARKET_EVENTS.forEach(event => {
+        expect(event.descKey).toMatch(/^event\.\w+\.desc$/)
       })
     })
   })
@@ -157,9 +170,13 @@ describe('Market Events Balance', () => {
     })
 
     test('negative events should not go below 0.7 (minimum cap)', () => {
-      const negativeEvents = MARKET_EVENTS.filter(
-        e => e.name.includes('위기') || e.name.includes('폭락') || e.name.includes('규제')
-      )
+      const negativeEventIds = [
+        'financial_crisis',
+        'bank_crisis',
+        'stock_crash',
+        'crypto_regulation',
+      ]
+      const negativeEvents = MARKET_EVENTS.filter(e => negativeEventIds.includes(e.id))
 
       negativeEvents.forEach(event => {
         if (event.effects.financial) {
@@ -176,47 +193,32 @@ describe('Market Events Balance', () => {
     })
   })
 
-  describe('Event descriptions', () => {
-    test('all descriptions should be non-empty strings', () => {
-      MARKET_EVENTS.forEach(event => {
-        expect(typeof event.description).toBe('string')
-        expect(event.description.length).toBeGreaterThan(0)
-      })
-    })
-
-    test('descriptions should end with period', () => {
-      MARKET_EVENTS.forEach(event => {
-        expect(event.description).toMatch(/\.$/)
-      })
-    })
-  })
-
   describe('Event categories', () => {
-    const positiveEventNames = [
-      '강남 아파트 대박',
-      '전세 대란',
-      '상권 활성화',
-      '오피스 수요 급증',
-      '한국은행 금리 인하',
-      '주식시장 대호황',
-      '미국 연준 양적완화',
-      '비트코인 급등',
+    const positiveEventIds = [
+      'gangnam_boom',
+      'jeonse_crisis',
+      'commercial_boom',
+      'office_demand',
+      'rate_cut',
+      'stock_boom',
+      'fed_qe',
+      'bitcoin_surge',
     ]
 
-    const negativeEventNames = ['금융위기', '은행 파산 위기', '주식시장 폭락', '암호화폐 규제']
+    const negativeEventIds = ['financial_crisis', 'bank_crisis', 'stock_crash', 'crypto_regulation']
 
     test('should have 8 positive events', () => {
-      const positiveEvents = MARKET_EVENTS.filter(e => positiveEventNames.includes(e.name))
+      const positiveEvents = MARKET_EVENTS.filter(e => positiveEventIds.includes(e.id))
       expect(positiveEvents).toHaveLength(8)
     })
 
     test('should have 4 negative events', () => {
-      const negativeEvents = MARKET_EVENTS.filter(e => negativeEventNames.includes(e.name))
+      const negativeEvents = MARKET_EVENTS.filter(e => negativeEventIds.includes(e.id))
       expect(negativeEvents).toHaveLength(4)
     })
 
     test('positive events should have multipliers >= 1.0', () => {
-      const positiveEvents = MARKET_EVENTS.filter(e => positiveEventNames.includes(e.name))
+      const positiveEvents = MARKET_EVENTS.filter(e => positiveEventIds.includes(e.id))
 
       positiveEvents.forEach(event => {
         if (event.effects.financial) {
@@ -233,7 +235,7 @@ describe('Market Events Balance', () => {
     })
 
     test('negative events should have multipliers < 1.0', () => {
-      const negativeEvents = MARKET_EVENTS.filter(e => negativeEventNames.includes(e.name))
+      const negativeEvents = MARKET_EVENTS.filter(e => negativeEventIds.includes(e.id))
 
       negativeEvents.forEach(event => {
         const hasNegativeEffect =
@@ -246,36 +248,36 @@ describe('Market Events Balance', () => {
   })
 
   describe('Specific event validations', () => {
-    test('강남 아파트 대박 - should boost apartment most', () => {
-      const event = MARKET_EVENTS.find(e => e.name === '강남 아파트 대박')
+    test('gangnam_boom - should boost apartment most', () => {
+      const event = MARKET_EVENTS.find(e => e.id === 'gangnam_boom')
       expect(event).toBeDefined()
       expect(event.effects.property.apartment).toBe(2.5)
       expect(event.duration).toBe(50_000)
     })
 
-    test('전세 대란 - should boost villa and officetel', () => {
-      const event = MARKET_EVENTS.find(e => e.name === '전세 대란')
+    test('jeonse_crisis - should boost villa and officetel', () => {
+      const event = MARKET_EVENTS.find(e => e.id === 'jeonse_crisis')
       expect(event).toBeDefined()
       expect(event.effects.property.villa).toBe(2.5)
       expect(event.effects.property.officetel).toBe(2.5)
     })
 
-    test('금융위기 - should be longest duration (negative event)', () => {
-      const event = MARKET_EVENTS.find(e => e.name === '금융위기')
+    test('financial_crisis - should be longest duration (negative event)', () => {
+      const event = MARKET_EVENTS.find(e => e.id === 'financial_crisis')
       expect(event).toBeDefined()
       expect(event.duration).toBe(90_000) // 90초
       expect(event.color).toBe('#F44336') // 빨강
     })
 
-    test('비트코인 급등 - should boost crypto most', () => {
-      const event = MARKET_EVENTS.find(e => e.name === '비트코인 급등')
+    test('bitcoin_surge - should boost crypto most', () => {
+      const event = MARKET_EVENTS.find(e => e.id === 'bitcoin_surge')
       expect(event).toBeDefined()
       expect(event.effects.financial.crypto).toBe(2.5)
       expect(event.duration).toBe(45_000)
     })
 
-    test('암호화폐 규제 - should only affect crypto', () => {
-      const event = MARKET_EVENTS.find(e => e.name === '암호화폐 규제')
+    test('crypto_regulation - should only affect crypto', () => {
+      const event = MARKET_EVENTS.find(e => e.id === 'crypto_regulation')
       expect(event).toBeDefined()
       expect(Object.keys(event.effects.financial)).toHaveLength(1)
       expect(event.effects.financial.crypto).toBe(0.7)

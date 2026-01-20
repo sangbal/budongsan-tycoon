@@ -590,19 +590,19 @@ function updateStatsLockStates(deps) {
 
   // 금융상품 잠금 상태
   const statsProductMap = {
-    savings: { id: 'savingsOwnedStats', name: '적금' },
-    bond: { id: 'bondsOwnedStats', name: '주식' },
-    usStock: { id: 'usStocksOwnedStats', name: '미국주식' },
-    crypto: { id: 'cryptosOwnedStats', name: '코인' },
+    savings: { id: 'savingsOwnedStats', name: t('product.savings') },
+    bond: { id: 'bondsOwnedStats', name: t('product.bond') },
+    usStock: { id: 'usStocksOwnedStats', name: t('product.usStock') },
+    crypto: { id: 'cryptosOwnedStats', name: t('product.crypto') },
   }
 
   // 부동산 잠금 상태
   const statsPropertyMap = {
-    villa: { id: 'villasOwnedStats', name: '빌라' },
-    officetel: { id: 'officetelsOwnedStats', name: '오피스텔' },
-    apartment: { id: 'apartmentsOwnedStats', name: '아파트' },
-    shop: { id: 'shopsOwnedStats', name: '상가' },
-    building: { id: 'buildingsOwnedStats', name: '빌딩' },
+    villa: { id: 'villasOwnedStats', name: t('product.villa') },
+    officetel: { id: 'officetelsOwnedStats', name: t('product.officetel') },
+    apartment: { id: 'apartmentsOwnedStats', name: t('product.apartment') },
+    shop: { id: 'shopsOwnedStats', name: t('product.shop') },
+    building: { id: 'buildingsOwnedStats', name: t('product.building') },
   }
 
   // 금융상품 잠금 상태 적용

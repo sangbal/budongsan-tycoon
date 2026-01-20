@@ -69,12 +69,14 @@ describe('ProcessingSystem', () => {
     })
 
     it('입력 자원이 충분하면 가공 시작', () => {
+      const ironBefore = resourceSystem.get('iron')
       resourceSystem.add('iron', 10)
 
       system.processBuilding(furnace, furnaceRecipe, 1)
 
       expect(furnace.processing).toBe(true)
-      expect(resourceSystem.get('iron')).toBe(8) // 10 - 2 = 8
+      // ironBefore + 10 (추가) - 2 (레시피 소비) = ironBefore + 8
+      expect(resourceSystem.get('iron')).toBe(ironBefore + 8)
     })
 
     it('입력 자원 부족 시 가공 시작 안됨', () => {
@@ -165,15 +167,17 @@ describe('ProcessingSystem', () => {
     })
 
     it('하나라도 부족하면 false', () => {
-      resourceSystem.add('iron', 2)
+      // 자원을 0으로 리셋 후 2만 추가 (5 미만)
+      resourceSystem.set('iron', 2)
       const recipe = { input: { iron: 5 } }
 
       expect(system.canStartProcessing(recipe)).toBe(false)
     })
 
     it('여러 자원 중 하나라도 부족하면 false', () => {
-      resourceSystem.add('iron', 10)
-      resourceSystem.add('water', 5)
+      // iron은 충분하지만 water가 부족하도록 설정
+      resourceSystem.set('iron', 10)
+      resourceSystem.set('water', 5) // 10 필요, 5만 있음
       const recipe = {
         input: {
           iron: 5,

@@ -24,12 +24,14 @@
    - 생성된 토큰을 복사 (한 번만 표시되므로 안전하게 보관)
 
 2. **PowerShell에서 로그인**:
+
    ```powershell
    $env:SUPABASE_ACCESS_TOKEN="여기에_복사한_토큰_붙여넣기"
    npx supabase login
    ```
 
    또는 토큰을 직접 전달:
+
    ```powershell
    npx supabase login --token "여기에_복사한_토큰_붙여넣기"
    ```
@@ -39,9 +41,11 @@
 ### 방법 B: 브라우저 로그인 (대안)
 
 터미널이 브라우저를 열 수 있다면:
+
 ```powershell
 npx supabase login
 ```
+
 브라우저가 열리면 로그인 진행
 
 ---
@@ -63,6 +67,7 @@ npx supabase link --project-ref <PROJECT_REF>
 ```
 
 예시:
+
 ```powershell
 npx supabase link --project-ref abcdefghijklmnop
 ```
@@ -84,6 +89,7 @@ npx supabase functions deploy delete-account
 ## 📋 5단계: 환경 변수(Secrets) 설정
 
 Edge Function이 필요로 하는 환경 변수:
+
 - `SUPABASE_URL`: Supabase 프로젝트 URL
 - `SUPABASE_ANON_KEY`: Supabase Anon Key
 - `SUPABASE_SERVICE_ROLE_KEY`: Supabase Service Role Key ⚠️ **절대 공유하지 마세요**
@@ -95,6 +101,7 @@ npx supabase secrets set SUPABASE_URL="https://xxxx.supabase.co" SUPABASE_ANON_K
 ```
 
 **값 찾기**:
+
 1. Supabase 대시보드 → **Settings** → **API**
 2. **Project URL**: `SUPABASE_URL`에 사용
 3. **anon public**: `SUPABASE_ANON_KEY`에 사용
@@ -137,18 +144,22 @@ npx supabase functions list
 ## 🔍 문제 해결
 
 ### 로그인 실패
+
 - Access Token이 올바른지 확인
 - 토큰이 만료되지 않았는지 확인 (대시보드에서 재생성 가능)
 
 ### 프로젝트 연결 실패
+
 - PROJECT_REF가 올바른지 확인
 - 프로젝트에 대한 권한이 있는지 확인
 
 ### 함수 배포 실패
+
 - `supabase/functions/delete-account/index.ts` 파일이 존재하는지 확인
 - 함수 이름이 정확한지 확인 (`delete-account`)
 
 ### Secrets 설정 실패
+
 - 키 값이 올바른지 확인 (따옴표 포함)
 - 대시보드에서 직접 설정하는 방법 시도
 
@@ -163,20 +174,3 @@ npx supabase functions list
 - [ ] 배포 확인 완료
 
 모든 단계 완료 후 E2E 테스트를 진행하세요!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -237,13 +237,11 @@ async function initGame() {
     // Initialize FPS monitor (DEV only)
     fpsMonitor.init()
 
+    // Check and auto-start tutorial (게임 루프 시작 전에 실행)
+    checkAutoStartTutorial()
+
     // Start game loop
     startGameLoop()
-
-    // Check and auto-start tutorial
-    setTimeout(() => {
-      checkAutoStartTutorial()
-    }, 500)
   } catch (error) {
     console.error('[KIMCHI INVASION] Initialization failed:', error)
     updateLoadingProgress(0, `Error: ${error.message}`)

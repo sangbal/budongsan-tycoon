@@ -1,5 +1,12 @@
 {
-  "tech_stack": ["JavaScript", "Vite", "Supabase", "LocalStorage", "Google OAuth", "Playwright (testing)"],
+  "tech_stack": [
+    "JavaScript",
+    "Vite",
+    "Supabase",
+    "LocalStorage",
+    "Google OAuth",
+    "Playwright (testing)"
+  ],
   "features": [
     {
       "name": "Game State Management",
@@ -54,12 +61,22 @@
     {
       "name": "Internationalization",
       "description": "Multi-language support (Korean/English)",
-      "files": ["seoulsurvival/src/i18n/index.js", "seoulsurvival/src/i18n/translations/ko.js", "seoulsurvival/src/i18n/translations/en.js"]
+      "files": [
+        "seoulsurvival/src/i18n/index.js",
+        "seoulsurvival/src/i18n/translations/ko.js",
+        "seoulsurvival/src/i18n/translations/en.js"
+      ]
     },
     {
       "name": "Balance Configuration",
       "description": "Game balance constants for careers, prices, upgrades",
-      "files": ["seoulsurvival/src/balance/index.js", "seoulsurvival/src/balance/career.js", "seoulsurvival/src/balance/financial.js", "seoulsurvival/src/balance/property.js", "seoulsurvival/src/balance/upgrades.js"]
+      "files": [
+        "seoulsurvival/src/balance/index.js",
+        "seoulsurvival/src/balance/career.js",
+        "seoulsurvival/src/balance/financial.js",
+        "seoulsurvival/src/balance/property.js",
+        "seoulsurvival/src/balance/upgrades.js"
+      ]
     }
   ]
 }

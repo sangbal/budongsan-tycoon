@@ -102,9 +102,9 @@ export function updateCareerUI({
         elCareerProgress.style.width = '100%'
         elCareerProgress.setAttribute('aria-valuenow', 100)
       }
-      safeText(elCareerProgressText, '100% (완료)')
+      safeText(elCareerProgressText, t('ui.careerCompleted'))
       if (elCareerRemaining) {
-        safeText(elCareerRemaining, '최고 직급 달성')
+        safeText(elCareerRemaining, t('ui.careerMaxLevel'))
       }
     }
   } catch (e) {

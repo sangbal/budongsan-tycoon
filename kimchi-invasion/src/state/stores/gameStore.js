@@ -57,6 +57,8 @@ const DEFAULT_RESOURCES = {
   water: 0,
   salt: 0,
   ice: 0,
+  regolith: 0, // 화성 토양
+  sand: 0,
   energy: 50, // 초기 에너지
   cabbage: 0,
   radish: 0,

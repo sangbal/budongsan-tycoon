@@ -135,7 +135,7 @@ function generateTile(x, y) {
     }
   } else if (noise > 0.85) {
     type = 'ice'
-    resource = 'ice'
+    resource = 'water' // 얼음 해동 → 물
   } else if (noise > 0.75) {
     type = 'sand'
   }

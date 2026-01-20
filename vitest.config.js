@@ -44,6 +44,7 @@ export default defineConfig({
     alias: {
       '@shared': path.resolve(__dirname, './shared'),
       '@seoulsurvival': path.resolve(__dirname, './seoulsurvival/src'),
+      '@kimchi-invasion': path.resolve(__dirname, './kimchi-invasion/src'),
       '@mma-manager': path.resolve(__dirname, './mma-manager/src'),
     },
   },

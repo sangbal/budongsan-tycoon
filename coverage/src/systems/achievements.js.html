@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -91,19 +91,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// 업적 시스템
 &nbsp;
@@ -111,20 +111,20 @@
  * @param {Array&lt;{unlocked:boolean, condition:Function, name:string, desc:string}&gt;} achievements
  * @param {{notify:(achievement:any)=&gt;void, addLog:(msg:string)=&gt;void}} deps
  */
-export function <span class="fstat-no" title="function not covered" >createAchievementsSystem(</span>achievements, deps) {
-  const { notify, addLog } = <span class="cstat-no" title="statement not covered" >deps</span>
+export function createAchievementsSystem(achievements, deps) {
+  const { notify, addLog } = deps
 &nbsp;
-  function <span class="fstat-no" title="function not covered" >checkAchievements(</span>) {
-<span class="cstat-no" title="statement not covered" >    achievements.forEach(<span class="fstat-no" title="function not covered" >achievement </span>=&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      if (!achievement.unlocked &amp;&amp; achievement.condition()) {</span>
-<span class="cstat-no" title="statement not covered" >        achievement.unlocked = true</span>
-<span class="cstat-no" title="statement not covered" >        notify(achievement)</span>
-<span class="cstat-no" title="statement not covered" >        addLog(`🏆 업적 달성: ${achievement.name} - ${achievement.desc}`)</span>
+  function checkAchievements() {
+    achievements.forEach(achievement =&gt; {
+      if (!achievement.unlocked &amp;&amp; achievement.condition()) {
+        achievement.unlocked = true
+        notify(achievement)
+        addLog(`🏆 업적 달성: ${achievement.name} - ${achievement.desc}`)
       }
     })
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return { checkAchievements }</span>
+  return { checkAchievements }
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -133,7 +133,7 @@ export function <span class="fstat-no" title="function not covered" >createAchie
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-10T08:02:03.896Z
+                at 2026-01-18T11:25:57.836Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -77,19 +77,19 @@ describe('ClickMiningSystem', () => {
       expect(system.getResourceId(tile)).toBe('iron')
     })
 
-    it('rock 타입은 iron 매핑', () => {
+    it('rock 타입은 regolith 매핑', () => {
       const tile = { type: 'rock', resource: null }
-      expect(system.getResourceId(tile)).toBe('iron')
+      expect(system.getResourceId(tile)).toBe('regolith')
     })
 
-    it('ice 타입은 ice 매핑', () => {
+    it('ice 타입은 water 매핑', () => {
       const tile = { type: 'ice', resource: null }
-      expect(system.getResourceId(tile)).toBe('ice')
+      expect(system.getResourceId(tile)).toBe('water')
     })
 
-    it('ground 타입은 iron 매핑 (임시)', () => {
+    it('ground 타입은 regolith 매핑', () => {
       const tile = { type: 'ground', resource: null }
-      expect(system.getResourceId(tile)).toBe('iron')
+      expect(system.getResourceId(tile)).toBe('regolith')
     })
 
     it('sand 타입은 sand 매핑', () => {
@@ -246,9 +246,11 @@ describe('ClickMiningSystem', () => {
 
   describe('cleanup()', () => {
     it('입력 이벤트 해제해야 함', () => {
-      system.unsubscribeInput = vi.fn()
+      const mockUnsubscribe = vi.fn()
+      system.unsubscribeInput = mockUnsubscribe
       system.cleanup()
-      expect(system.unsubscribeInput).toHaveBeenCalled()
+      // cleanup() 후 unsubscribeInput이 null로 설정되므로 저장된 spy로 확인
+      expect(mockUnsubscribe).toHaveBeenCalled()
     })
 
     it('모든 리스너 제거해야 함', () => {

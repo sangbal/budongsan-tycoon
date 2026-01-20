@@ -121,7 +121,7 @@ export function showSynergyUnlockNotification(synergyId) {
 
   // 다이어리 로그 (main.js의 addLog 사용)
   if (window.addLog) {
-    window.addLog(`🔗 시너지 활성화: ${t(synergy.nameKey)} - ${t(synergy.descKey)}`)
+    window.addLog(t('msg.synergyActivated', { name: t(synergy.nameKey), desc: t(synergy.descKey) }))
   }
 
   // 파티클 애니메이션 (선택적)

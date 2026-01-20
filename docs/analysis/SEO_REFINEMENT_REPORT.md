@@ -9,6 +9,7 @@
 ### 1) canonical + redirect 정합성 점검 ✅
 
 **현재 상태**:
+
 - 허브홈: `https://clicksurvivor.com/` (trailing slash 포함)
 - 게임: `https://clicksurvivor.com/seoulsurvival/` (trailing slash 포함)
 - 모든 canonical과 og:url이 일치함
@@ -19,6 +20,7 @@
 ### 2) robots.txt 검수 ✅
 
 **현재 상태**:
+
 ```
 User-agent: *
 Allow: /
@@ -29,6 +31,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ```
 
 **검수 결과**:
+
 - ✅ `/og/`, `/assets/` 등 정적 리소스 접근 허용됨
 - ✅ `/account/`는 Disallow (개인정보 관련 페이지)
 - ✅ `/dist/`는 Disallow (빌드 산출물)
@@ -39,6 +42,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ### 3) sitemap.xml 검수 ✅
 
 **현재 상태**:
+
 - 모든 URL이 `https://` 사용
 - trailing slash 정책 통일 (`/`, `/seoulsurvival/`, `/account/`)
 - lastmod 형식: `YYYY-MM-DD` (올바름)
@@ -54,11 +58,13 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ### 4) JSON-LD 개선 ✅
 
 **변경 전**:
+
 ```json
 "sameAs": []
 ```
 
 **변경 후**:
+
 ```json
 "sameAs": [
   "https://twitter.com/ClickSurvivor",
@@ -68,6 +74,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ```
 
 **추가 개선**:
+
 - VideoGame에 `@id` 추가: `"@id": "https://clicksurvivor.com/seoulsurvival/#game"`
 
 **결과**: Organization의 sameAs에 SNS 링크 추가, VideoGame에 @id 추가 완료
@@ -77,14 +84,17 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 **제시한 2안**:
 
 **안 1 (적용됨)**:
+
 - title: `ClickSurvivor | 클릭 기반 생존 게임 스튜디오`
 - description: `ClickSurvivor는 클릭 기반 증분 게임을 제작하는 인디 스튜디오입니다. 대표작 Capital Clicker: SeoulSurvivor를 웹에서 무료로 플레이하세요.`
 
 **안 2 (대안)**:
+
 - title: `ClickSurvivor — 인디 클리커 게임 스튜디오`
 - description: `클릭 기반 증분 게임을 제작하는 ClickSurvivor. 대표작 SeoulSurvivor를 포함한 웹 게임을 무료로 플레이하세요.`
 
 **적용된 변경**:
+
 - title: `—` → `|` (더 명확한 구분)
 - description: "생존·성장 게임" → "증분 게임" (더 정확한 장르 표현)
 - "인디 게임 스튜디오" → "인디 스튜디오" (간결화)
@@ -97,18 +107,21 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ### 1. index.html
 
 **변경 위치 1: <head> - title 태그 (line 85)**
+
 ```diff
 - <title>ClickSurvivor — 클릭 기반 생존 게임 스튜디오</title>
 + <title>ClickSurvivor | 클릭 기반 생존 게임 스튜디오</title>
 ```
 
 **변경 위치 2: <head> - meta description (line 7)**
+
 ```diff
 - <meta name="description" content="ClickSurvivor는 클릭 기반 생존·성장 게임을 제작하는 인디 게임 스튜디오입니다. 대표작: Capital Clicker: SeoulSurvivor. 웹에서 바로 플레이 가능." />
 + <meta name="description" content="ClickSurvivor는 클릭 기반 증분 게임을 제작하는 인디 스튜디오입니다. 대표작 Capital Clicker: SeoulSurvivor를 웹에서 무료로 플레이하세요." />
 ```
 
 **변경 위치 3: <head> - OG/Twitter 메타태그 (line 13-14, 20-21)**
+
 ```diff
 - <meta property="og:title" content="ClickSurvivor — 클릭 기반 생존 게임 스튜디오" />
 - <meta property="og:description" content="ClickSurvivor는 클릭 기반 생존·성장 게임을 제작하는 인디 게임 스튜디오입니다. 대표작: Capital Clicker: SeoulSurvivor. 웹에서 바로 플레이 가능." />
@@ -122,6 +135,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ```
 
 **변경 위치 4: <head> - JSON-LD 스키마 (line 39, 73)**
+
 ```diff
 - "sameAs": []
 + "sameAs": [
@@ -142,16 +156,19 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ## [적용 전/후 차이 요약]
 
 ### 적용 전
+
 - title: `ClickSurvivor — 클릭 기반 생존 게임 스튜디오`
 - description: "생존·성장 게임", "인디 게임 스튜디오", "웹에서 바로 플레이 가능"
 - JSON-LD: sameAs 비어있음, VideoGame에 @id 없음
 
 ### 적용 후
+
 - title: `ClickSurvivor | 클릭 기반 생존 게임 스튜디오` (구분자 변경)
 - description: "증분 게임", "인디 스튜디오", "웹에서 무료로 플레이하세요" (더 정확하고 간결)
 - JSON-LD: sameAs에 SNS 링크 3개 추가, VideoGame에 @id 추가
 
 ### 개선 효과
+
 1. **브랜드 정체성**: 첫 단어 "ClickSurvivor"에서 브랜드 인식 가능
 2. **장르 명확성**: "증분 게임"으로 더 정확한 장르 표현
 3. **간결성**: 불필요한 수식어 제거, 담백한 톤 유지
@@ -227,19 +244,3 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 - [x] 변경사항 문서화
 
 모든 SEO 정밀 점검/보완 작업이 완료되었습니다.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

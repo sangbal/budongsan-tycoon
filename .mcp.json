@@ -1,6 +1,12 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
-  "mcpServers": {},
+  "mcpServers": {
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp"],
+      "description": "Playwright - 브라우저 자동화 및 E2E 테스트"
+    }
+  },
   "_comment": "🎯 MCP 서버 그룹화 완료",
   "_info": {
     "structure": ".claude/skills/ 폴더 구조로 전환됨",

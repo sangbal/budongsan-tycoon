@@ -1,6 +1,7 @@
 // 게임 에러 바운더리
 import { captureError } from '../monitoring/sentry.js'
 import * as Modal from '../ui/modal.js'
+import { toastWarning } from '../ui/toast.js'
 
 /**
  * 게임 에러 처리
@@ -20,15 +21,15 @@ function handleGameError(error, context = 'Unknown', showModal = true) {
   // 사용자에게 에러 알림 (치명적인 경우만)
   if (showModal) {
     Modal.openConfirmModal(
-      t('modal.error.gameError.title') || '오류 발생',
+      t('modal.error.gameError.title') || 'Error Occurred',
       t('modal.error.gameError.message') ||
-        `게임 실행 중 오류가 발생했습니다.\n${error.message}\n\n페이지를 새로고침 하시겠습니까?`,
+        `An error occurred while running the game.\n${error.message}\n\nWould you like to refresh the page?`,
       () => {
         window.location.reload()
       },
       {
-        primaryLabel: t('ui.refresh') || '새로고침',
-        secondaryLabel: t('ui.close') || '닫기',
+        primaryLabel: t('ui.refresh') || 'Refresh',
+        secondaryLabel: t('ui.close') || 'Close',
       }
     )
   }
@@ -113,6 +114,8 @@ export function setupErrorBoundary() {
           tags: { context: 'Save Game' },
           level: 'warning', // 저장 실패는 경고 수준
         })
+        // 사용자에게 토스트로 알림
+        toastWarning(t('error.saveFailed') || 'Game save failed. Will retry shortly.')
         // 저장 실패는 치명적이지 않으므로 에러를 삼킴
       }
     }
@@ -133,6 +136,10 @@ export function setupErrorBoundary() {
               tags: { context: 'Cloud Save' },
               level: 'warning',
             })
+            // 사용자에게 토스트로 알림
+            toastWarning(
+              t('error.cloudSaveFailed') || 'Cloud save failed. Local save is still working.'
+            )
             // 클라우드 저장 실패는 치명적이지 않음
           })
         }
@@ -144,6 +151,10 @@ export function setupErrorBoundary() {
           tags: { context: 'Cloud Save' },
           level: 'warning',
         })
+        // 사용자에게 토스트로 알림
+        toastWarning(
+          t('error.cloudSaveFailed') || 'Cloud save failed. Local save is still working.'
+        )
       }
     }
   }

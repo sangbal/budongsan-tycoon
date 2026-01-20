@@ -1,26 +1,31 @@
 /* 유니폼 디자인 토큰 + Primitive (최소 구현) */
 
+/* HTML hidden 속성 우선 적용 (CSS display 오버라이드 방지) */
+[hidden] {
+  display: none !important;
+}
+
 :root {
   /* 팀컬러 토큰 (기본값 - data-theme로 오버라이드 가능) */
-  --accent: #2DE2E6;
-  --accent2: #FF2E93;
-  --headerTint: rgba(45, 226, 230, 0.10);
+  --accent: #2de2e6;
+  --accent2: #ff2e93;
+  --headerTint: rgba(45, 226, 230, 0.1);
   --heroTint: rgba(45, 226, 230, 0.06);
-  
+
   /* 기본 색상 */
   --bg: #0b0f19;
   --bg-panel: #1a1f2e;
   --text: #ffffff;
   --text-muted: #a0a0a0;
   --border: #2a2f3e;
-  
+
   /* 간격 */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-  
+
   /* 타이포 */
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-size-base: 16px;
@@ -30,12 +35,12 @@
 }
 
 /* SeoulSurvival 테마 토큰 */
-[data-theme="seoulsurvival"] {
+[data-theme='seoulsurvival'] {
   --accent: #5eead4;
-  --accent2: #FF2E93; /* 보조색은 기본값 유지 */
+  --accent2: #ff2e93; /* 보조색은 기본값 유지 */
   --headerTint: rgba(11, 18, 32, 0.95); /* 헤더 그라데이션 기반 */
   --heroTint: rgba(94, 234, 212, 0.06);
-  
+
   /* SeoulSurvival 전용 변수 (게임 내부에서 사용) */
   --bg: #0b1220;
   --bg2: #0f1628;
@@ -51,7 +56,7 @@
   --secondary: #a78bfa;
   --warning: #fbbf24;
   --info: #3b82f6;
-  
+
   /* 공통 변수 매핑 */
   --bg-panel: var(--panel);
   --text-muted: var(--muted);

@@ -294,7 +294,7 @@ export function getPrestigeBonusInfoHTML(t, formatNumber) {
   const towers = gameState.towers_lifetime
 
   if (towers === 0) {
-    return `<p class="prestige-hint">${t('prestige.hint.none', {}, '첫 타워를 획득하면 프레스티지 보너스가 활성화됩니다.')}</p>`
+    return `<p class="prestige-hint">${t('prestige.hint.none', {}, 'Prestige bonuses will activate when you acquire your first tower.')}</p>`
   }
 
   const lines = active.map(bonus => {
@@ -309,10 +309,10 @@ export function getPrestigeBonusInfoHTML(t, formatNumber) {
         effectText = `x${effectValue.multiplier.toFixed(2)}`
         break
       case 'price_reduction':
-        effectText = `x${effectValue.multiplier.toFixed(2)} (${((1 - effectValue.multiplier) * 100).toFixed(0)}% 할인)`
+        effectText = `x${effectValue.multiplier.toFixed(2)} (${((1 - effectValue.multiplier) * 100).toFixed(0)}% ${t('prestige.discount', {}, 'discount')})`
         break
       case 'starting_cash':
-        effectText = `+${formatNumber(effectValue.amount)}원`
+        effectText = `+${formatNumber(effectValue.amount)}`
         break
       case 'upgrade_multiplier':
         effectText = `x${effectValue.multiplier.toFixed(2)}`
@@ -321,7 +321,7 @@ export function getPrestigeBonusInfoHTML(t, formatNumber) {
         effectText = `x${effectValue.multiplier.toFixed(2)}`
         break
       case 'unlock_special':
-        effectText = t('prestige.effect.unlocked', {}, '해금됨')
+        effectText = t('prestige.effect.unlocked', {}, 'Unlocked')
         break
       case 'synergy_boost':
         effectText = `+${((effectValue.multiplier - 1) * 100).toFixed(0)}%`
@@ -333,7 +333,7 @@ export function getPrestigeBonusInfoHTML(t, formatNumber) {
         effectText = `x${effectValue.multiplier.toFixed(2)}`
         break
       default:
-        effectText = '활성'
+        effectText = t('prestige.effect.active', {}, 'Active')
     }
 
     return `

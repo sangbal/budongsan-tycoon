@@ -24,9 +24,7 @@ ClickSurvivor 프로젝트의 모든 게임에서 **SeoulSurvival과 100% 동일
   <!-- 1. Brand Section (Top Left) -->
   <div class="header-brand">
     <!-- 변경 포인트: 아이콘과 게임 제목 -->
-    <span
-      class="brand-icon"
-      style="font-size:16px; margin-right:8px; vertical-align:middle;"
+    <span class="brand-icon" style="font-size:16px; margin-right:8px; vertical-align:middle;"
       >🥬</span
     >
     <span class="brand-text"><b>Kimchi Invasion</b></span>
@@ -41,13 +39,7 @@ ClickSurvivor 프로젝트의 모든 게임에서 **SeoulSurvival과 100% 동일
     </button>
     <!-- 공유 버튼 -->
     <button class="chip share-btn" title="공유하기">
-      <svg
-        class="share-icon"
-        fill="currentColor"
-        viewBox="0 0 24 24"
-        width="16"
-        height="16"
-      >
+      <svg class="share-icon" fill="currentColor" viewBox="0 0 24 24" width="16" height="16">
         <path
           d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"
         />
@@ -57,13 +49,7 @@ ClickSurvivor 프로젝트의 모든 게임에서 **SeoulSurvival과 100% 동일
     <!-- 계정/설정 버튼 -->
     <div class="header-account">
       <button class="chip account-btn" id="headerAccountMenu">
-        <svg
-          class="hamburger-icon"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-        >
+        <svg class="hamburger-icon" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
         </svg>
       </button>

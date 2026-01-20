@@ -13,6 +13,7 @@
 #### 1. Supabase CLI 설치
 
 **Windows (PowerShell):**
+
 ```powershell
 # Scoop 사용 (권장)
 scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
@@ -23,6 +24,7 @@ npm install -g supabase
 ```
 
 **macOS/Linux:**
+
 ```bash
 brew install supabase/tap/supabase
 # 또는
@@ -103,6 +105,7 @@ curl -X POST https://<PROJECT_REF>.supabase.co/functions/v1/delete-account \
 ### 예상 응답
 
 **성공:**
+
 ```json
 {
   "status": "ALL_SUCCESS"
@@ -110,6 +113,7 @@ curl -X POST https://<PROJECT_REF>.supabase.co/functions/v1/delete-account \
 ```
 
 **실패 (인증 오류):**
+
 ```json
 {
   "status": "AUTH_FAILED",
@@ -122,20 +126,3 @@ curl -X POST https://<PROJECT_REF>.supabase.co/functions/v1/delete-account \
 - ⚠️ `SUPABASE_SERVICE_ROLE_KEY`는 절대 프론트엔드 코드에 포함하지 마세요
 - ⚠️ 환경 변수는 Supabase 대시보드에서만 설정하세요
 - ⚠️ 함수 배포 후 반드시 테스트 계정으로 검증하세요
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

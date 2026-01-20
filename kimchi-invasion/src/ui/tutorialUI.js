@@ -158,6 +158,13 @@ export class TutorialUI {
         }
       }
     )
+
+    // 현재 상태 즉시 반영 (구독 설정 전에 이미 열린 모달이 있을 수 있음)
+    const currentModal = useUIStore.getState().activeModal
+    if (currentModal?.startsWith('tutorial-')) {
+      console.log(`[TutorialUI] Initial modal state: ${currentModal}`)
+      this.showModal(currentModal)
+    }
   }
 
   // ========================================================================
@@ -317,6 +324,33 @@ export class TutorialUI {
     }
 
     this.goalPanel?.classList.remove('hidden')
+  }
+
+  /**
+   * 목표 진행률만 업데이트 (DOM 직접 수정)
+   * @description modalData 변경 없이 objectives UI만 갱신
+   * @param {Array} objectives - [{ id, label, target, current }, ...]
+   */
+  updateGoalProgress(objectives) {
+    const objectivesEl = document.getElementById('tutorial-goal-objectives')
+    if (!objectivesEl || !objectives) return
+
+    objectivesEl.innerHTML = objectives
+      .map(obj => {
+        const progress = Math.min((obj.current / obj.target) * 100, 100)
+        return `
+        <div class="tutorial-objective">
+          <div class="objective-label">
+            <span>${obj.label}</span>
+            <span class="objective-counter">${obj.current} / ${obj.target}</span>
+          </div>
+          <div class="objective-progress">
+            <div class="objective-progress-bar" style="width: ${progress}%"></div>
+          </div>
+        </div>
+      `
+      })
+      .join('')
   }
 
   /**

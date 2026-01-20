@@ -190,5 +190,130 @@ describe('createCareerSystem', () => {
       // 애니메이션 트리거 확인
       expect(workArea.style.transition).toBeTruthy()
     })
+
+    it('bgImage가 있는 경우 배경 이미지 URL 적용', async () => {
+      vi.useFakeTimers()
+
+      // 상태를 추적하는 mock 생성
+      let currentLevel = 0
+      deps.getCareerLevel = vi.fn(() => currentLevel)
+      deps.setCareerLevel = vi.fn(level => {
+        currentLevel = level
+      })
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      const workArea = document.getElementById('workArea')
+      careerSystem.checkCareerPromotion()
+
+      // 300ms 타이머 진행 (setTimeout 내부 실행)
+      await vi.advanceTimersByTimeAsync(300)
+
+      // bgImage URL이 적용되었는지 확인
+      expect(workArea.style.backgroundImage).toContain('url(')
+      expect(workArea.style.backgroundImage).toContain('gyeyakjik.png')
+
+      vi.useRealTimers()
+    })
+
+    it('bgImage가 없는 경우 그라디언트 배경 적용', async () => {
+      vi.useFakeTimers()
+
+      // bgImage 없는 직급 레벨 생성
+      const careerLevelsNoBg = [
+        { nameKey: 'career.alba', multiplier: 1, requiredClicks: 0 }, // no bgImage
+        { nameKey: 'career.gyeyakjik', multiplier: 2, requiredClicks: 100 }, // no bgImage
+      ]
+
+      deps.CAREER_LEVELS = careerLevelsNoBg
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      const workArea = document.getElementById('workArea')
+      careerSystem.checkCareerPromotion()
+
+      // 300ms 타이머 진행
+      await vi.advanceTimersByTimeAsync(300)
+
+      // 그라디언트 배경이 적용되었는지 확인
+      expect(workArea.style.backgroundImage).toContain('radial-gradient')
+
+      vi.useRealTimers()
+    })
+
+    it('직급 카드 애니메이션 적용', async () => {
+      vi.useFakeTimers()
+
+      // career-card 요소 추가
+      document.body.innerHTML = `
+        <div id="workArea"></div>
+        <div class="career-card"></div>
+      `
+      deps.getElWorkArea = vi.fn(() => document.getElementById('workArea'))
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      careerSystem.checkCareerPromotion()
+
+      const careerCard = document.querySelector('.career-card')
+      expect(careerCard.style.animation).toBe('none')
+
+      // 10ms 타이머 진행
+      await vi.advanceTimersByTimeAsync(10)
+
+      expect(careerCard.style.animation).toContain('careerPromotion')
+
+      vi.useRealTimers()
+    })
+
+    it('스크린 리더용 aria-label 업데이트', () => {
+      // currentCareer 요소 추가
+      document.body.innerHTML = `
+        <div id="workArea"></div>
+        <div id="currentCareer"></div>
+      `
+      deps.getElWorkArea = vi.fn(() => document.getElementById('workArea'))
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      careerSystem.checkCareerPromotion()
+
+      const currentCareerEl = document.getElementById('currentCareer')
+      expect(currentCareerEl.getAttribute('aria-label')).toContain('승진')
+    })
+
+    it('workArea가 null이면 에러 없이 처리', () => {
+      deps.getElWorkArea = vi.fn(() => null)
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      // 에러 없이 승진 처리
+      expect(() => careerSystem.checkCareerPromotion()).not.toThrow()
+      expect(deps.setCareerLevel).toHaveBeenCalledWith(1)
+    })
+
+    it('career-card가 없어도 에러 없이 처리', () => {
+      document.body.innerHTML = '<div id="workArea"></div>'
+      deps.getElWorkArea = vi.fn(() => document.getElementById('workArea'))
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      expect(() => careerSystem.checkCareerPromotion()).not.toThrow()
+    })
+
+    it('currentCareer 요소가 없어도 에러 없이 처리', () => {
+      document.body.innerHTML = '<div id="workArea"></div>'
+      deps.getElWorkArea = vi.fn(() => document.getElementById('workArea'))
+      deps.getCareerLevel = vi.fn(() => 0)
+      deps.getTotalClicks = vi.fn(() => 100)
+      careerSystem = createCareerSystem(deps)
+
+      expect(() => careerSystem.checkCareerPromotion()).not.toThrow()
+    })
   })
 })

@@ -4,9 +4,13 @@
     "github": {
       "command": "powershell",
       "args": [
-        "-ExecutionPolicy", "Bypass",
-        "-File", ".mcp/load-env-and-run.ps1",
-        "npx", "-y", "@modelcontextprotocol/server-github"
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        ".mcp/load-env-and-run.ps1",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
       ],
       "description": "GitHub - 저장소 관리, 이슈, PR, Actions (GITHUB_TOKEN 필요)"
     },
@@ -18,9 +22,13 @@
     "testsprite": {
       "command": "powershell",
       "args": [
-        "-ExecutionPolicy", "Bypass",
-        "-File", ".mcp/load-env-and-run.ps1",
-        "npx", "-y", "@testsprite/testsprite-mcp@latest"
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        ".mcp/load-env-and-run.ps1",
+        "npx",
+        "-y",
+        "@testsprite/testsprite-mcp@latest"
       ],
       "env": {
         "API_KEY": "${TESTSPRITE_API_KEY}"

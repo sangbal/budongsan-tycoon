@@ -501,20 +501,17 @@
 ### 원인 분석
 
 1. **MutationObserver 무한 루프 (주요 원인)**
-
    - `shared/shell/header.js`의 `setupDrawerNavLinks()` 함수가 `replaceChild()`로 DOM을 변경
    - `MutationObserver`가 이 변경을 감지하여 다시 `setupDrawerNavLinks()` 호출
    - 무한 루프로 브라우저 메인 스레드 블로킹
    - 코드 위치: `shared/shell/header.js:397-419` (이전 버전)
 
 2. **applyLang()의 history.replaceState 무한 루프 가능성**
-
    - `shared/i18n/lang.js`의 `applyLang()` 함수가 `history.replaceState()` 호출
    - URL 변경이 다시 `applyLang()`를 트리거할 수 있는 구조
    - 여러 곳에서 `applyLang()`가 반복 호출되면서 무한 루프 가능성
 
 3. **localStorage 접근 실패 시 예외 처리 부재**
-
    - `getInitialLang()`에서 `localStorage.getItem()` 호출 시 예외 처리 없음
    - 일부 환경(시크릿 모드, 쿠키 차단 등)에서 접근 실패 시 스크립트 중단 가능
 
@@ -524,37 +521,33 @@
 ### 해결 방법
 
 1. **MutationObserver 완전 제거 → 이벤트 위임으로 변경**
-
    - `setupDrawerNavLinks()` 함수와 `MutationObserver` 완전 제거
    - 이벤트 위임 패턴 사용: `.drawer-nav`에 한 번만 리스너 등록
    - 코드 변경:
      ```javascript
      // 이전: MutationObserver + replaceChild (무한 루프)
      // 이후: 이벤트 위임 (무한 루프 방지)
-     const drawerNav = document.querySelector(".drawer-nav");
+     const drawerNav = document.querySelector('.drawer-nav')
      if (drawerNav) {
-       drawerNav.addEventListener("click", (e) => {
-         if (e.target.closest(".drawer-nav-link")) {
-           closeDrawer();
+       drawerNav.addEventListener('click', e => {
+         if (e.target.closest('.drawer-nav-link')) {
+           closeDrawer()
          }
-       });
+       })
      }
      ```
 
 2. **applyLang()의 history.replaceState 호출 비활성화**
-
    - URL 업데이트 로직을 주석 처리하여 무한 루프 가능성 제거
    - 필요 시 나중에 다시 활성화 가능하도록 주석으로 보존
    - 코드 위치: `shared/i18n/lang.js:89-118`
 
 3. **localStorage 접근 에러 처리 추가**
-
    - `getInitialLang()`에 try-catch 추가, 실패 시 기본값 'ko' 반환
    - `localStorage.setItem()`에도 try-catch 추가
    - 코드 위치: `shared/i18n/lang.js:28-43, 81-87`
 
 4. **header.js의 getActiveLang() 호출 보호**
-
    - `renderHeader()` 함수에서 `getActiveLang()` 호출을 try-catch로 보호
    - `applyLang()` 호출도 try-catch로 보호
    - 코드 위치: `shared/shell/header.js:27-35, 115, 123, 217`
@@ -600,13 +593,11 @@
 ### 작업 내용
 
 1. **초기화 순서 문제 해결**
-
    - `games/main.js`에서 `initCommonShell()`이 `async`인데 `await` 없이 호출되어 헤더/푸터 렌더링 완료 전에 초기 렌더링이 실행되는 문제 수정
    - IIFE(async)로 변경하여 `await initCommonShell()` 후 초기 렌더링 실행
    - 필터 탭 이벤트 리스너를 초기화 블록 안으로 이동하여 DOM 준비 후 실행
 
 2. **Auth 초기화 타임아웃 보호**
-
    - `shared/shell/header.js`의 `getUser()` 호출에 3초 타임아웃 추가 (`Promise.race`)
    - Auth 초기화 실패 시에도 guest 상태로 표시하여 페이지 로딩 차단 방지
    - try-catch로 오류 처리 강화
@@ -632,18 +623,15 @@
 ### 작업 내용
 
 1. **sitemap.xml 확장**
-
    - `/games/`, `/games/seoulsurvival/`, `/patch-notes/`, `/support/` 추가
    - 각 페이지별 priority/changefreq 설정 (게임 스토어/상세: 0.8~0.9, 패치노트: 0.7, 지원: 0.5)
 
 2. **허브 홈 내부 링크 강화**
-
    - 헤더 nav에 "게임 목록", "패치노트" 링크 추가
    - 푸터 게임 섹션에 "게임 목록" 링크 추가, 지원 섹션에 "패치노트" 링크 추가
    - 사이트 구조를 크롤러/사용자에게 더 명확하게 노출
 
 3. **서브 페이지 SEO 메타 정리**
-
    - `games/index.html`: robots meta 추가 (`index,follow`)
    - `games/seoulsurvival/index.html`: robots meta 추가, OG 이미지 경로 정규화 (`og-seoulsurvivor.png` → `seoulsurvivor-1200x630.png`)
    - `patch-notes/index.html`: robots meta 추가, OG 이미지 버전 쿼리 업데이트 (`2025-01-XX` → `2025-12-22`)
@@ -676,7 +664,6 @@
 ### 작업 내용
 
 1. **허브 홈 메타/OG/Twitter/Canonical/Robots 정렬**
-
    - `<title>`: "ClickSurvivor 허브 | Capital Clicker: Seoul Survival" (브랜드+핵심키워드+가치제안)
    - `<meta name="description">`: 허브 역할 + 다중 게임 + 계정/랭킹 가치제안 카피
    - `<link rel="canonical" href="https://clicksurvivor.com/" />` 추가
@@ -686,7 +673,6 @@
    - `<meta name="theme-color" content="#0b0f19" />` 추가
 
 2. **구조화 데이터(JSON-LD) 추가**
-
    - `Organization` (ClickSurvivor 브랜드)
    - `WebSite` (SearchAction 포함: `/games/?q={search_term_string}`)
    - `ItemList` (대표 게임: Capital Clicker: Seoul Survival을 VideoGame으로 표현)
@@ -711,31 +697,26 @@
 ### 작업 내용
 
 1. **Auth 상태머신 구현**
-
    - `shared/auth/state.js` 생성: 단일 진실 소스 (loading | guest | authed | error)
    - `getAuthState()`, `refreshAuth()`, `subscribeAuth()` 함수 제공
    - publish/subscribe 구조로 상태 변경 시 자동 UI 업데이트
 
 2. **공통 i18n 유틸 공용화**
-
    - `shared/i18n/lang.js` 생성: hub/i18n.js 재사용
    - `getActiveLang()`, `t()`, `applyLang()` 함수 제공
 
 3. **공통 Shell 컴포넌트화**
-
    - `shared/shell/header.js`: 공통 헤더/드로어 컴포넌트
    - `shared/shell/footer.js`: 공통 푸터 컴포넌트
    - 모든 페이지에서 동일한 헤더/푸터 사용
 
 4. **페이지별 공통 컴포넌트 적용**
-
    - `index.html`: 헤더/푸터를 마운트 포인트로 변경
    - `hub/main.js`: 공통 헤더/푸터 렌더링 로직 추가
    - `account/index.html`: 헤더/푸터를 마운트 포인트로 변경
    - `account/main.js` 생성: 공통 헤더/푸터 렌더링
 
 5. **Auth 상태머신 규칙 적용**
-
    - loading: "Checking session…"만 노출
    - guest: Login 버튼만 노출, Logout/로그인됨/Provider 정보 절대 노출 금지
    - authed: Profile + Logout만 노출, Login 버튼 절대 노출 금지
@@ -771,20 +752,17 @@
 ### 작업 내용
 
 1. **레지스트리 확장**
-
    - `hub/games.registry.js`에 Steam 스토어 페이지에 필요한 필드 추가
    - keyFeatures, about, support, screenshots, patchNotePreview 등 상세 콘텐츠 필드 추가
    - 다국어 지원 구조 개선 (tags를 객체 배열로 변경)
 
 2. **/games/ 페이지 Steam 스타일 재구현**
-
    - Featured Hero 섹션: 레지스트리 기반 동적 렌더링
    - Browse 섹션: playable/comingSoon 탭 필터 + 검색 기능
    - All Titles 그리드: 반응형 카드 레이아웃 (1~4열)
    - 카드 CTA: playable → "자세히 보기" + "지금 플레이", comingSoon → "자세히 보기"만
 
 3. **/games/seoulsurvival/ Steam 스토어 페이지 스타일 구현**
-
    - 2컬럼 레이아웃: Left(메인 콘텐츠) + Right(사이드바)
    - Left: Hero media → Screenshots 갤러리 → About → Key Features → Updates preview → Support
    - Right: Title/Tags/Summary/CTA + 지원 환경 요약
@@ -815,31 +793,26 @@
 ### 작업 내용
 
 1. **게임 레지스트리 시스템 구축**
-
    - `hub/games.registry.js` 생성: 단일 소스로 모든 게임 정보 관리
    - 필드: slug, title(ko/en), tagline, status(playable/comingSoon/hidden), featured, playPath, storePath, coverImage, tags, updatedAt
    - 유틸 함수: getGame, getPlayableGames, getComingSoonGames, getVisibleGames, getFeaturedGame, getRecentlyUpdatedGames
 
 2. **신규 페이지 3개 추가**
-
    - `/games/`: 게임 카탈로그 (검색/필터, 카드 리스트)
    - `/patch-notes/`: 전역 패치노트 (RELEASE_NOTES.md 기반, 정적 MVP)
    - `/games/seoulsurvival/`: 게임 상세 페이지 (스크린샷, 기능, 패치노트 요약)
 
 3. **허브 홈 리디자인**
-
    - 히어로: 레지스트리 기반 Featured 게임 동적 렌더링
    - All Games 섹션: 최대 6개 게임 카드 (가로 스크롤)
    - Recently Updated 섹션: 최대 3개 게임 카드 (updatedAt 기준)
    - `hub/home.js` 추가: 게임 렌더링 로직 분리
 
 4. **드로어 네비게이션 정리**
-
    - 게임 목록, 패치노트 링크 추가
    - 푸터 링크 정리 (게임 목록, 패치노트 추가)
 
 5. **SEO/OG 메타태그**
-
    - 신규 페이지 모두 canonical/og:url/og:image 설정
    - OG 이미지 캐시 파라미터 규칙 준수 (v=YYYY-MM-DD)
 
@@ -870,19 +843,16 @@
 ### 작업 내용
 
 1. **닉네임 회수(Release) 정책 적용**
-
    - `releaseNickname()` 함수 구현 (`shared/leaderboard.js`)
    - `release_nickname` RPC 함수 추가 (`supabase/nickname_registry.sql`)
    - 계정 탈퇴 시 자동 닉네임 회수 (`shared/auth/deleteAccount.js`)
 
 2. **마이그레이션 충돌 UX 강제**
-
    - `needsNicknameChange` 플래그 시스템 구현 (`localStorage`)
    - 설정 탭 진입 시 충돌 감지 시 닉네임 변경 모달 자동 오픈
    - 충돌 배너 표시 (`seoulsurvival/index.html`, `seoulsurvival/src/main.js`)
 
 3. **문서 정리**
-
    - README.md: 닉네임 정책 섹션 추가
    - ARCHITECTURE.md: Nickname System 섹션 추가 (테이블/RPC/플로우 설명)
 
@@ -1089,7 +1059,6 @@
 ## 2025-12-19
 
 - **[hub] 계정 삭제(회원 탈퇴) 기능 구현**
-
   - 보안 원칙 준수:
     - Service Role Key는 절대 프론트엔드에 포함하지 않음
     - 계정 삭제는 Supabase Edge Function에서만 수행 (`supabase/functions/delete-account/index.ts`)
@@ -1108,7 +1077,6 @@
   - 리스크 설계 문서: `docs/account-deletion-risks.md`에 10개 리스크 항목 정리 (현상/원인/대응/사용자 안내/테스트 방법)
 
 - **[hub] 리스크 점검 및 보완 (계정 관리/회원 탈퇴 기능)**
-
   - LocalStorage 삭제 범위 정확화:
     - 실제 사용 키 확인: `clicksurvivor-auth` (인증), `clicksurvivor_lang` (언어), `seoulTycoonSaveV1` (게임 저장)
     - 삭제 정책 변경: 계정/세이브 관련 키만 삭제, 언어 설정(`clicksurvivor_lang`)은 유지
@@ -1129,7 +1097,6 @@
   - 프로덕션 문구 확인: footer의 개발자용 문구는 이미 `display: none` 처리되어 안전
 
 - **[hub] 계정 관리 보강 및 회원 탈퇴 기능 구현**
-
   - 계정 관리 UI 보강:
     - 로그인 상태일 때 이메일/표시명 노출 (`authUserEmail`, `authUserName`)
     - 프로덕션 문구 정리: "SSO 설정 필요" → "게스트 모드입니다. 로그인하면 기기 간 이어하기/랭킹 참여가 가능합니다."
@@ -1185,7 +1152,6 @@
   - `resetGame()`에서 닉네임 입력 로직 제거, reload 후 `ensureNicknameModal()`이 처리하도록 변경
   - `openConfirmModal()`에 `onCancel` 옵션 추가하여 기존 호출부 호환성 유지
 - **[seoulsurvival] 리더보드 시스템 구현**
-
   - 닉네임 입력 시스템:
     - 게임 새로 시작 시 닉네임 입력 모달 팝업
     - 닉네임은 게임 세이브 데이터에 포함 (`saveData.nickname`)
@@ -1210,7 +1176,6 @@
     - `updateLeaderboardUI()`: API 호출/응답 로그
 
 - **[seoulsurvival] PC 레이아웃/랭킹 탭 UX 개편**
-
   - PC에서 노동/투자/통계/랭킹/설정을 5패널 한 줄 멀티 컬럼 레이아웃으로 정렬하고, 각 패널 내부만 세로 스크롤되도록 조정.
   - 리더보드/업적/내 순위 UI를 통계 탭에서 분리해 전용 랭킹 탭(`rankingTab`)으로 이동, 내 닉네임 하이라이트 및 RPC 기반 내 순위 조회 추가.
   - IntersectionObserver 기반으로 랭킹 패널이 실제 화면에 보이는 동안에만 리더보드 폴링 수행(PC), 모바일은 하단 네비 + active 탭 기준 유지.

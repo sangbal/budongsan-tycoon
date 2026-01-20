@@ -14,12 +14,12 @@
 
 ## 📊 기본 환경 점검 결과
 
-| 항목 | 버전 | 상태 |
-|------|------|------|
-| Node.js | v24.12.0 | ✅ (20 이상 요구사항 충족) |
-| npm | 11.6.2 | ✅ |
-| npx | 11.6.2 | ✅ |
-| Supabase CLI | 2.67.2 (npx) | ✅ |
+| 항목         | 버전         | 상태                       |
+| ------------ | ------------ | -------------------------- |
+| Node.js      | v24.12.0     | ✅ (20 이상 요구사항 충족) |
+| npm          | 11.6.2       | ✅                         |
+| npx          | 11.6.2       | ✅                         |
+| Supabase CLI | 2.67.2 (npx) | ✅                         |
 
 ---
 
@@ -36,10 +36,12 @@
 ### 현재 상태: ⚠️ **수동 진행 필요**
 
 **완료된 단계**:
+
 - ✅ 환경 점검 완료
 - ✅ Supabase CLI 실행 가능 (npx)
 
 **수동 진행 필요**:
+
 - ⏳ Supabase 로그인 (Access Token 필요)
 - ⏳ 프로젝트 연결 (PROJECT_REF 필요)
 - ⏳ Edge Function 배포
@@ -94,17 +96,20 @@ npx supabase functions deploy delete-account
 ### 6단계: 환경 변수(Secrets) 설정
 
 **값 찾기**:
+
 1. Supabase 대시보드 → **Settings** → **API**
 2. **Project URL**: `SUPABASE_URL`에 사용
 3. **anon public**: `SUPABASE_ANON_KEY`에 사용
 4. **service_role secret**: `SUPABASE_SERVICE_ROLE_KEY`에 사용 ⚠️
 
 **CLI로 설정**:
+
 ```powershell
 npx supabase secrets set SUPABASE_URL="https://xxxx.supabase.co" SUPABASE_ANON_KEY="eyJ..." SUPABASE_SERVICE_ROLE_KEY="eyJ..."
 ```
 
 **또는 대시보드에서 설정**:
+
 1. Supabase 대시보드 → **Edge Functions** 클릭
 2. `delete-account` 함수 선택
 3. **Settings** 탭 클릭
@@ -144,20 +149,3 @@ npx supabase secrets set SUPABASE_URL="https://xxxx.supabase.co" SUPABASE_ANON_K
 - [ ] 배포 확인 완료
 
 모든 단계 완료 후 E2E 테스트를 진행하세요!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

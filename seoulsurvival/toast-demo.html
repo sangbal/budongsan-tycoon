@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="seoulsurvival">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toast Notification Demo - Seoul Survival</title>
+  <link rel="stylesheet" href="/shared/styles/uniform-core.css">
+  <style>
+    body {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+
+    .demo-section {
+      background: var(--bg-panel);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .demo-section h2 {
+      margin-top: 0;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .demo-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .demo-btn:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    .demo-btn.error {
+      background: var(--bad);
+      color: white;
+    }
+
+    .demo-btn.success {
+      background: var(--good);
+      color: white;
+    }
+
+    .demo-btn.info {
+      background: var(--info);
+      color: white;
+    }
+
+    .demo-btn.warning {
+      background: var(--warning);
+      color: var(--bg);
+    }
+
+    .demo-input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .demo-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .code-block {
+      background: var(--bg);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    .mobile-tab-bar-demo {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-panel);
+      border-top: 2px solid var(--border);
+      padding: 10px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍞 Toast Notification Demo</h1>
+
+  <div class="demo-section">
+    <h2>기본 타입</h2>
+    <div class="button-group">
+      <button class="demo-btn error" onclick="showErrorToast()">
+        ⚠️ Error Toast
+      </button>
+      <button class="demo-btn success" onclick="showSuccessToast()">
+        ✅ Success Toast
+      </button>
+      <button class="demo-btn info" onclick="showInfoToast()">
+        ℹ️ Info Toast
+      </button>
+      <button class="demo-btn warning" onclick="showWarningToast()">
+        ⚠️ Warning Toast
+      </button>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>커스텀 메시지 & Duration</h2>
+    <label class="demo-label">메시지</label>
+    <input type="text" id="customMessage" class="demo-input" placeholder="토스트 메시지를 입력하세요" value="커스텀 메시지입니다!">
+
+    <label class="demo-label">Duration (ms)</label>
+    <input type="number" id="customDuration" class="demo-input" placeholder="3000" value="3000">
+
+    <div class="button-group">
+      <button class="demo-btn error" onclick="showCustomToast('error')">
+        Error
+      </button>
+      <button class="demo-btn success" onclick="showCustomToast('success')">
+        Success
+      </button>
+      <button class="demo-btn info" onclick="showCustomToast('info')">
+        Info
+      </button>
+      <button class="demo-btn warning" onclick="showCustomToast('warning')">
+        Warning
+      </button>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>중복 방지 테스트</h2>
+    <button class="demo-btn info" onclick="testDuplicatePrevention()">
+      같은 메시지 5번 호출 (1개만 표시됨)
+    </button>
+  </div>
+
+  <div class="demo-section">
+    <h2>여러 개 동시 표시</h2>
+    <button class="demo-btn info" onclick="testMultipleToasts()">
+      4가지 타입 순차 표시
+    </button>
+  </div>
+
+  <div class="demo-section">
+    <h2>실제 사용 사례</h2>
+    <div class="button-group">
+      <button class="demo-btn success" onclick="simulateSaveSuccess()">
+        💾 게임 저장 성공
+      </button>
+      <button class="demo-btn error" onclick="simulateSaveError()">
+        ❌ 게임 저장 실패
+      </button>
+      <button class="demo-btn warning" onclick="simulateCloudError()">
+        ☁️ 클라우드 저장 실패
+      </button>
+      <button class="demo-btn error" onclick="simulateQuotaError()">
+        💽 저장 공간 부족
+      </button>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>긴 메시지 테스트</h2>
+    <button class="demo-btn info" onclick="testLongMessage()">
+      긴 메시지 표시
+    </button>
+  </div>
+
+  <div class="demo-section">
+    <h2>모든 토스트 제거</h2>
+    <button class="demo-btn warning" onclick="clearAll()">
+      🗑️ Clear All Toasts
+    </button>
+  </div>
+
+  <div class="demo-section">
+    <h2>사용 예시 코드</h2>
+    <div class="code-block">
+// 기본 사용<br>
+window.toast.success('게임이 저장되었습니다.')<br>
+window.toast.error('저장에 실패했습니다.')<br>
+<br>
+// Duration 커스터마이징<br>
+window.toast.info('5초간 표시', 5000)<br>
+<br>
+// 다국어 지원<br>
+window.toast.error(t('error.saveFailed'))<br>
+    </div>
+  </div>
+
+  <!-- 모바일 탭바 데모 (위치 확인용) -->
+  <div class="mobile-tab-bar-demo">
+    📱 모바일 탭바 (토스트는 이 위에 표시됨)
+  </div>
+
+  <script type="module">
+    // Toast 모듈 import
+    import { createToast, toastSuccess, toastError, toastInfo, toastWarning, clearAllToasts, testToasts } from './src/ui/toast.js'
+
+    // window 객체에 함수 연결
+    window.createToast = createToast
+    window.toast = {
+      success: toastSuccess,
+      error: toastError,
+      info: toastInfo,
+      warning: toastWarning,
+    }
+    window.clearAllToasts = clearAllToasts
+    window.testToasts = testToasts
+
+    // 데모 함수들
+    window.showErrorToast = () => {
+      toastError('게임 저장에 실패했습니다.')
+    }
+
+    window.showSuccessToast = () => {
+      toastSuccess('게임이 저장되었습니다.')
+    }
+
+    window.showInfoToast = () => {
+      toastInfo('새로운 업그레이드가 해금되었습니다.')
+    }
+
+    window.showWarningToast = () => {
+      toastWarning('저장 공간이 부족합니다.')
+    }
+
+    window.showCustomToast = (type) => {
+      const message = document.getElementById('customMessage').value
+      const duration = parseInt(document.getElementById('customDuration').value) || 3000
+
+      createToast(message, type, duration)
+    }
+
+    window.testDuplicatePrevention = () => {
+      for (let i = 0; i < 5; i++) {
+        toastInfo('중복 메시지 테스트')
+      }
+    }
+
+    window.testMultipleToasts = () => {
+      testToasts()
+    }
+
+    window.simulateSaveSuccess = () => {
+      toastSuccess('게임이 저장되었습니다.', 2000)
+    }
+
+    window.simulateSaveError = () => {
+      toastError('게임 저장에 실패했습니다. 잠시 후 다시 시도됩니다.')
+    }
+
+    window.simulateCloudError = () => {
+      toastWarning('클라우드 저장에 실패했습니다. 로컬 저장은 정상입니다.')
+    }
+
+    window.simulateQuotaError = () => {
+      toastError('저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.', 5000)
+    }
+
+    window.testLongMessage = () => {
+      toastInfo('이것은 매우 긴 메시지입니다. 토스트가 어떻게 표시되는지 확인하기 위한 테스트입니다. 여러 줄로 나뉘어질 수 있습니다.')
+    }
+
+    window.clearAll = () => {
+      clearAllToasts()
+    }
+
+    console.log('✅ Toast Demo 초기화 완료')
+    console.log('사용 가능한 함수: window.toast.{success, error, info, warning}')
+  </script>
+</body>
+</html>

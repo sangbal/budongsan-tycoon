@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/92</span>
+                <span class='fraction'>0/98</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/66</span>
+                <span class='fraction'>0/70</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/83</span>
+                <span class='fraction'>0/89</span>
             </div>
         
             
@@ -223,7 +223,24 @@
 <a name='L158'></a><a href='#L158'>158</a>
 <a name='L159'></a><a href='#L159'>159</a>
 <a name='L160'></a><a href='#L160'>160</a>
-<a name='L161'></a><a href='#L161'>161</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -335,7 +352,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -494,8 +528,25 @@ export function <span class="fstat-no" title="function not covered" >getLang(</s
 <span class="cstat-no" title="statement not covered" >  return currentLang</span>
 }
 &nbsp;
+/**
+ * 번역 로드 후 DOM에 적용 (비동기)
+ * main.js 초기화 시 사용 권장
+ */
+export async function <span class="fstat-no" title="function not covered" >applyI18nToDOMAsync(</span>) {
+<span class="cstat-no" title="statement not covered" >  await ensureTranslationLoaded(currentLang)</span>
+<span class="cstat-no" title="statement not covered" >  applyI18nToDOM()</span>
+}
+&nbsp;
 export function <span class="fstat-no" title="function not covered" >applyI18nToDOM(</span>) {
   const table = <span class="cstat-no" title="statement not covered" >translations[currentLang] || translations.ko</span>
+&nbsp;
+  // 번역 테이블이 아직 로드되지 않은 경우 조용히 종료
+<span class="cstat-no" title="statement not covered" >  if (!table) {</span>
+<span class="cstat-no" title="statement not covered" >    if (__IS_DEV__) {</span>
+<span class="cstat-no" title="statement not covered" >      console.warn('[i18n] Translation table not loaded yet, skipping applyI18nToDOM')</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return</span>
+  }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  document.querySelectorAll('[data-i18n]').forEach(<span class="fstat-no" title="function not covered" >el </span>=&gt; {</span>
     const key = <span class="cstat-no" title="statement not covered" >el.getAttribute('data-i18n')</span>
@@ -550,7 +601,7 @@ export function <span class="fstat-no" title="function not covered" >applyI18nTo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-10T08:02:03.896Z
+                at 2026-01-18T11:25:57.836Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -7,17 +7,20 @@
 ### 배포 방법
 
 1. Supabase CLI 설치 및 로그인:
+
 ```bash
 npm install -g supabase
 supabase login
 ```
 
 2. 프로젝트 연결:
+
 ```bash
 supabase link --project-ref <your-project-ref>
 ```
 
 3. Edge Function 배포:
+
 ```bash
 supabase functions deploy delete-account
 ```
@@ -40,9 +43,11 @@ supabase functions deploy delete-account
 **엔드포인트**: `POST /functions/v1/delete-account`
 
 **헤더**:
+
 - `Authorization: Bearer <user_jwt_token>`
 
 **응답**:
+
 ```json
 {
   "status": "ALL_SUCCESS" | "DATA_DELETED_BUT_AUTH_DELETE_FAILED" | "AUTH_FAILED" | "NOT_CONFIGURED" | "UNKNOWN_ERROR",
@@ -90,14 +95,3 @@ node tools/test-delete-account.js <FUNCTION_URL> --options
 ```
 
 **⚠️ 주의**: 유효한 JWT 토큰으로 테스트하면 실제 계정이 삭제됩니다. 반드시 **테스트 계정**으로만 테스트하세요.
-
-
-
-
-
-
-
-
-
-
-

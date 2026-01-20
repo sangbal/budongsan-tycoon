@@ -15,6 +15,7 @@ permissionMode: default
 ## 호출 시 수행 작업
 
 1. **현재 성능 측정**
+
    ```bash
    npm run build
    ls -lh dist/assets/*.js  # 번들 크기 확인
@@ -25,6 +26,7 @@ permissionMode: default
    - 큰 번들 파일
    - 불필요한 의존성
    - 비효율적인 렌더링
+   - **⚠️ 최적화 전략이 명확하지 않으면 AskUserQuestion으로 사용자 선호도 확인**
 
 3. **최적화 적용**
    - Code splitting
@@ -33,6 +35,68 @@ permissionMode: default
    - 이미지 최적화
 
 4. **성능 검증**
+
+## AskUserQuestion 활용
+
+Performance Agent는 최적화 전략에 여러 선택이 있을 때 사용자의 우선순위를 확인합니다.
+
+### 사용 사례
+
+1. **최적화 우선순위**
+
+   ```javascript
+   AskUserQuestion({
+     questions: [
+       {
+         question: '성능 최적화의 최우선 목표는?',
+         header: '최적화 전략',
+         multiSelect: false,
+         options: [
+           {
+             label: '번들 크기 감소 (Recommended)',
+             description: '33% 감소 목표. 초기 로딩 시간 단축, 모든 플레이어 영향',
+           },
+           {
+             label: 'Lighthouse 점수 향상',
+             description: '90+ 달성. 캐싱, 렌더링 최적화, SEO 개선',
+           },
+           {
+             label: '런타임 성능',
+             description: '프레임율, 응답 속도. 실시간 게임 플레이 최적화',
+           },
+         ],
+       },
+     ],
+   })
+   ```
+
+2. **Code Splitting 전략**
+
+   ```javascript
+   AskUserQuestion({
+     questions: [
+       {
+         question: 'Code splitting 방식은?',
+         header: '분할 전략',
+         options: [
+           {
+             label: '라우트 기반 (Recommended)',
+             description: '각 게임별 청크. seoulsurvival/, kimchi-invasion/ 분리',
+           },
+           {
+             label: '기능 기반',
+             description: 'UI, 경제, 시스템 등 기능별 분리. 더 세밀하지만 복잡',
+           },
+           {
+             label: '라이브러리 분리',
+             description: 'vendor chunks. 써드파티 업데이트 캐시 활용',
+           },
+         ],
+       },
+     ],
+   })
+   ```
+
    - 빌드 크기 재측정
    - Lighthouse 재실행
    - 목표 달성 여부 확인
@@ -40,6 +104,7 @@ permissionMode: default
 ## 최우선 과제: 번들 크기 33% 감소
 
 ### 현재 상태
+
 ```bash
 $ npm run build
 $ ls -lh dist/assets/
@@ -50,12 +115,14 @@ total 524K
 ```
 
 ### 목표
+
 - **Before**: ~524K 총 번들
 - **After**: ~351K 총 번들 (-33%)
 
 ### 최적화 전략
 
 #### 1. Code Splitting (가장 큰 효과)
+
 ```javascript
 // vite.config.js
 export default defineConfig({
@@ -66,25 +133,26 @@ export default defineConfig({
           // 게임 코어 로직 분리
           'game-core': [
             './seoulsurvival/src/core/gameLoop.js',
-            './seoulsurvival/src/core/stateManager.js'
+            './seoulsurvival/src/core/stateManager.js',
           ],
           // UI 관련 코드 분리
           'game-ui': [
             './seoulsurvival/src/ui/tabSystem.js',
-            './seoulsurvival/src/ui/animations.js'
+            './seoulsurvival/src/ui/animations.js',
           ],
           // 의존성 분리
-          'vendor': [
+          vendor: [
             // heavy dependencies
-          ]
-        }
-      }
-    }
-  }
+          ],
+        },
+      },
+    },
+  },
 })
 ```
 
 #### 2. Dynamic Import (필요 시 로딩)
+
 ```javascript
 // seoulsurvival/src/main.js
 
@@ -105,6 +173,7 @@ async function openDiary() {
 ```
 
 #### 3. Tree Shaking 최대화
+
 ```javascript
 // ❌ Bad: 전체 lodash import
 import _ from 'lodash'
@@ -116,6 +185,7 @@ debounce(fn, 100)
 ```
 
 #### 4. 이미지 최적화
+
 ```bash
 # 이미지 압축
 npx @squoosh/cli --webp --quality 80 seoulsurvival/assets/images/*.png
@@ -127,6 +197,7 @@ background-image: url('icon.webp');
 ## Lighthouse 점수 90+ 달성
 
 ### 목표 점수
+
 - Performance: 90+
 - Accessibility: 95+
 - Best Practices: 95+
@@ -135,32 +206,49 @@ background-image: url('icon.webp');
 ### Performance 개선
 
 #### 1. Critical CSS Inlining
+
 ```html
 <!-- seoulsurvival/index.html -->
 <head>
   <style>
     /* Critical CSS: 첫 화면 렌더링에 필요한 스타일만 */
-    body { margin: 0; font-family: Arial; background: #1a1a2e; }
-    #loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #1a1a2e;
+    }
+    #loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
   </style>
   <!-- 나머지 CSS는 비동기 로드 -->
-  <link rel="preload" href="/assets/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link
+    rel="preload"
+    href="/assets/index.css"
+    as="style"
+    onload="this.onload=null;this.rel='stylesheet'"
+  />
 </head>
 ```
 
 #### 2. Preconnect to External Domains
+
 ```html
 <!-- Supabase 연결 최적화 -->
-<link rel="preconnect" href="https://nvxdwacqmiofpennukeo.supabase.co">
-<link rel="dns-prefetch" href="https://nvxdwacqmiofpennukeo.supabase.co">
+<link rel="preconnect" href="https://nvxdwacqmiofpennukeo.supabase.co" />
+<link rel="dns-prefetch" href="https://nvxdwacqmiofpennukeo.supabase.co" />
 ```
 
 #### 3. 렌더링 최적화
+
 ```javascript
 // requestAnimationFrame 활용
 let rafId = null
 function updateUI() {
-  if (rafId) return  // 이미 스케줄됨
+  if (rafId) return // 이미 스케줄됨
   rafId = requestAnimationFrame(() => {
     // UI 업데이트 로직
     rafId = null
@@ -175,6 +263,7 @@ const debouncedSave = debounce(saveGame, 5000)
 ### Accessibility 개선
 
 #### 1. ARIA 라벨 추가
+
 ```html
 <!-- ❌ Bad -->
 <button onclick="work()">💼</button>
@@ -184,9 +273,10 @@ const debouncedSave = debounce(saveGame, 5000)
 ```
 
 #### 2. 키보드 네비게이션
+
 ```javascript
 // 탭 전환 단축키
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', e => {
   if (e.key === '1' && e.altKey) switchTab('game')
   if (e.key === '2' && e.altKey) switchTab('stats')
   // ...
@@ -216,29 +306,32 @@ echo "- Lighthouse 점수: (위 결과 참조)"
 
 ## 출력 형식
 
-```markdown
+````markdown
 # Performance Agent 최적화 보고서
 
 ## 작업 내용
+
 - 대상: [번들 크기 / Lighthouse 점수 / 렌더링]
 - 목표: [성능 목표]
 
 ## Before vs After
 
 ### 번들 크기
-| 파일 | Before | After | 감소율 |
-|------|--------|-------|--------|
-| index.js | 387 KB | 245 KB | -37% |
-| vendor.js | 85 KB | 55 KB | -35% |
+
+| 파일      | Before     | After      | 감소율      |
+| --------- | ---------- | ---------- | ----------- |
+| index.js  | 387 KB     | 245 KB     | -37%        |
+| vendor.js | 85 KB      | 55 KB      | -35%        |
 | **Total** | **524 KB** | **351 KB** | **-33%** ✅ |
 
 ### Lighthouse 점수
-| 카테고리 | Before | After | 목표 |
-|---------|--------|-------|------|
-| Performance | 72 | 94 ✅ | 90+ |
-| Accessibility | 88 | 97 ✅ | 95+ |
-| Best Practices | 92 | 96 ✅ | 95+ |
-| SEO | 85 | 92 ✅ | 90+ |
+
+| 카테고리       | Before | After | 목표 |
+| -------------- | ------ | ----- | ---- |
+| Performance    | 72     | 94 ✅ | 90+  |
+| Accessibility  | 88     | 97 ✅ | 95+  |
+| Best Practices | 92     | 96 ✅ | 95+  |
+| SEO            | 85     | 92 ✅ | 90+  |
 
 ## 적용한 최적화
 
@@ -274,10 +367,13 @@ $ npm run lighthouse
 ✨ Best Practices: 96/100 ✅
 🔍 SEO: 92/100 ✅
 ```
+````
 
 ## 다음 단계
+
 - [ ] 프로덕션 배포 (deploy-agent)
 - [ ] 실제 사용자 성능 모니터링 (Sentry RUM)
+
 ```
 
 ## 가이드라인
@@ -294,3 +390,4 @@ $ npm run lighthouse
 - Lighthouse Performance: 90+
 - First Contentful Paint (FCP): < 1.5초
 - Time to Interactive (TTI): < 3초
+```

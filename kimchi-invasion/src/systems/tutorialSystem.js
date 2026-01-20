@@ -12,6 +12,7 @@ import { t } from '../i18n/index.js'
 import { Graphics, Container } from 'pixi.js'
 import { getGameContainer } from '../core/pixiApp.js'
 import { getTileSize } from '../core/tilemap.js'
+import { getTutorialUI } from '../ui/tutorialUI.js'
 
 /**
  * 튜토리얼 단계 정의
@@ -246,9 +247,10 @@ export class TutorialSystem extends System {
 
     switch (this.currentStep) {
       case TUTORIAL_STEPS.STEP_1_COLLECT: {
-        // 목표: 얼음 5개, 레골리스 5개 수집
-        const ice = gameState.resources.water?.amount ?? 0
-        const regolith = gameState.resources.regolith?.amount ?? 0
+        // 목표: 물(얼음) 5개, 레골리스 5개 수집
+        // gameStore에서는 resources.water가 숫자로 저장됨
+        const ice = gameState.resources.water ?? 0
+        const regolith = gameState.resources.regolith ?? 0
         if (ice >= 5 && regolith >= 5) {
           this.advanceToStep(TUTORIAL_STEPS.STEP_2_BUILD)
         }
@@ -267,7 +269,7 @@ export class TutorialSystem extends System {
 
       case TUTORIAL_STEPS.STEP_3_CROP: {
         // 목표: 온실에서 배추 5개 재배
-        const cabbages = gameState.resources.cabbage?.amount ?? 0
+        const cabbages = gameState.resources.cabbage ?? 0
         if (cabbages >= 5) {
           this.advanceToStep(TUTORIAL_STEPS.STEP_4_LOGISTICS)
         }
@@ -285,7 +287,7 @@ export class TutorialSystem extends System {
 
       case TUTORIAL_STEPS.STEP_5_KIMCHI: {
         // 목표: 김치 1캔 생산
-        const kimchi = gameState.resources.kimchi?.amount ?? 0
+        const kimchi = gameState.resources.kimchi ?? 0
         if (kimchi >= 1) {
           this.advanceToStep(TUTORIAL_STEPS.EPILOGUE)
         }
@@ -326,8 +328,8 @@ export class TutorialSystem extends System {
     const unsub = useGameStore.subscribe(
       state => state.resources,
       resources => {
-        const ice = resources.water?.amount ?? 0
-        const regolith = resources.regolith?.amount ?? 0
+        const ice = resources.water ?? 0
+        const regolith = resources.regolith ?? 0
         this.stepProgress.step1 = { ice, regolith }
         this.updateStepGoal({
           objectives: [
@@ -465,15 +467,13 @@ export class TutorialSystem extends System {
 
   /**
    * 단계 목표 업데이트 (진행률 표시)
+   * @description DOM 직접 업데이트로 UI 즉시 반영
    * @param {Object} updates - { objectives: [...] }
    */
   updateStepGoal(updates) {
-    const modalData = useUIStore.getState().modalData
-    if (modalData && updates.objectives) {
-      useUIStore.getState().openModal('tutorial-step-goal', {
-        ...modalData,
-        ...updates,
-      })
+    if (updates.objectives) {
+      const tutorialUI = getTutorialUI()
+      tutorialUI.updateGoalProgress(updates.objectives)
     }
   }
 

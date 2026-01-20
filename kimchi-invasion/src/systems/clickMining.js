@@ -169,11 +169,11 @@ export class ClickMiningSystem extends System {
       return tile.resource
     }
 
-    // 타입별 기본 자원 매핑 (임시)
+    // 타입별 기본 자원 매핑
     const typeToResource = {
-      rock: 'iron',
-      ice: 'ice',
-      ground: 'iron', // 임시: 지면에서도 철광석 채굴 가능
+      rock: 'regolith', // 암석 → 레골리스 (화성 토양)
+      ice: 'water', // 얼음 → 물 (해동된 물)
+      ground: 'regolith', // 지면 → 레골리스
       sand: 'sand',
     }
 

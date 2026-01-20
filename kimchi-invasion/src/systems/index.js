@@ -12,6 +12,7 @@ import { processingSystem } from './processingSystem.js'
 import { fermentationSystem } from './fermentationSystem.js'
 import { powerSystem } from './powerSystem.js'
 import { tutorialSystem } from './tutorialSystem.js'
+import { clickMiningSystem } from './clickMining.js'
 
 // System modules will be imported here as they are developed
 // import { initLogisticsSystem } from './logistics.js';
@@ -29,6 +30,7 @@ export function getAllSystems() {
     processingSystem,
     fermentationSystem,
     powerSystem,
+    clickMiningSystem,
     tutorialSystem,
     // TODO: Add more systems as they are developed
   ]
@@ -100,3 +102,4 @@ export { processingSystem } from './processingSystem.js'
 export { fermentationSystem } from './fermentationSystem.js'
 export { powerSystem } from './powerSystem.js'
 export { tutorialSystem, checkAutoStartTutorial } from './tutorialSystem.js'
+export { clickMiningSystem } from './clickMining.js'

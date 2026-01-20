@@ -1,4 +1,5 @@
 // 업그레이드 시스템(해금 체크)
+import { t } from '../i18n/index.js'
 
 /**
  * @param {Record<string, {unlocked:boolean, purchased:boolean, name:string, unlockCondition:Function}>} upgrades
@@ -17,7 +18,7 @@ export function createUpgradeUnlockSystem(upgrades, deps) {
         if (upgrade.unlockCondition()) {
           upgrade.unlocked = true
           newUnlocks++
-          addLog(`🎁 새 업그레이드 해금: ${upgrade.name}`)
+          addLog(t('msg.upgradeUnlocked', { name: upgrade.name }))
         }
       } catch {
         // 해금 조건 평가 실패는 무시(게임 진행 유지)

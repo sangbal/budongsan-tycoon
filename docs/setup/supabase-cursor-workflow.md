@@ -33,6 +33,7 @@ npx supabase --version
 ```
 
 **설치가 필요한 경우**:
+
 ```powershell
 # 방법 1: npm 전역 설치 (권장)
 npm install -g supabase
@@ -54,6 +55,7 @@ npm install -g supabase
    - 생성된 토큰 복사 (한 번만 표시됨)
 
 2. Cursor 터미널에서 로그인:
+
 ```powershell
 npx supabase login --token "여기에_복사한_토큰_붙여넣기"
 ```
@@ -68,6 +70,7 @@ npx supabase login --token "여기에_복사한_토큰_붙여넣기"
    - **Reference ID** 확인 (예: `abcdefghijklmnop`)
 
 2. **프로젝트 연결**:
+
 ```powershell
 npx supabase link --project-ref <PROJECT_REF>
 ```
@@ -81,6 +84,7 @@ npx supabase link --project-ref <PROJECT_REF>
 #### 2.1 현재 구조
 
 프로젝트의 SQL 파일 위치:
+
 ```
 supabase/
 ├── game_saves.sql
@@ -95,6 +99,7 @@ supabase/
 Supabase CLI는 `supabase/migrations/` 디렉토리의 마이그레이션 파일을 자동으로 관리합니다.
 
 **초기 마이그레이션 생성**:
+
 ```powershell
 # 마이그레이션 디렉토리 생성
 New-Item -ItemType Directory -Force -Path "supabase\migrations"
@@ -104,6 +109,7 @@ New-Item -ItemType Directory -Force -Path "supabase\migrations"
 ```
 
 **예시: 기존 SQL을 마이그레이션으로 변환**:
+
 ```powershell
 # 타임스탬프 생성 (예: 20250119120000)
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
@@ -117,12 +123,14 @@ Copy-Item "supabase\nickname_registry.sql" "supabase\migrations\${timestamp}_cre
 #### 2.3 새 마이그레이션 생성
 
 **새 스키마 변경 시**:
+
 ```powershell
 # 새 마이그레이션 파일 생성 (타임스탬프 자동 생성)
 npx supabase migration new <migration_name>
 ```
 
 예시:
+
 ```powershell
 npx supabase migration new add_user_preferences
 ```
@@ -132,12 +140,14 @@ npx supabase migration new add_user_preferences
 #### 2.4 마이그레이션 적용
 
 **원격 프로젝트에 적용**:
+
 ```powershell
 # 모든 미적용 마이그레이션을 원격에 적용
 npx supabase db push
 ```
 
 **특정 마이그레이션만 적용**:
+
 ```powershell
 # 마이그레이션 파일 직접 실행
 npx supabase db execute --file supabase/migrations/YYYYMMDDHHMMSS_migration_name.sql
@@ -164,11 +174,13 @@ supabase/functions/
 #### 3.2 Edge Function 배포
 
 **단일 함수 배포**:
+
 ```powershell
 npx supabase functions deploy delete-account
 ```
 
 **모든 함수 배포**:
+
 ```powershell
 npx supabase functions deploy
 ```
@@ -176,6 +188,7 @@ npx supabase functions deploy
 #### 3.3 환경 변수(Secrets) 설정
 
 **CLI로 설정 (권장)**:
+
 ```powershell
 # Secrets 값 찾기: Supabase 대시보드 → Settings → API
 npx supabase secrets set `
@@ -185,6 +198,7 @@ npx supabase secrets set `
 ```
 
 **개별 설정**:
+
 ```powershell
 npx supabase secrets set SUPABASE_URL="https://xxxx.supabase.co"
 npx supabase secrets set SUPABASE_ANON_KEY="eyJ..."
@@ -192,6 +206,7 @@ npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY="eyJ..."
 ```
 
 **Secrets 확인**:
+
 ```powershell
 npx supabase secrets list
 ```
@@ -224,6 +239,7 @@ npx supabase status
 ```
 
 **로컬 환경 정보**:
+
 - API URL: `http://localhost:54321`
 - Studio URL: `http://localhost:54323`
 - Anon Key: `status` 명령어로 확인
@@ -272,11 +288,13 @@ Write-Host "Deployment complete!" -ForegroundColor Green
 #### 시나리오 1: 새 테이블 추가
 
 1. **마이그레이션 생성**:
+
 ```powershell
 npx supabase migration new add_user_settings
 ```
 
 2. **SQL 작성**: `supabase/migrations/YYYYMMDDHHMMSS_add_user_settings.sql`
+
 ```sql
 create table if not exists public.user_settings (
   id uuid primary key default gen_random_uuid(),
@@ -289,6 +307,7 @@ create table if not exists public.user_settings (
 ```
 
 3. **원격에 적용**:
+
 ```powershell
 npx supabase db push
 ```
@@ -298,11 +317,13 @@ npx supabase db push
 1. **SQL 파일 수정**: `supabase/nickname_registry.sql` 수정
 
 2. **직접 실행**:
+
 ```powershell
 npx supabase db execute --file supabase/nickname_registry.sql
 ```
 
 또는 **마이그레이션으로 변환 후 적용**:
+
 ```powershell
 # 새 마이그레이션 생성
 npx supabase migration new update_nickname_registry
@@ -316,6 +337,7 @@ npx supabase db push
 1. **함수 코드 수정**: `supabase/functions/delete-account/index.ts` 수정
 
 2. **배포**:
+
 ```powershell
 npx supabase functions deploy delete-account
 ```
@@ -336,37 +358,41 @@ npx supabase functions list
 ### 7. 문제 해결
 
 #### 로그인 실패
+
 - Access Token이 올바른지 확인
 - 토큰이 만료되지 않았는지 확인 (대시보드에서 재생성)
 
 #### 프로젝트 연결 실패
+
 - PROJECT_REF가 올바른지 확인
 - 프로젝트에 대한 권한이 있는지 확인
 - `.supabase/config.toml` 파일 확인
 
 #### 마이그레이션 적용 실패
+
 - SQL 문법 오류 확인
 - 기존 스키마와 충돌 여부 확인
 - `npx supabase migration list`로 상태 확인
 
 #### Edge Function 배포 실패
+
 - 함수 파일 경로 확인 (`supabase/functions/<function-name>/index.ts`)
 - 함수 이름이 정확한지 확인
 - Secrets 설정 여부 확인
 
 ### 8. 워크플로우 요약
 
-| 작업 | 명령어 |
-|------|--------|
-| 로그인 | `npx supabase login --token <TOKEN>` |
-| 프로젝트 연결 | `npx supabase link --project-ref <REF>` |
-| 새 마이그레이션 생성 | `npx supabase migration new <name>` |
-| 마이그레이션 적용 | `npx supabase db push` |
-| SQL 파일 직접 실행 | `npx supabase db execute --file <file>` |
-| Edge Function 배포 | `npx supabase functions deploy <name>` |
-| Secrets 설정 | `npx supabase secrets set KEY="value"` |
-| 마이그레이션 목록 | `npx supabase migration list` |
-| 함수 목록 | `npx supabase functions list` |
+| 작업                 | 명령어                                  |
+| -------------------- | --------------------------------------- |
+| 로그인               | `npx supabase login --token <TOKEN>`    |
+| 프로젝트 연결        | `npx supabase link --project-ref <REF>` |
+| 새 마이그레이션 생성 | `npx supabase migration new <name>`     |
+| 마이그레이션 적용    | `npx supabase db push`                  |
+| SQL 파일 직접 실행   | `npx supabase db execute --file <file>` |
+| Edge Function 배포   | `npx supabase functions deploy <name>`  |
+| Secrets 설정         | `npx supabase secrets set KEY="value"`  |
+| 마이그레이션 목록    | `npx supabase migration list`           |
+| 함수 목록            | `npx supabase functions list`           |
 
 ### 9. 보안 주의사항
 
@@ -385,22 +411,7 @@ npx supabase functions list
 ---
 
 **참고 문서**:
+
 - [Supabase CLI 공식 문서](https://supabase.com/docs/reference/cli)
 - `docs/cli-deployment-steps.md`: 단계별 배포 가이드
 - `docs/final-cli-deployment-report.md`: 설치 및 배포 보고서
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

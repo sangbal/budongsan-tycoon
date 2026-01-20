@@ -282,7 +282,7 @@ export function createUpgradeManager(deps) {
       if (__IS_DEV__) console.log('Effect applied successfully')
     } catch (error) {
       console.error(`업그레이드 효과 적용 실패 (${upgradeId}):`, error)
-      Diary.addLog(`⚠️ 업그레이드 효과 적용 중 오류 발생`)
+      Diary.addLog(t('msg.upgradeEffectError'))
     }
 
     updateUpgradeList()

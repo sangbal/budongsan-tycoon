@@ -6,11 +6,11 @@
 
 Supabase 대시보드 → **Authentication** → **URL Configuration** → **Redirect URLs**에 다음을 추가:
 
-| 환경 | URL | 비고 |
-|------|-----|------|
-| **프로덕션** | `https://clicksurvivor.com/auth/callback` | 메인 도메인 |
-| **로컬 개발 (Vite)** | `http://localhost:5173/auth/callback` | `npm run dev` 기본 포트 |
-| **로컬 프리뷰 (빌드)** | `http://localhost:4173/auth/callback` | `npm run preview` 기본 포트 |
+| 환경                   | URL                                       | 비고                        |
+| ---------------------- | ----------------------------------------- | --------------------------- |
+| **프로덕션**           | `https://clicksurvivor.com/auth/callback` | 메인 도메인                 |
+| **로컬 개발 (Vite)**   | `http://localhost:5173/auth/callback`     | `npm run dev` 기본 포트     |
+| **로컬 프리뷰 (빌드)** | `http://localhost:4173/auth/callback`     | `npm run preview` 기본 포트 |
 
 ### Site URL 설정
 
@@ -20,11 +20,13 @@ Supabase 대시보드 → **Authentication** → **URL Configuration** → **Red
 - **개발**: `http://localhost:4173` (또는 사용 중인 포트)
 
 **주의사항**:
+
 - Site URL이 프로덕션으로 설정되어 있으면, Redirect URLs에 로컬 URL을 추가해야 로컬에서 로그인 가능합니다.
 - Redirect URLs에 등록되지 않은 URL은 Supabase가 Site URL로 리다이렉트합니다.
 - 개발 환경에서 로그인하려면 반드시 Redirect URLs에 로컬 URL을 추가해야 합니다.
 
 ### 설정 방법
+
 1. Supabase 대시보드 접속: https://supabase.com/dashboard
 2. 프로젝트 선택
 3. 좌측 메뉴: **Authentication** → **URL Configuration**
@@ -39,24 +41,25 @@ Google Cloud Console → **APIs & Services** → **Credentials** → **OAuth 2.0
 
 ### Authorized JavaScript origins
 
-| 환경 | Origin | 비고 |
-|------|--------|------|
-| **프로덕션** | `https://clicksurvivor.com` | 메인 도메인 |
-| **로컬 개발** | `http://localhost:5173` | Vite dev 서버 |
-| **로컬 프리뷰** | `http://localhost:4173` | Vite preview 서버 |
+| 환경            | Origin                      | 비고              |
+| --------------- | --------------------------- | ----------------- |
+| **프로덕션**    | `https://clicksurvivor.com` | 메인 도메인       |
+| **로컬 개발**   | `http://localhost:5173`     | Vite dev 서버     |
+| **로컬 프리뷰** | `http://localhost:4173`     | Vite preview 서버 |
 
 ### Authorized redirect URIs
 
 **중요**: Supabase가 OAuth 리다이렉트를 처리하므로, Google OAuth 설정에는 **Supabase 콜백 URL**을 추가해야 합니다.
 
-| 환경 | Redirect URI | 비고 |
-|------|--------------|------|
+| 환경         | Redirect URI                                                      | 비고                      |
+| ------------ | ----------------------------------------------------------------- | ------------------------- |
 | **프로덕션** | `https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/auth/v1/callback` | Supabase 프로젝트 ID 필요 |
-| **개발** | `http://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/auth/v1/callback` | 개발 환경 (http) |
+| **개발**     | `http://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/auth/v1/callback`  | 개발 환경 (http)          |
 
 **참고**: `<YOUR_SUPABASE_PROJECT_ID>`는 Supabase 대시보드 → **Settings** → **General** → **Reference ID**에서 확인 가능합니다.
 
 ### 설정 방법
+
 1. Google Cloud Console 접속: https://console.cloud.google.com
 2. 프로젝트 선택
 3. **APIs & Services** → **Credentials** 클릭
@@ -83,10 +86,10 @@ npx supabase functions deploy delete-account
 
 Edge Function이 필요로 하는 환경 변수:
 
-| 변수명 | 설명 | 위치 |
-|--------|------|------|
-| `SUPABASE_URL` | Supabase 프로젝트 URL | Settings → API → Project URL |
-| `SUPABASE_ANON_KEY` | Supabase Anon Key | Settings → API → anon public |
+| 변수명                      | 설명                         | 위치                                 |
+| --------------------------- | ---------------------------- | ------------------------------------ |
+| `SUPABASE_URL`              | Supabase 프로젝트 URL        | Settings → API → Project URL         |
+| `SUPABASE_ANON_KEY`         | Supabase Anon Key            | Settings → API → anon public         |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key ⚠️ | Settings → API → service_role secret |
 
 **⚠️ 주의**: `SUPABASE_SERVICE_ROLE_KEY`는 절대 프론트엔드 코드에 포함하지 마세요.
@@ -118,7 +121,7 @@ Edge Function의 CORS 설정은 코드에서 처리됩니다 (`supabase/function
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 ```
 
 **현재 설정**: 모든 Origin 허용 (`*`). 프로덕션에서는 특정 도메인만 허용하도록 제한하는 것을 권장합니다.
@@ -126,6 +129,7 @@ const corsHeaders = {
 ### 배포 후 엔드포인트 URL
 
 배포 후 함수 URL 형식:
+
 ```
 https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-account
 ```
@@ -152,6 +156,7 @@ curl -X POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-
 ```
 
 **예상 응답**: `401 Unauthorized` with JSON:
+
 ```json
 {
   "status": "AUTH_FAILED",
@@ -171,6 +176,7 @@ curl -X POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-
 **⚠️ 주의**: 실제 계정 삭제가 수행되므로, 반드시 **테스트 계정**으로만 테스트하세요.
 
 **예상 응답 (성공)**:
+
 ```json
 {
   "status": "ALL_SUCCESS"
@@ -186,6 +192,7 @@ curl -X POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-
 ### 1. 로그인 성공 후 /auth/callback → (nextUrl) 리다이렉트
 
 **검증 방법**:
+
 1. 프로덕션 사이트 접속: `https://clicksurvivor.com`
 2. "Login" 버튼 클릭
 3. Google OAuth 인증 완료
@@ -199,6 +206,7 @@ curl -X POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-
 ### 2. /account에서 닉네임 저장
 
 **검증 방법**:
+
 1. 로그인 상태에서 `/account/` 접속
 2. "현재 닉네임: [닉네임]" 표시 확인 (있는 경우)
 3. 새 닉네임 입력 (1~6자, 한글/영문/숫자/밑줄)
@@ -214,6 +222,7 @@ curl -X POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/delete-
 **⚠️ 주의**: 반드시 **테스트 계정**으로만 수행하세요.
 
 **검증 방법**:
+
 1. 로그인 상태에서 `/account/` 접속
 2. "Danger Zone" 섹션으로 스크롤
 3. "복구 불가 동의" 체크박스 체크
@@ -270,16 +279,19 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...  # ⚠️ 절대 공유하지 마세요
 ## 문제 해결
 
 ### OAuth 리다이렉트 실패
+
 - Supabase Redirect URLs에 정확한 URL이 등록되었는지 확인
 - Google OAuth 설정에 Supabase 콜백 URL이 등록되었는지 확인
 - 브라우저 콘솔에서 에러 메시지 확인
 
 ### Edge Function 호출 실패
+
 - Secrets가 올바르게 설정되었는지 확인
 - 함수 URL이 올바른지 확인
 - CORS 헤더가 올바른지 확인 (OPTIONS 요청 테스트)
 
 ### 계정 삭제 실패
+
 - JWT 토큰이 유효한지 확인
 - Edge Function 로그 확인 (Supabase 대시보드 → Edge Functions → delete-account → Logs)
 - 테스트 계정으로만 시도
@@ -292,4 +304,3 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...  # ⚠️ 절대 공유하지 마세요
 - `docs/deployment-guide.md`: Edge Function 배포 가이드
 - `docs/cli-deployment-steps.md`: CLI 배포 단계별 가이드
 - `supabase/functions/README.md`: Edge Function API 문서
-

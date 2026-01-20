@@ -89,9 +89,11 @@ export async function signInGoogle(nextUrl = null) {
   // location.origin을 사용하여 현재 환경(로컬/프로덕션)에 맞는 URL 생성
   const callbackUrl = `${location.origin}/auth/callback`
 
-  // 디버깅: redirectTo 값 확인
-  console.log('[signInGoogle] Current origin:', location.origin)
-  console.log('[signInGoogle] Callback URL:', callbackUrl)
+  // 디버깅: redirectTo 값 확인 (개발 환경에서만)
+  if (import.meta.env?.DEV) {
+    console.log('[signInGoogle] Current origin:', location.origin)
+    console.log('[signInGoogle] Callback URL:', callbackUrl)
+  }
 
   // nextUrl이 있으면 콜백 URL에 파라미터로 전달
   let redirectTo = callbackUrl
@@ -101,7 +103,9 @@ export async function signInGoogle(nextUrl = null) {
     redirectTo = url.toString()
   }
 
-  console.log('[signInGoogle] Final redirectTo:', redirectTo)
+  if (import.meta.env?.DEV) {
+    console.log('[signInGoogle] Final redirectTo:', redirectTo)
+  }
 
   return signInWithOAuth('google', redirectTo)
 }

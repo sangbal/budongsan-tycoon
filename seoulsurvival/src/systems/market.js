@@ -1,4 +1,5 @@
 // 시장 이벤트 시스템(스케줄/시작/종료/배수)
+import { t } from '../i18n/index.js'
 
 /**
  * @param {Array<any>} marketEvents
@@ -41,7 +42,7 @@ export function createMarketSystem(marketEvents, deps) {
       setCurrentEvent(null)
       setEventEndTime(0)
       setMarketMultiplier(1)
-      addLog('📉 시장 이벤트가 종료되었습니다.')
+      addLog(t('msg.eventEnded'))
       if (markDirty) markDirty()
     }
   }
@@ -60,7 +61,7 @@ export function createMarketSystem(marketEvents, deps) {
     setMarketMultiplier(1)
 
     notify(ev)
-    addLog(`📈 시장 이벤트 발생: ${ev.name} (${Math.floor(durationMs / 1000)}초)`)
+    addLog(t('msg.eventStarted', { name: ev.name, duration: Math.floor(durationMs / 1000) }))
     if (markDirty) markDirty()
   }
 

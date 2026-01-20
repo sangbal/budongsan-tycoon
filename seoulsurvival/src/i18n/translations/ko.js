@@ -81,6 +81,19 @@ export default {
   'msg.cloudSaved': '☁️ 클라우드에 저장했습니다.',
   'msg.cloudApplied': '☁️ 클라우드 세이브를 적용했습니다. 페이지를 새로고침합니다...',
   'msg.unlocked': '🔓 {product}이(가) 해금되었습니다!',
+  'msg.prestigeComplete': '🗼 새로운 시작. 다시 한 번.',
+  'msg.synergyActivated': '🔗 시너지 활성화: {name} - {desc}',
+  'msg.upgradeEffectError': '⚠️ 업그레이드 효과 적용 중 오류 발생',
+
+  // 저장 관련 오류 메시지
+  'error.saveExport': '저장 내보내기 중 오류가 발생했습니다.',
+  'error.saveImportFormat': '저장 파일 형식이 올바르지 않습니다.',
+  'error.saveImport': '저장 가져오기 중 오류가 발생했습니다.',
+
+  // 에러 메시지 (토스트 알림)
+  'error.saveFailed': '게임 저장에 실패했습니다. 잠시 후 다시 시도됩니다.',
+  'error.cloudSaveFailed': '클라우드 저장에 실패했습니다. 로컬 저장은 정상입니다.',
+  'error.quotaExceeded': '저장 공간이 부족합니다. 브라우저 데이터를 정리해주세요.',
 
   // 모달 메시지
   'modal.error.nicknameLength.title': '닉네임 길이 오류',
@@ -108,6 +121,9 @@ export default {
   'modal.error.noSaveData.title': '저장 데이터 없음',
   'modal.error.noSaveData.message':
     '로컬 저장 데이터가 없습니다. 먼저 게임을 진행한 뒤 저장해 주세요.',
+  'modal.error.gameError.title': '오류 발생',
+  'modal.error.gameError.message':
+    '게임 실행 중 오류가 발생했습니다.\n{message}\n\n페이지를 새로고침 하시겠습니까?',
   'modal.error.invalidSaveData.title': '오류',
   'modal.error.invalidSaveData.message': '로컬 저장 데이터 형식이 올바르지 않습니다.',
   'modal.error.uploadFailed.title': '업로드 실패',
@@ -147,6 +163,11 @@ export default {
   'header.financial': '💰 금융',
   'header.properties': '🏢 부동산',
   'header.rps': '📈 초당',
+  // 헤더 레이블 (반응형에서 아이콘과 분리)
+  'header.cash.label': '현금',
+  'header.financial.label': '금융',
+  'header.properties.label': '부동산',
+  'header.rps.label': '초당',
   'header.favorite_btn': '즐겨찾기',
   'header.share_btn': '공유',
 
@@ -250,6 +271,8 @@ export default {
   'ranking.table.assets': '자산',
   'ranking.table.playtime': '누적',
   'ranking.table.playtime.full': '누적 시간',
+  'ranking.table.lastActive': '접속',
+  'ranking.table.lastActive.full': '최근 접속',
 
   // 설정 탭
   'settings.gameTitle': '게임 제목',
@@ -346,8 +369,33 @@ export default {
   'diary.leaveRecord': '기록에 남긴다.',
 
   // 해금 메시지
+  'msg.unlock.deposit': '❌ 예금은 아직 잠겨있습니다.',
   'msg.unlock.savings': '❌ 적금은 예금을 1개 이상 보유해야 해금됩니다.',
   'msg.unlock.bond': '❌ 국내주식은 적금을 1개 이상 보유해야 해금됩니다.',
+  'msg.unlock.usStock': '❌ 미국주식은 국내주식을 1개 이상 보유해야 해금됩니다.',
+  'msg.unlock.crypto': '❌ 코인은 미국주식을 1개 이상 보유해야 해금됩니다.',
+  'msg.unlock.villa': '❌ 빌라는 코인을 1개 이상 보유해야 해금됩니다.',
+  'msg.unlock.officetel': '❌ 오피스텔은 빌라를 1채 이상 보유해야 해금됩니다.',
+  'msg.unlock.apartment': '❌ 아파트는 오피스텔을 1채 이상 보유해야 해금됩니다.',
+  'msg.unlock.shop': '❌ 상가는 아파트를 1채 이상 보유해야 해금됩니다.',
+  'msg.unlock.building': '❌ 빌딩은 상가를 1채 이상 보유해야 해금됩니다.',
+  'msg.unlock.tower': '❌ 서울타워는 CEO 달성 및 빌딩 1개 이상이 필요합니다.',
+
+  // 해금 힌트 (툴팁용)
+  'unlock.hint.savings': '예금 1개 필요',
+  'unlock.hint.bond': '적금 1개 필요',
+  'unlock.hint.usStock': '국내주식 1개 필요',
+  'unlock.hint.crypto': '미국주식 1개 필요',
+  'unlock.hint.villa': '코인 1개 필요',
+  'unlock.hint.officetel': '빌라 1채 필요',
+  'unlock.hint.apartment': '오피스텔 1채 필요',
+  'unlock.hint.shop': '아파트 1채 필요',
+  'unlock.hint.building': '상가 1채 필요',
+  'unlock.hint.tower': 'CEO 달성 및 빌딩 1개 이상 필요',
+
+  // 시장 이벤트 UI
+  'ui.marketEventDefault': '시장 이벤트',
+  'ui.marketEventRemaining': '남은 {seconds}초',
 
   // 업적 번역 키
   // 기본 업적
@@ -636,4 +684,95 @@ export default {
   'synergy.active': '활성화',
   'synergy.inactive': '미활성화',
   'synergy.none': '활성화된 시너지가 없습니다.',
+
+  // 추가 UI 요소
+  'button.retry': '다시 시도',
+  'ui.refresh': '새로고침',
+  'ui.close': '닫기',
+  'ui.anonymous': '익명',
+
+  // 랭킹/리더보드 추가
+  'ranking.notConfigured': '리더보드 설정이 아직 완료되지 않았어요. 나중에 다시 확인해 주세요.',
+  'ranking.timeout': '리더보드 불러오기 실패 (타임아웃)',
+  'ranking.unknownError': '알 수 없는 오류',
+  'ranking.noRecordsYet': '리더보드 기록이 아직 없습니다.',
+  'ranking.loadingMyRank': '내 순위를 불러오는 중...',
+  'ranking.networkErrorMyRank': '네트워크 오류로 내 순위를 불러올 수 없습니다.',
+  'ranking.cannotLoadMyRank': '내 순위를 불러올 수 없습니다.',
+  'ranking.errorLoadingMyRank': '내 순위를 불러오는 중 오류가 발생했습니다.',
+  'ranking.top10Rank': 'TOP 10 내 순위',
+  'ranking.myActualRank': '내 실제 순위',
+  'ranking.rankSuffix': '위',
+  'ranking.error.forbidden': '권한이 없어 리더보드를 불러올 수 없습니다.',
+  'ranking.error.config': '리더보드 설정 오류: Supabase 설정을 확인해주세요.',
+  'ranking.error.schema': '리더보드 테이블이 설정되지 않았습니다. 관리자에게 문의해주세요.',
+  'ranking.error.network': '네트워크 오류로 리더보드를 불러올 수 없습니다.',
+  'ranking.error.generic': '리더보드를 불러올 수 없습니다:',
+
+  // 에러 메시지
+  'error.loginFailed': '로그인에 실패했습니다. 다시 시도해 주세요.',
+
+  // 프레스티지 추가
+  'prestige.discount': '할인',
+  'prestige.effect.active': '활성',
+
+  // 시장 이벤트
+  'event.gangnamBoom.name': '강남 아파트 대박',
+  'event.gangnamBoom.desc': '강남 아파트발 상승 랠리로 주거형 부동산 수익이 상승합니다.',
+  'event.jeonseCrisis.name': '전세 대란',
+  'event.jeonseCrisis.desc': '전세 수요 급증으로 빌라/오피스텔 중심의 임대 수익이 급등합니다.',
+  'event.commercialBoom.name': '상권 활성화',
+  'event.commercialBoom.desc': '상권 회복으로 상가 수익이 크게 증가합니다.',
+  'event.officeDemand.name': '오피스 수요 급증',
+  'event.officeDemand.desc': '오피스 확장으로 빌딩 중심 수익이 급등합니다.',
+  'event.rateCut.name': '한국은행 금리 인하',
+  'event.rateCut.desc': '금리 인하로 예금/적금은 약세, 주식은 강세를 보입니다.',
+  'event.stockBoom.name': '주식시장 대호황',
+  'event.stockBoom.desc': '리스크 자산 선호로 주식 중심 수익이 크게 증가합니다.',
+  'event.fedQE.name': '미국 연준 양적완화',
+  'event.fedQE.desc': '달러 유동성 확대로 미국주식/코인 수익이 상승합니다.',
+  'event.bitcoinSurge.name': '비트코인 급등',
+  'event.bitcoinSurge.desc': '암호화폐 랠리로 코인 수익이 크게 증가합니다.',
+  'event.financialCrisis.name': '금융위기',
+  'event.financialCrisis.desc': '리스크 회피로 주식/코인/상업용 부동산이 타격을 받습니다.',
+  'event.bankCrisis.name': '은행 파산 위기',
+  'event.bankCrisis.desc': '은행 신뢰 하락으로 예금/적금 수익이 둔화합니다.',
+  'event.stockCrash.name': '주식시장 폭락',
+  'event.stockCrash.desc': '주식/리스크 자산 급락으로 수익이 크게 감소합니다.',
+  'event.cryptoRegulation.name': '암호화폐 규제',
+  'event.cryptoRegulation.desc': '규제 강화로 코인 수익이 감소합니다.',
+
+  // 공유/즐겨찾기
+  'share.description':
+    '💰 부동산과 금융 투자로 부자가 되는 게임!\n현재 자산: {assets}\n초당 수익: {rps}',
+  'share.notSupported': '❌ 이 기기/브라우저에서는 공유하기를 지원하지 않습니다.',
+  'share.success': '✅ 게임이 공유되었습니다!',
+  'share.failed': '❌ 공유에 실패했습니다.',
+  'favorite.added': '⭐ 즐겨찾기에 추가되었습니다.',
+  'favorite.title': '즐겨찾기 / 홈 화면에 추가',
+  'favorite.ios':
+    'iPhone/iPad에서는 Safari 하단의 공유 버튼(□↑)을 누른 뒤\n"홈 화면에 추가"를 선택하면 바탕화면에 게임 아이콘이 만들어집니다.',
+  'favorite.android':
+    'Android에서는 브라우저 오른쪽 위 메뉴(⋮)에서\n"홈 화면에 추가" 또는 "앱 설치"를 선택하면 바탕화면에 게임 아이콘이 만들어집니다.',
+  'favorite.otherMobile':
+    '이 기기에서는 브라우저의 메뉴에서 "홈 화면에 추가" 기능을 사용해 주세요.',
+  'favorite.desktop': '{shortcut} 를 눌러 이 페이지를 브라우저 즐겨찾기에 추가할 수 있습니다.',
+
+  // 인앱 브라우저 경고
+  'inapp.copied': '주소가 복사되었습니다.\nChrome/Safari 주소창에 붙여넣어 열어 주세요.',
+  'inapp.copyFallback': '{url}\n위 주소를 복사해서 Chrome/Safari에서 직접 열어 주세요.',
+  'inapp.banner.message': '이 브라우저에서는 Google 로그인이 제한될 수 있습니다.',
+  'inapp.banner.hint': 'Chrome / Safari 등 기본 브라우저에서 다시 열어 주세요.',
+  'inapp.banner.copyBtn': 'URL 복사',
+  'inapp.banner.closeBtn': '확인',
+
+  // 엔딩 모달
+  'ending.title': '🎉 엔딩',
+  'ending.message':
+    '🗼 서울타워 완성 🗼\n\n' +
+    '알바에서 시작해 CEO까지.\n' +
+    '예금에서 시작해 서울타워까지.\n\n' +
+    '서울 한복판에 당신의 이름이 새겨졌다.\n\n' +
+    '서울타워 🗼 획득 (누적 {count}개)\n\n' +
+    '이제 새로운 시작을 합니다.',
 }

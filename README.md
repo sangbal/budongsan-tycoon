@@ -30,6 +30,7 @@ MCP 브라우저 기반 자동 QA로 스모크 테스트 수행.
   - 상태 저장 키는 `AUTH_STORAGE_KEY = 'clicksurvivor-auth'`로 고정(허브/게임 간 공유)
 
 현재 UI는 허브와 게임 설정 탭에서 아래를 제공합니다:
+
 - 로그인: Google 로그인 버튼 (허브 계정 섹션, 게임 설정 탭)
 - 로그인 상태에 따라 동적 UI 표시 (로그인 시: 로그아웃 버튼, 로그아웃 시: 로그인 버튼)
 - 로그인 상태/사용자 표시, 로그아웃
@@ -39,14 +40,17 @@ MCP 브라우저 기반 자동 QA로 스모크 테스트 수행.
 ## ☁️ 클라우드 세이브 (로그인 사용자만)
 
 정책(MVP):
+
 - **게스트**: 기존처럼 브라우저 LocalStorage에만 저장 (5초마다 자동 저장)
-- **로그인 사용자**: 
+- **로그인 사용자**:
   - 로컬 저장: 5초마다 자동 저장 (게스트와 동일)
   - 클라우드 저장: 탭 숨김/닫기 시 자동 플러시 (토글 없음, 항상 ON)
   - 수동 저장: 설정 탭에서 "☁️ 클라우드 저장" 버튼으로 즉시 업로드
 
 ### Supabase 테이블 생성(필수)
+
 Supabase SQL Editor에서 아래 SQL을 1회 실행하세요:
+
 - `supabase/game_saves.sql` (클라우드 세이브용)
 - `supabase/leaderboard.sql` (리더보드용, 프레스티지 시스템 포함)
   - 참고: 기존 리더보드 테이블이 있다면 `supabase/leaderboard-migration-tower-count.sql`을 실행하여 `tower_count` 컬럼 추가
@@ -55,6 +59,7 @@ Supabase SQL Editor에서 아래 SQL을 1회 실행하세요:
   - 이 테이블이 없으면 닉네임 변경 기능이 정상 작동하지 않습니다
 
 이후 게임 설정 탭(👤 계정)에서:
+
 - **☁️ 클라우드 저장**: 현재 로컬 저장을 클라우드로 즉시 업로드
 - **☁️ 클라우드 불러오기**: 클라우드 저장을 로컬에 덮어쓰기 후 새로고침
 - **자동 플러시**: 탭을 숨기거나 닫을 때 자동으로 클라우드에 업로드 (로그인 사용자만, 토글 없음)
@@ -87,8 +92,9 @@ Supabase SQL Editor에서 아래 SQL을 1회 실행하세요:
 - 단순 로그아웃 또는 게임 데이터 초기화는 닉네임 회수 대상이 아닙니다
 
 ### Supabase 키 준비(필수)
-1) Supabase 대시보드에서 프로젝트 생성
-2) **Settings → API**에서 아래 2개를 복사해 로컬 `.env.local` (또는 `.env`) 에 입력
+
+1. Supabase 대시보드에서 프로젝트 생성
+2. **Settings → API**에서 아래 2개를 복사해 로컬 `.env.local` (또는 `.env`) 에 입력
    - `VITE_SUPABASE_URL=https://xxxx.supabase.co`
    - `VITE_SUPABASE_ANON_KEY=eyJ...`
 
@@ -96,9 +102,10 @@ Supabase SQL Editor에서 아래 SQL을 1회 실행하세요:
 > 로컬에서는 `.env.local`(git 미추적)로, CI/배포에서는 GitHub Secrets/환경 변수로 값을 주입하는 방식을 권장합니다.
 
 ### Google 로그인 활성화(권장)
-1) Supabase: **Authentication → Providers → Google** 활성화
-2) Google Cloud Console에서 OAuth Client 생성 후 Client ID/Secret을 Supabase에 입력
-3) Supabase: **Authentication → URL Configuration**
+
+1. Supabase: **Authentication → Providers → Google** 활성화
+2. Google Cloud Console에서 OAuth Client 생성 후 Client ID/Secret을 Supabase에 입력
+3. Supabase: **Authentication → URL Configuration**
    - Site URL: `https://clicksurvivor.com`
    - Additional Redirect URLs에 아래를 추가(최소)
      - `http://localhost:5173/`
@@ -109,6 +116,7 @@ Supabase SQL Editor에서 아래 SQL을 1회 실행하세요:
 ## 🤖 Cursor 바이브 코딩(세션 컨텍스트 유지)
 
 새 프롬프트/새 창에서 AI가 프로젝트 맥락을 잃지 않도록, 아래 문서들을 유지합니다:
+
 - `ARCHITECTURE.md`: 파일 구조/데이터 흐름 요약
 - `BALANCE_NOTES.md`: 난이도/밸런스 의도 기록
 - `DEVLOG.md`: 작업 로그(최근 변경/주의사항)
@@ -209,6 +217,7 @@ deploy.bat
 ### 레포 구조 기반 파일 위치
 
 **멀티페이지 엔트리 (Vite 빌드 입력)**:
+
 - 허브 홈: `index.html` (루트)
 - 게임: `seoulsurvival/index.html`
 - 계정 관리: `account/index.html`
@@ -217,6 +226,7 @@ deploy.bat
 **Vite 설정**: `vite.config.js`의 `rollupOptions.input`에 정의된 페이지만 빌드됩니다.
 
 **정적 리소스**:
+
 - OG 이미지: `public/og/*.png` → 빌드 시 `dist/og/*.png`로 복사
 - 파비콘: `seoulsurvival/assets/images/logo.png` (게임), 허브는 동일 경로 참조
 - `public/` 폴더의 모든 파일은 빌드 시 `dist/` 루트로 그대로 복사됨
@@ -228,6 +238,7 @@ deploy.bat
 **파일 경로**: 루트 `index.html`의 `<head>` 섹션
 
 **필수 메타태그**:
+
 ```html
 <link rel="canonical" href="https://clicksurvivor.com/" />
 <meta name="description" content="..." />
@@ -237,14 +248,20 @@ deploy.bat
 <meta property="og:url" content="https://clicksurvivor.com/" />
 <meta property="og:title" content="..." />
 <meta property="og:description" content="..." />
-<meta property="og:image" content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-21" />
+<meta
+  property="og:image"
+  content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-21"
+/>
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="..." />
 <meta name="twitter:description" content="..." />
-<meta name="twitter:image" content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-21" />
+<meta
+  name="twitter:image"
+  content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-21"
+/>
 
 <meta name="theme-color" content="#0b0f19" />
 ```
@@ -254,6 +271,7 @@ deploy.bat
 **파일 경로**: `seoulsurvival/index.html`의 `<head>` 섹션
 
 **필수 메타태그**: 허브와 동일한 구조, URL과 이미지 경로만 변경
+
 - `og:url`: `https://clicksurvivor.com/seoulsurvival/`
 - `og:image`: `https://clicksurvivor.com/og/seoulsurvivor-1200x630.png?v=2025-12-21`
 - `canonical`: `https://clicksurvivor.com/seoulsurvival/`
@@ -261,16 +279,19 @@ deploy.bat
 ### OG 이미지 관리
 
 **파일 위치**:
+
 - 소스: `public/og/*.png`
 - 빌드 후: `dist/og/*.png`
 - 배포 URL: `https://clicksurvivor.com/og/*.png`
 
 **규격**:
+
 - 크기: 1200x630px (OG 표준)
 - 형식: PNG (또는 JPG)
 - 파일명: `{페이지명}-1200x630.png`
 
 **현재 파일**:
+
 - `public/og/clicksurvivor-home-1200x630.png` (허브 홈)
 - `public/og/seoulsurvivor-1200x630.png` (게임)
 
@@ -279,27 +300,32 @@ deploy.bat
 ### URL 정책
 
 **Canonical URL**:
+
 - 모든 페이지의 `<head>`에 `<link rel="canonical">` 필수
 - 절대 URL 사용: `https://clicksurvivor.com/` 또는 `https://clicksurvivor.com/seoulsurvival/`
 - trailing slash 유지: 현재 정책은 슬래시 포함 (`/`, `/seoulsurvival/`)
 
 **OG URL**:
+
 - `og:url`은 `canonical`과 정확히 일치해야 함
 
 ### 빌드 후 검증
 
 **로컬 확인**:
+
 ```bash
 npm run build
 # dist/index.html, dist/seoulsurvival/index.html의 <head> 확인
 ```
 
 **배포 후 확인**:
+
 1. 브라우저에서 "페이지 소스 보기" (View Source)
 2. `<head>` 섹션에 메타태그가 포함되어 있는지 확인
 3. OG 이미지 URL 직접 접속: `https://clicksurvivor.com/og/*.png` (200 OK 확인)
 
 **SNS 프리뷰 검증 도구**:
+
 - Facebook Sharing Debugger: https://developers.facebook.com/tools/debug/
 - Twitter Card Validator: https://cards-dev.twitter.com/validator
 - LinkedIn Post Inspector: https://www.linkedin.com/post-inspector/
@@ -316,6 +342,7 @@ npm run build
 
 2. **Vite 설정 업데이트**
    - `vite.config.js`의 `rollupOptions.input`에 새 페이지 추가:
+
    ```js
    input: {
      main: resolve(__dirname, 'index.html'),
@@ -348,10 +375,12 @@ npm run build
 현재 레포에는 `robots.txt`와 `sitemap.xml`이 없습니다. 필요 시:
 
 **추가 방법**:
+
 - `public/robots.txt` 생성 → 빌드 시 `dist/robots.txt`로 복사
 - `public/sitemap.xml` 생성 → 빌드 시 `dist/sitemap.xml`로 복사
 
 **예시 `public/robots.txt`**:
+
 ```
 User-agent: *
 Allow: /
@@ -359,6 +388,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 ```
 
 **예시 `public/sitemap.xml`**:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -385,7 +415,7 @@ Sitemap: https://clicksurvivor.com/sitemap.xml
 
 - **현재 버전**: `package.json`의 `version`을 단일 소스 오브 트루스로 사용
 - **게임 내 버전 표시**: `package.json`의 `version`이 Vite 빌드 시 자동으로 주입되어 게임 내 설정 > 게임 정보에서 `v${GAME_VERSION}` 형태로 표시됩니다 (하드코딩 금지)
-- **PATCH** (예: `1.0.0 → 1.0.1`): 버그 수정, UI/문구/성능 개선, **밸런스 조정(저장/진행 호환 유지)**  
+- **PATCH** (예: `1.0.0 → 1.0.1`): 버그 수정, UI/문구/성능 개선, **밸런스 조정(저장/진행 호환 유지)**
 - **MINOR** (예: `1.0.0 → 1.1.0`): 기능 추가/콘텐츠 추가(새 시스템/탭/업그레이드/상품 등), 기본적으로 저장 호환 유지
 - **MAJOR** (예: `1.0.0 → 2.0.0`): 저장 형식 변경/리셋 필요/규칙 대개편/URL·구조 변경 등 호환이 깨질 수 있는 변화
 - **0.x 버전 규칙(선택)**: 프로토타입 단계에서는 `0.MINOR.PATCH`를 쓰고, 이때 **MINOR를 사실상 MAJOR처럼**(큰 변경) 운용해도 OK

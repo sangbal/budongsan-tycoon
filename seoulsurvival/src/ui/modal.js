@@ -237,7 +237,7 @@ export function openInputModal(title, message, onConfirm, options = {}) {
     }
     closeModal()
     if (typeof onConfirm === 'function') {
-      onConfirm(value || options.defaultValue || '익명')
+      onConfirm(value || options.defaultValue || t('ui.anonymous') || 'Anonymous')
     }
   }
   // secondary 버튼은 options.secondaryLabel이 있을 때만 의미 있음
@@ -267,19 +267,13 @@ export function openInputModal(title, message, onConfirm, options = {}) {
  * @param {Function} onConfirm - 확인 버튼 클릭 시 실행할 콜백 (프레스티지 실행)
  */
 export function showEndingModal(towerCount, onConfirm) {
-  const message =
-    `🗼 서울타워 완성 🗼\n\n` +
-    `알바에서 시작해 CEO까지.\n` +
-    `예금에서 시작해 서울타워까지.\n\n` +
-    `서울 한복판에 당신의 이름이 새겨졌다.\n\n` +
-    `서울타워 🗼 획득 (누적 ${towerCount}개)\n\n` +
-    `이제 새로운 시작을 합니다.`
+  const message = t('ending.message', { count: towerCount })
 
-  openInfoModal('🎉 엔딩', message, '🗼')
+  openInfoModal(t('ending.title'), message, '🗼')
 
   // 모달 확인 버튼 클릭 시 자동 프레스티지 실행 (타이머 없음, 버튼 클릭만)
   if (elModalPrimary) {
-    elModalPrimary.textContent = t('button.newStart') || '새로운 시작'
+    elModalPrimary.textContent = t('button.newStart')
     elModalPrimary.onclick = () => {
       closeModal()
       // 모달이 완전히 닫힌 후 프레스티지 실행 (DOM 안정화 대기)

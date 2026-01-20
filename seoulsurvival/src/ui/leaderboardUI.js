@@ -19,6 +19,21 @@ const LEADERBOARD_TIMEOUT = 7000 // 7초
 
 // ======= XSS 방지 헬퍼 함수 =======
 /**
+ * HTML 특수문자 이스케이프 (XSS 방지)
+ * @param {string} str - 이스케이프할 문자열
+ * @returns {string} 이스케이프된 문자열
+ */
+function escapeHTML(str) {
+  if (!str || typeof str !== 'string') return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+/**
  * 에러 메시지 UI를 안전하게 생성 (XSS 방지)
  * @param {HTMLElement} container - 컨테이너 요소
  * @param {string} message - 표시할 메시지
@@ -36,7 +51,7 @@ function renderErrorUI(container, message, showRetry = true) {
   if (showRetry) {
     const retryBtn = document.createElement('button')
     retryBtn.className = 'leaderboard-retry-btn'
-    retryBtn.textContent = '다시 시도'
+    retryBtn.textContent = t('button.retry') || 'Retry'
     retryBtn.addEventListener('click', () => {
       updateLeaderboardUI(true)
     })
@@ -84,7 +99,7 @@ export async function updateLeaderboardUI(force = false) {
   if (!isSupabaseConfigured()) {
     renderErrorUI(
       container,
-      '리더보드 설정이 아직 완료되지 않았어요. 나중에 다시 확인해 주세요.',
+      t('ranking.notConfigured') || 'Leaderboard setup is not complete. Please check back later.',
       false
     )
     __leaderboardLoading = false
@@ -123,7 +138,7 @@ export async function updateLeaderboardUI(force = false) {
       const timeoutId = setTimeout(() => {
         if (__leaderboardLoading) {
           console.error('리더보드: 타임아웃 발생')
-          renderErrorUI(container, '리더보드 불러오기 실패 (타임아웃)')
+          renderErrorUI(container, t('ranking.timeout') || 'Failed to load leaderboard (timeout)')
           __leaderboardLoading = false
           __leaderboardLastUpdate = Date.now()
         }
@@ -141,23 +156,28 @@ export async function updateLeaderboardUI(force = false) {
         clearTimeout(timeoutId)
 
         if (!result.success) {
-          const errorMsg = result.error || '알 수 없는 오류'
+          const errorMsg = result.error || t('ranking.unknownError') || 'Unknown error'
           const status = result.status
           const errorType = result.errorType
 
-          console.error('리더보드: API 오류', { errorMsg, status, errorType })
+          console.error('Leaderboard: API error', { errorMsg, status, errorType })
 
           let userMessage = ''
           if (errorType === 'forbidden' || status === 401 || status === 403) {
-            userMessage = '권한이 없어 리더보드를 불러올 수 없습니다.'
+            userMessage = t('ranking.error.forbidden') || 'Permission denied to load leaderboard.'
           } else if (errorType === 'config') {
-            userMessage = '리더보드 설정 오류: Supabase 설정을 확인해주세요.'
+            userMessage =
+              t('ranking.error.config') ||
+              'Leaderboard config error: Please check Supabase settings.'
           } else if (errorType === 'schema') {
-            userMessage = '리더보드 테이블이 설정되지 않았습니다. 관리자에게 문의해주세요.'
+            userMessage =
+              t('ranking.error.schema') ||
+              'Leaderboard table not configured. Contact administrator.'
           } else if (errorType === 'network') {
-            userMessage = '네트워크 오류로 리더보드를 불러올 수 없습니다.'
+            userMessage = t('ranking.error.network') || 'Network error: Cannot load leaderboard.'
           } else {
-            userMessage = `리더보드를 불러올 수 없습니다: ${errorMsg}`
+            userMessage =
+              (t('ranking.error.generic') || 'Cannot load leaderboard:') + ` ${errorMsg}`
           }
 
           renderErrorUI(container, userMessage)
@@ -182,7 +202,7 @@ export async function updateLeaderboardUI(force = false) {
             myRankContent.innerHTML = ''
             const myRankEmpty = document.createElement('div')
             myRankEmpty.className = 'leaderboard-my-rank-empty'
-            myRankEmpty.textContent = '리더보드 기록이 아직 없습니다.'
+            myRankEmpty.textContent = t('ranking.noRecordsYet') || 'No leaderboard records yet.'
             myRankContent.appendChild(myRankEmpty)
           }
           return
@@ -197,9 +217,9 @@ export async function updateLeaderboardUI(force = false) {
             <tr>
               <th class="col-rank">${t('ranking.table.rank')}</th>
               <th class="col-nickname">${t('ranking.table.nickname')}</th>
-              <th class="col-tower" aria-label="서울타워"></th>
+              <th class="col-tower" aria-label="${t('product.tower') || 'Seoul Tower'}"></th>
               <th class="col-assets">${t('ranking.table.assets')}</th>
-              <th class="col-playtime" aria-label="${t('ranking.table.playtime.full')}">${t('ranking.table.playtime')}</th>
+              <th class="col-playtime" aria-label="${t('ranking.table.lastActive.full')}">${t('ranking.table.lastActive')}</th>
             </tr>
           `
         table.appendChild(thead)
@@ -220,7 +240,7 @@ export async function updateLeaderboardUI(force = false) {
           // 닉네임 셀
           const nickTd = document.createElement('td')
           nickTd.className = 'col-nickname'
-          nickTd.textContent = entry.nickname || '익명'
+          nickTd.textContent = entry.nickname || t('ui.anonymous') || 'Anonymous'
 
           // 타워 셀
           const towerTd = document.createElement('td')
@@ -236,7 +256,7 @@ export async function updateLeaderboardUI(force = false) {
           // 플레이타임 셀
           const playtimeTd = document.createElement('td')
           playtimeTd.className = 'col-playtime'
-          playtimeTd.textContent = NumberFormat.formatPlaytimeMsShort(entry.play_time_ms || 0)
+          playtimeTd.textContent = NumberFormat.formatRelativeTime(entry.updated_at)
 
           // 내 닉네임 하이라이트 + 내 엔트리 캐시
           const entryNickLower = (entry.nickname || '').trim().toLowerCase()
@@ -279,22 +299,26 @@ export async function updateLeaderboardUI(force = false) {
           if (!currentNickLower) {
             myRankContent.innerHTML = `
                 <div class="leaderboard-my-rank-empty">
-                  닉네임을 설정하면 내 순위와 기록이 여기 표시됩니다.
+                  ${t('ranking.nicknameRequired') || 'Set a nickname to see your rank and record here.'}
                 </div>
               `
           } else if (myEntry) {
             // Top10 안에 있을 때: 이미 계산된 myEntry 사용
             const playTimeText = NumberFormat.formatPlaytimeMs(myEntry.play_time_ms || 0)
             const towerCount = myEntry.tower_count || 0
+            // XSS 방지: 닉네임 이스케이프
+            const safeNickname = escapeHTML(
+              myEntry.nickname || gameStateRef().playerNickname || t('ui.anonymous') || 'Anonymous'
+            )
             const displayName =
               towerCount > 0
-                ? `${myEntry.nickname || gameStateRef().playerNickname || '익명'} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
-                : myEntry.nickname || gameStateRef().playerNickname || '익명'
+                ? `${safeNickname} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
+                : safeNickname
             myRankContent.innerHTML = `
                 <div class="my-rank-card">
                   <div class="my-rank-header">
-                    <span class="my-rank-label">내 기록</span>
-                    <span class="my-rank-rank-badge">${myEntry.rank}위</span>
+                    <span class="my-rank-label">${t('ranking.myRecord') || 'My Record'}</span>
+                    <span class="my-rank-rank-badge">${myEntry.rank}${t('ranking.rankSuffix') || ''}</span>
                   </div>
                   <div class="my-rank-main">
                     <div class="my-rank-name">${displayName}</div>
@@ -302,7 +326,7 @@ export async function updateLeaderboardUI(force = false) {
                   </div>
                   <div class="my-rank-meta">
                     <span class="my-rank-playtime">⏱️ ${t('ranking.table.playtime.full')}: ${playTimeText}</span>
-                    <span class="my-rank-note">TOP 10 내 순위</span>
+                    <span class="my-rank-note">${t('ranking.top10Rank') || 'Top 10 Rank'}</span>
                   </div>
                 </div>
               `
@@ -327,12 +351,15 @@ export async function updateLeaderboardUI(force = false) {
                 loginBtn.addEventListener('click', async e => {
                   e.preventDefault()
                   if (!isSupabaseConfigured()) {
-                    alert('현재는 게스트 모드입니다. 로그인 기능은 준비 중입니다.')
+                    alert(
+                      t('settings.guestMode') ||
+                        'Currently in guest mode. Login feature is coming soon.'
+                    )
                     return
                   }
                   const result = await signInGoogle()
                   if (!result.ok) {
-                    alert('로그인에 실패했습니다. 다시 시도해 주세요.')
+                    alert(t('error.loginFailed') || 'Login failed. Please try again.')
                   } else {
                     // 로그인 성공 후 리더보드 UI 다시 업데이트
                     setTimeout(() => updateLeaderboardUI(true), 1000)
@@ -345,7 +372,7 @@ export async function updateLeaderboardUI(force = false) {
             // 로그인 상태: RPC로 순위 조회
             myRankContent.innerHTML = `
                 <div class="leaderboard-my-rank-loading">
-                  내 순위를 불러오는 중...
+                  ${t('ranking.loadingMyRank') || 'Loading my rank...'}
                 </div>
               `
 
@@ -371,7 +398,7 @@ export async function updateLeaderboardUI(force = false) {
                   console.error('[LB] 네트워크 오류로 내 순위 조회 실패')
                   innerHtml = `
                       <div class="leaderboard-my-rank-error">
-                        네트워크 오류로 내 순위를 불러올 수 없습니다.
+                        ${t('ranking.networkErrorMyRank') || 'Network error: Cannot load my rank.'}
                       </div>
                     `
                 } else if (rankResult.errorType === 'not_found') {
@@ -418,13 +445,16 @@ export async function updateLeaderboardUI(force = false) {
                           const towerCount = me.tower_count || 0
                           const displayName =
                             towerCount > 0
-                              ? `${me.nickname || gameStateRef().playerNickname || '익명'} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
-                              : me.nickname || gameStateRef().playerNickname || '익명'
+                              ? `${me.nickname || gameStateRef().playerNickname || t('ui.anonymous') || 'Anonymous'} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
+                              : me.nickname ||
+                                gameStateRef().playerNickname ||
+                                t('ui.anonymous') ||
+                                'Anonymous'
                           myRankContent.innerHTML = `
                               <div class="my-rank-card">
                                 <div class="my-rank-header">
-                                  <span class="my-rank-label">내 기록</span>
-                                  <span class="my-rank-rank-badge">${me.rank}위</span>
+                                  <span class="my-rank-label">${t('ranking.myRecord') || 'My Record'}</span>
+                                  <span class="my-rank-rank-badge">${me.rank}${t('ranking.rankSuffix') || ''}</span>
                                 </div>
                                 <div class="my-rank-main">
                                   <div class="my-rank-name">${displayName}</div>
@@ -432,7 +462,7 @@ export async function updateLeaderboardUI(force = false) {
                                 </div>
                                 <div class="my-rank-meta">
                                   <span class="my-rank-playtime">⏱️ ${t('ranking.table.playtime.full')}: ${playTimeText}</span>
-                                  <span class="my-rank-note">내 실제 순위</span>
+                                  <span class="my-rank-note">${t('ranking.myActualRank') || 'My Actual Rank'}</span>
                                 </div>
                               </div>
                             `
@@ -456,7 +486,7 @@ export async function updateLeaderboardUI(force = false) {
                   console.error('[LB] 내 순위 조회 실패', rankResult.errorType)
                   innerHtml = `
                       <div class="leaderboard-my-rank-error">
-                        내 순위를 불러올 수 없습니다.
+                        ${t('ranking.cannotLoadMyRank') || 'Cannot load my rank.'}
                       </div>
                     `
                 }
@@ -468,12 +498,15 @@ export async function updateLeaderboardUI(force = false) {
                   loginBtn.addEventListener('click', async e => {
                     e.preventDefault()
                     if (!isSupabaseConfigured()) {
-                      alert('현재는 게스트 모드입니다. 로그인 기능은 준비 중입니다.')
+                      alert(
+                        t('settings.guestMode') ||
+                          'Currently in guest mode. Login feature is coming soon.'
+                      )
                       return
                     }
                     const result = await signInGoogle()
                     if (!result.ok) {
-                      alert('로그인에 실패했습니다. 다시 시도해 주세요.')
+                      alert(t('error.loginFailed') || 'Login failed. Please try again.')
                     } else {
                       // 로그인 성공 후 리더보드 UI 다시 업데이트
                       setTimeout(() => updateLeaderboardUI(true), 1000)
@@ -484,15 +517,19 @@ export async function updateLeaderboardUI(force = false) {
                 const me = rankResult.data
                 const playTimeText = NumberFormat.formatPlaytimeMs(me.play_time_ms || 0)
                 const towerCount = me.tower_count || 0
+                // XSS 방지: 닉네임 이스케이프
+                const safeNickname = escapeHTML(
+                  me.nickname || gameStateRef().playerNickname || t('ui.anonymous') || 'Anonymous'
+                )
                 const displayName =
                   towerCount > 0
-                    ? `${me.nickname || gameStateRef().playerNickname || '익명'} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
-                    : me.nickname || gameStateRef().playerNickname || '익명'
+                    ? `${safeNickname} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
+                    : safeNickname
                 myRankContent.innerHTML = `
                     <div class="my-rank-card">
                       <div class="my-rank-header">
-                        <span class="my-rank-label">내 기록</span>
-                        <span class="my-rank-rank-badge">${me.rank}위</span>
+                        <span class="my-rank-label">${t('ranking.myRecord') || 'My Record'}</span>
+                        <span class="my-rank-rank-badge">${me.rank}${t('ranking.rankSuffix') || ''}</span>
                       </div>
                       <div class="my-rank-main">
                         <div class="my-rank-name">${displayName}</div>
@@ -500,16 +537,16 @@ export async function updateLeaderboardUI(force = false) {
                       </div>
                       <div class="my-rank-meta">
                         <span class="my-rank-playtime">⏱️ ${t('ranking.table.playtime.full')}: ${playTimeText}</span>
-                        <span class="my-rank-note">내 실제 순위</span>
+                        <span class="my-rank-note">${t('ranking.myActualRank') || 'My Actual Rank'}</span>
                       </div>
                     </div>
                   `
               }
             } catch (e) {
-              console.error('[LB] 내 순위 RPC 호출 실패:', e)
+              console.error('[LB] My rank RPC call failed:', e)
               myRankContent.innerHTML = `
                   <div class="leaderboard-my-rank-error">
-                    내 순위를 불러오는 중 오류가 발생했습니다.
+                    ${t('ranking.errorLoadingMyRank') || 'Error occurred while loading my rank.'}
                   </div>
                 `
             }
@@ -518,8 +555,9 @@ export async function updateLeaderboardUI(force = false) {
       } catch (error) {
         clearTimeout(timeoutId)
         console.error('리더보드 UI 업데이트 실패:', error)
-        const errorMsg = error.message || t('ranking.error', { error: 'Unknown error' })
-        container.innerHTML = `<div class="leaderboard-error">${t('ranking.error', { error: errorMsg })}</div>`
+        const errorMsg = error.message || 'Unknown error'
+        // XSS 방지: renderErrorUI 사용
+        renderErrorUI(container, t('ranking.error', { error: errorMsg }), true)
         __leaderboardLastUpdate = Date.now()
       } finally {
         __leaderboardLoading = false
