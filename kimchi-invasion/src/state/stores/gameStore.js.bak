@@ -93,8 +93,6 @@ export const useGameStore = create(
     production: { ...DEFAULT_PRODUCTION },
     buildings: [],
     buildingCounts: {},
-    conveyors: [], // 컨베이어 목록
-    inserters: [], // 투입기 목록
     research: {
       completed: [],
       current: null,
@@ -233,72 +231,6 @@ export const useGameStore = create(
      */
     getBuildingAt: (x, y) => {
       return get().buildings.find(b => b.x === x && b.y === y)
-    },
-
-    // === Actions: Conveyors ===
-
-    /**
-     * 컨베이어 추가
-     * @param {Object} conveyor - 컨베이어 객체
-     */
-    addConveyor: conveyor => {
-      set(state => ({
-        conveyors: [...state.conveyors, conveyor],
-      }))
-    },
-
-    /**
-     * 컨베이어 제거
-     * @param {string} conveyorId - 컨베이어 ID
-     */
-    removeConveyor: conveyorId => {
-      set(state => ({
-        conveyors: state.conveyors.filter(c => c.id !== conveyorId),
-      }))
-    },
-
-    /**
-     * 컨베이어 업데이트
-     * @param {string} conveyorId - 컨베이어 ID
-     * @param {Object} updates - 업데이트할 속성
-     */
-    updateConveyor: (conveyorId, updates) => {
-      set(state => ({
-        conveyors: state.conveyors.map(c => (c.id === conveyorId ? { ...c, ...updates } : c)),
-      }))
-    },
-
-    // === Actions: Inserters ===
-
-    /**
-     * 투입기 추가
-     * @param {Object} inserter - 투입기 객체
-     */
-    addInserter: inserter => {
-      set(state => ({
-        inserters: [...state.inserters, inserter],
-      }))
-    },
-
-    /**
-     * 투입기 제거
-     * @param {string} inserterId - 투입기 ID
-     */
-    removeInserter: inserterId => {
-      set(state => ({
-        inserters: state.inserters.filter(i => i.id !== inserterId),
-      }))
-    },
-
-    /**
-     * 투입기 업데이트
-     * @param {string} inserterId - 투입기 ID
-     * @param {Object} updates - 업데이트할 속성
-     */
-    updateInserter: (inserterId, updates) => {
-      set(state => ({
-        inserters: state.inserters.map(i => (i.id === inserterId ? { ...i, ...updates } : i)),
-      }))
     },
 
     // === Actions: Production ===
@@ -464,8 +396,6 @@ export const useGameStore = create(
         production: { ...DEFAULT_PRODUCTION },
         buildings: [],
         buildingCounts: {},
-        conveyors: [],
-        inserters: [],
         research: { completed: [], current: null, progress: 0 },
         stats: { ...DEFAULT_STATS },
         createdAt: Date.now(),

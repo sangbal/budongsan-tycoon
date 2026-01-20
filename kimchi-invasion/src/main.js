@@ -11,13 +11,17 @@ import { initPixiApp, getApp, destroyPixiApp } from './core/pixiApp.js'
 import { initCamera, setCameraPosition } from './core/camera.js'
 import { initTilemap, getMapSize, getTileSize } from './core/tilemap.js'
 import { initInput } from './core/input.js'
-import { initSystems } from './systems/index.js'
-import { initUI } from './ui/index.js'
+import { initSystems, checkAutoStartTutorial } from './systems/index.js'
+import { initUI, updateUI } from './ui/index.js'
 import { initI18n, t } from './i18n/index.js'
 import { loadSave, setupAutoSave } from './persist/storage.js'
+import { World } from './ecs/index.js'
 
 // Global game instance
 let game = null
+
+// ECS World instance
+let world = null
 
 /**
  * Game configuration
@@ -26,6 +30,62 @@ const CONFIG = {
   targetFPS: 60,
   autoSaveInterval: 30000, // 30 seconds
   version: __APP_VERSION__ ?? '0.1.0',
+}
+
+// === FPS Monitor (DEV only) ===
+const fpsMonitor = {
+  frameCount: 0,
+  lastTime: 0,
+  fps: 0,
+  element: null,
+  updateInterval: 500, // Update every 500ms
+
+  init() {
+    if (!import.meta.env.DEV) return
+
+    this.element = document.createElement('div')
+    this.element.id = 'fps-monitor'
+    this.element.style.cssText = `
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #00ff88;
+      font-family: monospace;
+      font-size: 12px;
+      border-radius: 4px;
+      z-index: 9999;
+      pointer-events: none;
+    `
+    document.body.appendChild(this.element)
+    this.lastTime = performance.now()
+  },
+
+  update(currentTime) {
+    if (!import.meta.env.DEV || !this.element) return
+
+    this.frameCount++
+    const elapsed = currentTime - this.lastTime
+
+    if (elapsed >= this.updateInterval) {
+      this.fps = Math.round((this.frameCount * 1000) / elapsed)
+      this.frameCount = 0
+      this.lastTime = currentTime
+
+      // Color coding: green (60+), yellow (30-59), red (<30)
+      const color = this.fps >= 60 ? '#00ff88' : this.fps >= 30 ? '#ffbe0b' : '#ff006e'
+      this.element.style.color = color
+      this.element.textContent = `FPS: ${this.fps}`
+    }
+  },
+
+  destroy() {
+    if (this.element) {
+      this.element.remove()
+      this.element = null
+    }
+  },
 }
 
 /**
@@ -137,19 +197,24 @@ async function initGame() {
     const tileSize = getTileSize()
     setCameraPosition((mapSize.width * tileSize) / 2, (mapSize.height * tileSize) / 2)
 
-    // Step 6: Initialize game systems
-    updateLoadingProgress(70, t('loading.systems') || 'Loading game systems...')
-    await initSystems()
+    // Step 6: Initialize ECS World
+    updateLoadingProgress(65, 'Initializing ECS World...')
+    world = new World()
+    console.log('[KIMCHI INVASION] ECS World created')
 
-    // Step 7: Initialize UI
+    // Step 7: Initialize game systems
+    updateLoadingProgress(70, t('loading.systems') || 'Loading game systems...')
+    await initSystems(world)
+
+    // Step 8: Initialize UI
     updateLoadingProgress(85, t('loading.ui') || 'Setting up interface...')
     await initUI()
 
-    // Step 8: Initialize input handling
+    // Step 9: Initialize input handling
     updateLoadingProgress(95, t('loading.input') || 'Configuring controls...')
     initInput()
 
-    // Step 9: Setup auto-save
+    // Step 10: Setup auto-save
     setupAutoSave(CONFIG.autoSaveInterval)
 
     // Done!
@@ -169,8 +234,16 @@ async function initGame() {
     await new Promise(resolve => setTimeout(resolve, 300))
     hideLoadingScreen()
 
+    // Initialize FPS monitor (DEV only)
+    fpsMonitor.init()
+
     // Start game loop
     startGameLoop()
+
+    // Check and auto-start tutorial
+    setTimeout(() => {
+      checkAutoStartTutorial()
+    }, 500)
   } catch (error) {
     console.error('[KIMCHI INVASION] Initialization failed:', error)
     updateLoadingProgress(0, `Error: ${error.message}`)
@@ -181,18 +254,29 @@ async function initGame() {
 
 /**
  * Main game loop
+ * @param {DOMHighResTimeStamp} currentTime - Performance.now() 타임스탬프 (밀리초)
  */
 function gameLoop(currentTime) {
   if (!game.running) return
 
-  const deltaTime = currentTime - game.lastTime
+  // Calculate deltaTime in seconds
+  const deltaTime = (currentTime - game.lastTime) / 1000
   game.lastTime = currentTime
 
-  // Update game systems
-  // TODO: Implement system updates
+  // Update FPS monitor (DEV only)
+  fpsMonitor.update(currentTime)
+
+  // Update ECS systems
+  if (world) {
+    world.update(deltaTime)
+  }
+
+  // Update UI animations (click effects, etc.)
+  updateUI(deltaTime)
 
   // Render frame
-  // TODO: Implement rendering
+  // PixiJS는 자체 ticker를 사용하므로 별도 렌더링 호출 불필요
+  // 각 시스템이 필요 시 PixiJS 객체를 직접 업데이트함
 
   requestAnimationFrame(gameLoop)
 }
@@ -214,6 +298,7 @@ function startGameLoop() {
  * Pause the game loop
  */
 function pauseGameLoop() {
+  if (!game) return
   game.running = false
   console.log('[KIMCHI INVASION] Game loop paused')
 }
@@ -266,6 +351,7 @@ if (import.meta.env.DEV) {
     getGame: () => game,
     getState: () => useGameStore.getState(),
     getPixiApp: getApp,
+    getWorld: () => world,
     pause: pauseGameLoop,
     resume: startGameLoop,
   }

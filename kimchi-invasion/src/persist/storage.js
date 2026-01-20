@@ -10,6 +10,18 @@ const LOCAL_STORAGE_KEY = 'kimchi_invasion_save'
 const SAVE_VERSION = 1
 
 let autoSaveInterval = null
+let isAutoSaveSetup = false
+
+// Event handlers (defined once)
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    saveGame()
+  }
+}
+
+const handleBeforeUnload = () => {
+  saveGame()
+}
 
 /**
  * Save game to localStorage
@@ -90,25 +102,22 @@ export function hasSave() {
  * Setup auto-save
  */
 export function setupAutoSave(intervalMs = 30000) {
+  // Clear existing interval
   if (autoSaveInterval) {
     clearInterval(autoSaveInterval)
   }
 
+  // Setup interval
   autoSaveInterval = setInterval(() => {
     saveGame()
   }, intervalMs)
 
-  // Save on visibility change (tab hidden)
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      saveGame()
-    }
-  })
-
-  // Save before unload
-  window.addEventListener('beforeunload', () => {
-    saveGame()
-  })
+  // Setup event listeners (only once)
+  if (!isAutoSaveSetup) {
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    isAutoSaveSetup = true
+  }
 
   console.log(`[Storage] Auto-save enabled (${intervalMs / 1000}s interval)`)
 }
@@ -120,6 +129,13 @@ export function stopAutoSave() {
   if (autoSaveInterval) {
     clearInterval(autoSaveInterval)
     autoSaveInterval = null
+  }
+
+  // Remove event listeners
+  if (isAutoSaveSetup) {
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.removeEventListener('beforeunload', handleBeforeUnload)
+    isAutoSaveSetup = false
   }
 }
 

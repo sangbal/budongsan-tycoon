@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResourceSystem Test</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+        background: #1a1a2e;
+        color: #eee;
+      }
+      h1 {
+        color: #dc2626;
+      }
+      .test-section {
+        background: #16213e;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #dc2626;
+      }
+      .test-case {
+        margin: 12px 0;
+        padding: 12px;
+        background: #0f3460;
+        border-radius: 4px;
+      }
+      .pass {
+        color: #10b981;
+        font-weight: bold;
+      }
+      .fail {
+        color: #ef4444;
+        font-weight: bold;
+      }
+      button {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #b91c1c;
+      }
+      code {
+        background: #0f3460;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Consolas', monospace;
+      }
+      pre {
+        background: #0f3460;
+        padding: 12px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 ResourceSystem Test</h1>
+    <p>
+      이 페이지는 <code>resourceSystem.js</code>의 기능을 테스트합니다.
+    </p>
+
+    <div class="test-section">
+      <h2>Test 1: 자원 추가</h2>
+      <div id="test-add"></div>
+      <button onclick="runTestAdd()">Run Test</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 2: 창고 용량 체크</h2>
+      <div id="test-capacity"></div>
+      <button onclick="runTestCapacity()">Run Test</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 3: 자원 소비</h2>
+      <div id="test-consume"></div>
+      <button onclick="runTestConsume()">Run Test</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 4: 보유량 검사</h2>
+      <div id="test-has"></div>
+      <button onclick="runTestHas()">Run Test</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Test 5: 여러 자원 동시 처리</h2>
+      <div id="test-multiple"></div>
+      <button onclick="runTestMultiple()">Run Test</button>
+    </div>
+
+    <div class="test-section">
+      <h2>Debug: 전체 자원 출력</h2>
+      <button onclick="window.resourceSystem.debugPrintAll()">
+        Print All Resources
+      </button>
+      <button
+        onclick="window.resourceSystem.debugInfo('iron')"
+        style="background: #6b7280"
+      >
+        Info: Iron
+      </button>
+      <button
+        onclick="window.resourceSystem.debugInfo('kimchi')"
+        style="background: #dc2626"
+      >
+        Info: Kimchi
+      </button>
+    </div>
+
+    <script type="module">
+      import { resourceSystem } from './src/systems/resourceSystem.js'
+      import { useGameStore } from './src/state/stores/gameStore.js'
+
+      // Global exposure for debugging
+      window.resourceSystem = resourceSystem
+      window.gameStore = useGameStore
+
+      console.log('[TEST] ResourceSystem loaded:', resourceSystem)
+
+      // Initialize
+      resourceSystem.init()
+      useGameStore.getState().reset()
+
+      // === Test Functions ===
+
+      window.runTestAdd = function () {
+        const output = document.getElementById('test-add')
+        output.innerHTML = ''
+
+        try {
+          // Test 1: Add iron
+          const added = resourceSystem.add('iron', 100)
+          const current = resourceSystem.get('iron')
+
+          const pass1 = added === 100 && current === 100
+          output.innerHTML += `<div class="test-case">
+          <code>add('iron', 100)</code>
+          → 추가된 양: ${added}, 현재: ${current}
+          <span class="${pass1 ? 'pass' : 'fail'}">${pass1 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Test 2: Add more
+          resourceSystem.add('iron', 50)
+          const current2 = resourceSystem.get('iron')
+          const pass2 = current2 === 150
+
+          output.innerHTML += `<div class="test-case">
+          <code>add('iron', 50)</code>
+          → 현재: ${current2}
+          <span class="${pass2 ? 'pass' : 'fail'}">${pass2 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+        } catch (error) {
+          output.innerHTML = `<span class="fail">Error: ${error.message}</span>`
+        }
+      }
+
+      window.runTestCapacity = function () {
+        const output = document.getElementById('test-capacity')
+        output.innerHTML = ''
+
+        try {
+          // Reset
+          useGameStore.getState().reset()
+
+          // Iron maxValue = 1000
+          const maxIron = resourceSystem.getMaxValue('iron')
+          const pass1 = maxIron === 1000
+
+          output.innerHTML += `<div class="test-case">
+          <code>getMaxValue('iron')</code>
+          → ${maxIron}
+          <span class="${pass1 ? 'pass' : 'fail'}">${pass1 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Add 1200 (should cap at 1000)
+          const added = resourceSystem.add('iron', 1200)
+          const current = resourceSystem.get('iron')
+          const pass2 = current === 1000
+
+          output.innerHTML += `<div class="test-case">
+          <code>add('iron', 1200)</code> (max: 1000)
+          → 실제 추가: ${added}, 현재: ${current}
+          <span class="${pass2 ? 'pass' : 'fail'}">${pass2 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Dollars maxValue = -1 (Infinity)
+          const maxDollars = resourceSystem.getMaxValue('dollars')
+          const pass3 = maxDollars === Infinity
+
+          output.innerHTML += `<div class="test-case">
+          <code>getMaxValue('dollars')</code>
+          → ${maxDollars === Infinity ? '∞' : maxDollars}
+          <span class="${pass3 ? 'pass' : 'fail'}">${pass3 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+        } catch (error) {
+          output.innerHTML = `<span class="fail">Error: ${error.message}</span>`
+        }
+      }
+
+      window.runTestConsume = function () {
+        const output = document.getElementById('test-consume')
+        output.innerHTML = ''
+
+        try {
+          // Reset
+          useGameStore.getState().reset()
+
+          // Add some iron
+          resourceSystem.add('iron', 100)
+
+          // Consume 50
+          const success1 = resourceSystem.consume('iron', 50)
+          const current1 = resourceSystem.get('iron')
+          const pass1 = success1 && current1 === 50
+
+          output.innerHTML += `<div class="test-case">
+          <code>consume('iron', 50)</code>
+          → 성공: ${success1}, 현재: ${current1}
+          <span class="${pass1 ? 'pass' : 'fail'}">${pass1 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Try to consume 100 (only 50 left)
+          const success2 = resourceSystem.consume('iron', 100)
+          const current2 = resourceSystem.get('iron')
+          const pass2 = !success2 && current2 === 50 // Should fail and not change
+
+          output.innerHTML += `<div class="test-case">
+          <code>consume('iron', 100)</code> (only 50 available)
+          → 성공: ${success2}, 현재: ${current2}
+          <span class="${pass2 ? 'pass' : 'fail'}">${pass2 ? '✓ PASS (부족하므로 실패 예상)' : '✗ FAIL'}</span>
+        </div>`
+        } catch (error) {
+          output.innerHTML = `<span class="fail">Error: ${error.message}</span>`
+        }
+      }
+
+      window.runTestHas = function () {
+        const output = document.getElementById('test-has')
+        output.innerHTML = ''
+
+        try {
+          // Reset
+          useGameStore.getState().reset()
+
+          // Add 100 iron
+          resourceSystem.add('iron', 100)
+
+          // Check has
+          const has50 = resourceSystem.has('iron', 50)
+          const has100 = resourceSystem.has('iron', 100)
+          const has150 = resourceSystem.has('iron', 150)
+
+          const pass1 = has50 === true
+          const pass2 = has100 === true
+          const pass3 = has150 === false
+
+          output.innerHTML += `<div class="test-case">
+          <code>has('iron', 50)</code> → ${has50}
+          <span class="${pass1 ? 'pass' : 'fail'}">${pass1 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+          output.innerHTML += `<div class="test-case">
+          <code>has('iron', 100)</code> → ${has100}
+          <span class="${pass2 ? 'pass' : 'fail'}">${pass2 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+          output.innerHTML += `<div class="test-case">
+          <code>has('iron', 150)</code> → ${has150}
+          <span class="${pass3 ? 'pass' : 'fail'}">${pass3 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+        } catch (error) {
+          output.innerHTML = `<span class="fail">Error: ${error.message}</span>`
+        }
+      }
+
+      window.runTestMultiple = function () {
+        const output = document.getElementById('test-multiple')
+        output.innerHTML = ''
+
+        try {
+          // Reset
+          useGameStore.getState().reset()
+
+          // Add multiple resources
+          const rewards = { iron: 100, water: 50, salt: 30 }
+          const actualAdded = resourceSystem.addMultiple(rewards)
+
+          const pass1 =
+            actualAdded.iron === 100 && actualAdded.water === 50 && actualAdded.salt === 30
+
+          output.innerHTML += `<div class="test-case">
+          <code>addMultiple({ iron: 100, water: 50, salt: 30 })</code>
+          → ${JSON.stringify(actualAdded)}
+          <span class="${pass1 ? 'pass' : 'fail'}">${pass1 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Consume multiple (recipe)
+          const costs = { iron: 50, water: 20 }
+          const success1 = resourceSystem.consumeMultiple(costs)
+          const pass2 = success1 === true
+
+          output.innerHTML += `<div class="test-case">
+          <code>consumeMultiple({ iron: 50, water: 20 })</code>
+          → 성공: ${success1}
+          <span class="${pass2 ? 'pass' : 'fail'}">${pass2 ? '✓ PASS' : '✗ FAIL'}</span>
+        </div>`
+
+          // Try to consume too much (should fail)
+          const costs2 = { iron: 100, water: 50 }
+          const success2 = resourceSystem.consumeMultiple(costs2) // Only 50 iron left
+          const ironLeft = resourceSystem.get('iron')
+          const pass3 = success2 === false && ironLeft === 50 // Should not change
+
+          output.innerHTML += `<div class="test-case">
+          <code>consumeMultiple({ iron: 100, water: 50 })</code> (only 50 iron left)
+          → 성공: ${success2}, iron 남은 양: ${ironLeft}
+          <span class="${pass3 ? 'pass' : 'fail'}">${pass3 ? '✓ PASS (부족하므로 실패 예상)' : '✗ FAIL'}</span>
+        </div>`
+        } catch (error) {
+          output.innerHTML = `<span class="fail">Error: ${error.message}</span>`
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings Menu Demo - KIMCHI INVASION</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles/settings.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--color-space-dark) 0%, var(--color-space-mid) 100%);
+      }
+      .demo-container {
+        text-align: center;
+        padding: 2rem;
+      }
+      .demo-title {
+        font-size: 2rem;
+        color: var(--color-kimchi-red);
+        margin-bottom: 1rem;
+      }
+      .demo-btn {
+        padding: 1rem 2rem;
+        background: var(--color-kimchi-red);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .demo-btn:hover {
+        background: var(--color-kimchi-glow);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+      }
+      .demo-info {
+        margin-top: 2rem;
+        color: var(--color-text-dim);
+        font-size: 0.875rem;
+      }
+      .demo-info kbd {
+        padding: 0.25rem 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <h1 class="demo-title">Settings Menu Demo</h1>
+      <p style="color: var(--color-text-dim); margin-bottom: 2rem;">
+        Click the button or press <kbd>S</kbd> to open settings
+      </p>
+      <button id="open-settings-btn" class="demo-btn">
+        ⚙️ Open Settings
+      </button>
+      <div class="demo-info">
+        <p><kbd>S</kbd> - Toggle Settings</p>
+        <p><kbd>ESC</kbd> - Close Settings</p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initSettingsMenu, toggleSettingsMenu } from './src/ui/settingsMenu.js'
+      import { applyInitialSettings } from './src/state/stores/settingsStore.js'
+      import { initI18n } from './src/i18n/index.js'
+
+      // Initialize
+      async function init() {
+        // Initialize i18n
+        await initI18n()
+
+        // Apply initial settings
+        applyInitialSettings()
+
+        // Initialize settings menu
+        initSettingsMenu()
+
+        // Bind button
+        const btn = document.getElementById('open-settings-btn')
+        btn.addEventListener('click', () => {
+          toggleSettingsMenu()
+        })
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', e => {
+          if (e.key === 's' || e.key === 'S') {
+            toggleSettingsMenu()
+          }
+        })
+
+        console.log('[Demo] Settings menu ready')
+      }
+
+      init()
+    </script>
+  </body>
+</html>
