@@ -93,6 +93,10 @@
     /* header, .header-brand 스타일은 shared/styles/header.css로 이동됨 */
     .statbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; flex:1 1 100%; min-width:0;}
     .share-btn{flex-shrink:0;}
+    /* 상태바 칩 내부 1줄 유지 */
+    .statbar .chip{white-space:nowrap; flex-wrap:nowrap; flex-shrink:1; min-width:0;}
+    .chip-icon{flex-shrink:0;}
+    .chip-label{white-space:nowrap; margin-right:2px;}
     /* .chip, .card 스타일은 shared/styles/uniform-core.css로 이동됨 */
     /* .muted는 shared/styles/uniform-core.css에 있음 */
 
@@ -1157,7 +1161,41 @@
         padding: 6px 10px;
       }
     }
-    
+
+    /* 상태바 반응형: 600px 이하 - 1줄 강제 + 초당 레이블 숨김 */
+    @media (max-width: 600px) {
+      .statbar {
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow: hidden;
+      }
+      .statbar .chip {
+        flex-shrink: 1;
+        min-width: 0;
+        padding: 4px 6px;
+        gap: 4px;
+      }
+      #rpsChip .chip-label {
+        display: none;
+      }
+    }
+
+    /* 480px 이하: 부동산 레이블 + 단위(개, 채) 숨김 */
+    @media (max-width: 480px) {
+      #propertyChip .chip-label { display: none; }
+      .statbar .chip .muted { display: none; }
+    }
+
+    /* 400px 이하: 금융 레이블 숨김 */
+    @media (max-width: 400px) {
+      #financialChip .chip-label { display: none; }
+    }
+
+    /* 350px 이하: 모든 레이블 숨김 (아이콘+숫자만) */
+    @media (max-width: 350px) {
+      .statbar .chip .chip-label { display: none; }
+    }
+
     /* 소형 모바일 (480px 이하) */
     @media (max-width: 480px) {
       body {
@@ -1200,8 +1238,27 @@
         padding: 12px 20px;
         font-size: 14px;
       }
+
+      /* 상태바 반응형: 부동산 레이블 숨김 */
+      #propertyChip .chip-label {
+        display: none;
+      }
     }
-    
+
+    /* 상태바 반응형: 400px 이하 - 금융 레이블도 숨김 */
+    @media (max-width: 400px) {
+      #financialChip .chip-label {
+        display: none;
+      }
+    }
+
+    /* 상태바 반응형: 350px 이하 - 현금 레이블도 숨김 (극소형 화면) */
+    @media (max-width: 350px) {
+      .chip .chip-label {
+        display: none;
+      }
+    }
+
     /* ======= 하단 네비게이션 바 (모바일 전용) ======= */
     .bottom-nav {
       display: none; /* 기본적으로 숨김 (PC) */
@@ -2060,10 +2117,11 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
     .leaderboard-table .col-playtime {
-      width: 56px;
+      width: 70px;
       text-align: right;
       font-size: 12px;
-      opacity: 0.85;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       white-space: nowrap;
     }
     .leaderboard-table tbody tr.is-me {
@@ -2683,10 +2741,10 @@
         <span class="share-label" data-i18n="header.share_btn">공유</span>
       </button>
       <div class="statbar">
-        <div class="chip"><span data-i18n="header.cash">💵 현금</span><b id="cash">0</b></div>
-        <div class="chip stat-tooltip" id="financialChip" title=""><span data-i18n="header.financial">💰 금융</span><b id="financial">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
-        <div class="chip stat-tooltip" id="propertyChip" title=""><span data-i18n="header.properties">🏢 부동산</span><b id="properties">0</b><span class="muted" data-i18n="ui.unit.property">채</span></div>
-        <div class="chip stat-tooltip" id="rpsChip" title=""><span data-i18n="header.rps">📈 초당</span><b id="rps">0</b></div>
+        <div class="chip" id="cashChip"><span class="chip-icon" aria-hidden="true">💵</span><span class="chip-label" data-i18n="header.cash.label">현금</span><b id="cash">0</b></div>
+        <div class="chip stat-tooltip" id="financialChip" title=""><span class="chip-icon" aria-hidden="true">💰</span><span class="chip-label" data-i18n="header.financial.label">금융</span><b id="financial">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
+        <div class="chip stat-tooltip" id="propertyChip" title=""><span class="chip-icon" aria-hidden="true">🏢</span><span class="chip-label" data-i18n="header.properties.label">부동산</span><b id="properties">0</b><span class="muted" data-i18n="ui.unit.property">채</span></div>
+        <div class="chip stat-tooltip" id="rpsChip" title=""><span class="chip-icon" aria-hidden="true">📈</span><span class="chip-label" data-i18n="header.rps.label">초당</span><b id="rps">0</b></div>
         <div class="chip" id="towerBadge" style="display: none; background: linear-gradient(135deg, rgba(94, 234, 212, 0.15), rgba(94, 234, 212, 0.05)); border: 1px solid rgba(94, 234, 212, 0.3); box-shadow: 0 0 12px rgba(94, 234, 212, 0.2);"><span style="font-size: 16px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🗼</span><b id="towerCountHeader">0</b></div>
       </div>
     </header>
