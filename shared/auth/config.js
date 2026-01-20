@@ -25,7 +25,9 @@ function logConfigOnce() {
     const env = getEnv()
     console.log('[env] VITE_SUPABASE_URL:', env.VITE_SUPABASE_URL)
     console.log('[env] VITE_SUPABASE_ANON_KEY length:', (env.VITE_SUPABASE_ANON_KEY || '').length)
-  } catch {}
+  } catch {
+    // 정적 ESM 환경에서 console이 없을 수 있음
+  }
 }
 
 // Share auth state across hub + all subpath games on the same origin.
@@ -64,7 +66,9 @@ export function isSupabaseConfigured() {
         urlValue: url || '(empty)',
         anonLen: (key || '').length,
       })
-    } catch {}
+    } catch {
+      // 정적 ESM 환경에서 console이 없을 수 있음
+    }
   }
 
   return ok

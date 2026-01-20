@@ -84,6 +84,22 @@ hub/                # 허브 전용 코드
 ├── main.js        # 허브 엔트리
 ├── home.js        # 홈페이지 게임 렌더링
 └── games.registry.js  # 게임 카탈로그 (단일 소스)
+
+kimchi-invasion/    # 김치 인베이전 게임
+├── index.html     # Vite 진입점
+├── styles.css     # 게임 스타일시트
+├── src/
+│   ├── main.js    # 게임 초기화, 게임 루프
+│   ├── core/      # 렌더러, 입력 처리
+│   ├── state/     # 게임 상태 관리
+│   ├── systems/   # 게임 시스템 (생산, 물류, 발효)
+│   ├── ui/        # UI 컴포넌트
+│   ├── data/      # 게임 데이터 (건물, 연구 등)
+│   ├── i18n/      # 다국어 번역 (ko/en)
+│   ├── balance/   # 밸런스 상수
+│   ├── persist/   # 저장/불러오기
+│   └── assets/    # 이미지, 사운드
+└── docs/          # GDD 문서 (13개 파일)
 ```
 
 ### 데이터 흐름 (서울 생존기)
@@ -360,6 +376,155 @@ claude mcp list
 # → 실제 기능 사용 시 작동하면 정상
 ```
 
+## Ralph Wiggum 플러그인 (자동 반복 루프)
+
+### 개요
+
+Ralph Wiggum은 **자동 반복 실행 플러그인**입니다. Claude가 작업을 완료할 때까지 동일한 프롬프트를 자동으로 반복 실행합니다.
+
+**설치 위치:** `.claude/plugins/ralph-wiggum/`
+
+### 사용법
+
+```bash
+# 자동 반복 루프 시작
+/ralph-loop "작업 설명" --max-iterations N --completion-promise "완료_신호"
+
+# 루프 취소
+/cancel-ralph
+```
+
+### 적합한 작업 (자동으로 사용 권장)
+
+| 작업 유형                | max-iterations | 사용 시점                 |
+| :----------------------- | :------------- | :------------------------ |
+| **ESLint 에러 수정**     | 10-15          | 린트 에러가 많을 때       |
+| **TDD 구현**             | 30-50          | 테스트 통과까지 자동 반복 |
+| **리팩토링**             | 20-40          | 대규모 코드 개선          |
+| **테스트 커버리지 달성** | 20-30          | 목표 커버리지까지         |
+
+### 프롬프트 예시
+
+```bash
+# ESLint 자동 수정
+/ralph-loop "
+npm run lint 실행 후 에러 수정.
+에러 0개일 때 <promise>LINT_CLEAN</promise>
+" --max-iterations 15 --completion-promise "LINT_CLEAN"
+
+# TDD 자동화
+/ralph-loop "
+TDD로 구현:
+1. 실패하는 테스트 작성
+2. 최소 코드로 구현
+3. npm run test:unit
+4. 실패하면 수정
+5. 모든 테스트 통과 시 <promise>TDD_DONE</promise>
+" --max-iterations 30 --completion-promise "TDD_DONE"
+```
+
+### ⚠️ 필수 규칙
+
+1. **항상 `--max-iterations` 설정** (무한 루프 방지)
+2. **명확한 완료 조건** (테스트 통과, 에러 0개 등)
+3. **주관적 작업 금지** (UI 설계, 아키텍처 결정 등)
+
+### AI 자동 사용 기준
+
+다음 상황에서 AI가 자동으로 Ralph Loop 사용을 고려:
+
+- 사용자가 "알아서 해줘", "완료될 때까지" 요청 시
+- ESLint 에러가 10개 이상일 때
+- 테스트 실패가 반복될 때
+- 대규모 리팩토링 작업 시
+
+**상세 가이드:** `kimchi-invasion/docs/prompt/50-RALPH-LOOP.md`
+
+## Claude Code 기본 성향 & AskUserQuestion
+
+### AskUserQuestion 사용 원칙
+
+Claude Code는 **모호함이나 선택지가 있을 때 먼저 사용자에게 물어봅니다.** 코드를 먼저 쓰고 나중에 수정하는 대신, 계획 단계에서 사용자의 의견을 수렴합니다.
+
+### 언제 AskUserQuestion을 사용할지
+
+✅ **반드시 사용해야 할 때:**
+
+1. **모호한 요구사항**
+   - 사용자: "이 함수를 최적화해줘"
+   - 나: 최적화 목표 3가지를 제시하고 선택 요청
+
+2. **상충하는 우선순위**
+   - 빠른 구현 vs 깔끔한 코드
+   - 기능 확장 vs 코드 품질
+   - 사용자에게 선택 요청
+
+3. **기술 선택**
+   - 어떤 라이브러리를 쓸까?
+   - 어떤 패턴을 적용할까?
+   - 사용자에게 옵션 제시
+
+4. **여러 구현 방식이 가능할 때**
+   - 리팩토링 방식 (전체 vs 점진적)
+   - 파일 구조 설계
+   - 사용자에게 확인
+
+❌ **하지 말아야 할 때:**
+
+- 시간 추정 포함 ("2주일 걸려요")
+- "이 계획 괜찮나요?" 형태 (→ ExitPlanMode 사용)
+- 너무 많은 선택지 (2-4개가 적당)
+- 기술 진실에 대한 질문 (명확히 알면 제시)
+
+### 사용 패턴
+
+```javascript
+// 1단계: 문제 상황 분석
+// 사용자 요청: "이 코드를 개선해줘"
+// → 여러 개선 방식이 가능함을 파악
+
+// 2단계: AskUserQuestion으로 선택 요청
+AskUserQuestion({
+  questions: [
+    {
+      question: '어떤 방식을 선호하시나요?',
+      header: '전략',
+      options: [
+        { label: '옵션 A', description: '장점/단점' },
+        { label: '옵션 B (Recommended)', description: '장점/단점' },
+      ],
+    },
+  ],
+})
+
+// 3단계: 사용자 답변 받음
+// 사용자 선택: "옵션 B"
+
+// 4단계: 선택에 따라 구현
+// 옵션 B에 맞춰 코드 작성 시작
+```
+
+### 예시
+
+**좋은 예:**
+
+```
+사용자: "main.js를 모듈화해줘"
+나: 여러 리팩토링 방식을 분석한 후
+  "리팩토링 방식을 어떻게 할까요?"
+  - 전체 재구성 (빠르지만 위험)
+  - 점진적 분리 (느리지만 안전)
+  사용자에게 물어봄 → 답변 후 구현
+```
+
+**나쁜 예:**
+
+```
+사용자: "main.js를 모듈화해줘"
+나: (바로 코드를 쓰기 시작)
+  → 사용자가 원하는 방식이 아니었음 → 시간 낭비
+```
+
 ## 밸런스 & 게임 디자인
 
 주요 밸런스 파일:
@@ -372,3 +537,111 @@ claude mcp list
 - 서울타워 (1조원) 구매 시 프레스티지 발동
 - `towers_run`은 초기화, `towers_lifetime`은 유지
 - 리더보드 순위: 타워 개수 우선 → 자산 순
+
+## Kimchi Invasion 게임
+
+### 🚀 개발 현황 (2026-01-19 시작)
+
+> **⚠️ 새 세션 시작 시 반드시 읽을 문서:**
+>
+> 1. `kimchi-invasion/docs/_ai-context/PROGRESS.md` - 현재 진행 상황
+> 2. `kimchi-invasion/docs/00-foundation/development-plan.md` - 개발 계획서
+
+**현재 상태:**
+
+- **Phase:** Week 1 - 기술 기반 구축
+- **진행률:** 체크리스트 확인 → `docs/_ai-context/PROGRESS.md`
+
+**확정된 기술 스택:**
+| 항목 | 결정 |
+|:-----|:-----|
+| 렌더링 | PixiJS 8.x |
+| 상태관리 | Zustand 4.x |
+| 언어 | JavaScript + JSDoc |
+| 아키텍처 | ECS-Lite 패턴 |
+| 플랫폼 | 데스크톱 우선 |
+
+**MVP 범위:** M1 (수동 단계) + M2 (자동 채집)
+
+### 게임 개요
+
+**KIMCHI INVASION: The Red Planet Protocol**은 화성에서 김치를 재배하고 지구로 수출하는 SF 팩토리 시뮬레이션 게임입니다.
+
+- **장르**: Factory Automation + Idle Incremental
+- **기술 스택**: Vite + PixiJS 8 + Zustand
+- **URL**: `https://clicksurvivor.com/kimchi-invasion/`
+
+### 핵심 컨셉
+
+1. **배경**: 화성 이주 초기, 대원들의 면역력을 위해 김치 자체 생산 시스템 구축
+2. **목표**: 화성에서 김치 생산 → 지구로 역수출 → 자본($) 축적 → 새 행성으로 이주
+3. **프레스티지**: 우주선 구매 시 새 행성으로 이주 (Loadout 시스템으로 기술만 선택 가능)
+
+### 설계 철학
+
+- **Low Floor, High Ceiling**: 유치원생도 색깔/아이콘으로 시작 가능, 베테랑은 자동화/최적화 추구
+- **Hard SF 기반**: 과학적 논리와 무게감 (물 전기분해 → 산소/수소, 발효 온도 관리 등)
+- **내러티브 중심**: 일지, 이벤트, 스토리 진행으로 몰입감 제공
+- **팩토리 게임 참조**: Factorio, Shapez, Two Point Hospital 등에서 영감
+
+### GDD 문서 구조
+
+`kimchi-invasion/docs/` 폴더에 13개 폴더 + 50개 문서로 체계화:
+
+```
+kimchi-invasion/docs/
+├── README.md                    # 메인 인덱스
+├── _ai-context/                 # 🤖 AI 컨텍스트용
+│   ├── QUICK_START.md          # 핵심 요약 (AI 첫 참조용)
+│   ├── GLOSSARY.md             # 용어집
+│   └── PROGRESS.md             # ⭐ 개발 진행 상황
+├── 00-foundation/               # 기초 문서
+│   ├── mvp-definition.md       # MVP 범위
+│   ├── tech-validation.md      # 기술 검증
+│   └── development-plan.md     # ⭐ 개발 계획서
+├── 01-concept/                  # 핵심 컨셉
+├── 02-mechanics/                # 게임 메카닉
+├── 03-visual-ux/                # 비주얼/UX (8개 모듈)
+├── 04-progression/              # 진행 시스템 (6개 모듈)
+├── 05-onboarding/               # 온보딩
+├── 06-threats/                  # 위협 시스템
+├── 07-balance/                  # 밸런스
+├── 08-achievements/             # 업적
+├── 09-technical/                # 기술 사양 (11개 모듈)
+├── 10-audio/                    # 오디오 (6개 모듈)
+├── 11-localization/             # 현지화 (6개 모듈)
+└── 12-marketing/                # 마케팅
+```
+
+**AI 컨텍스트 활용:**
+
+- 새 세션 시작 → `_ai-context/PROGRESS.md` 먼저 읽기
+- 게임 개요 필요 → `_ai-context/QUICK_START.md`
+- 특정 주제 → 해당 폴더의 `_index.md`
+
+### 개발 가이드
+
+**로컬 개발:**
+
+```bash
+npm run dev                    # http://localhost:5173/kimchi-invasion/
+```
+
+**주요 진입점:**
+
+- `kimchi-invasion/src/main.js` - 게임 초기화 및 루프
+- `kimchi-invasion/src/state/gameState.js` - 상태 관리
+- `kimchi-invasion/src/i18n/index.js` - 다국어 지원
+
+**데이터 흐름:**
+
+1. `initGame()` → 로딩 화면 → 시스템 초기화
+2. `gameLoop()` → 60 FPS로 시스템 업데이트 및 렌더링
+3. 저장: LocalStorage (30초 자동) + 탭 숨김/닫기 시
+
+### 경로 별칭 (추가 필요)
+
+```javascript
+// tsconfig.json에 추가
+'@kimchi-invasion/*' → './kimchi-invasion/src/*'
+```

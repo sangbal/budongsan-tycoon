@@ -169,11 +169,11 @@ export function formatStatsNumber(num, settings) {
       value.toLocaleString('ko-KR', {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
-      }) + '만원'
+      }) + '만'
     )
   } else if (num >= 1000) {
     const cheon = Math.floor(num / 1000)
-    return cheon.toLocaleString('ko-KR') + '천원'
+    return cheon.toLocaleString('ko-KR') + '천'
   } else {
     return Math.floor(num).toLocaleString('ko-KR') + '원'
   }
@@ -433,13 +433,24 @@ export function formatCashDisplayFixed1(num, settings) {
 }
 
 /**
- * 플레이 시간 포맷 (한국어)
+ * 플레이 시간 포맷 (언어별)
  * @param {number} ms - 밀리초 단위 플레이 시간
- * @returns {string} 포맷된 문자열 (예: "1시간 30분", "45분")
+ * @returns {string} 포맷된 문자열 (예: "1시간 30분", "45분" / "1h 30m", "45m")
  */
 export function formatPlaytimeMs(ms) {
   if (!ms || ms <= 0) return '—'
+  const currentLang = getLang()
   const minutes = Math.floor(ms / 1000 / 60)
+
+  if (currentLang === 'en') {
+    if (minutes <= 0) return '<1m'
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    if (h > 0) return m ? `${h}h ${m}m` : `${h}h`
+    return `${m}m`
+  }
+
+  // Korean
   if (minutes <= 0) return '1분 미만'
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
@@ -461,4 +472,46 @@ export function formatPlaytimeMsShort(ms) {
   if (h >= 100) return `${h}h` // 너무 길어지면 분 생략
   if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`
   return `${m}m`
+}
+
+/**
+ * 상대 시간 포맷 (최근 접속 시간)
+ * @param {string|Date} timestamp - ISO 8601 타임스탬프
+ * @returns {string} "1분 전", "3h ago" 등
+ */
+export function formatRelativeTime(timestamp) {
+  if (!timestamp) return '—'
+  const currentLang = getLang()
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return '—'
+
+  const diffMs = Date.now() - date.getTime()
+  if (diffMs < 0) return '—'
+
+  const diffMinutes = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMinutes / 60)
+  const diffDays = Math.floor(diffHours / 24)
+  const diffWeeks = Math.floor(diffDays / 7)
+  const diffMonths = Math.floor(diffDays / 30)
+  const diffYears = Math.floor(diffDays / 365)
+
+  // 순서: 분 > 시간 > 일 > 주 > 개월 > 년
+  if (currentLang === 'en') {
+    if (diffMinutes < 1) return 'Now'
+    if (diffHours < 1) return `${diffMinutes}m ago` // 1시간 미만: 분
+    if (diffDays < 1) return `${diffHours}h ago` // 1일 미만: 시간
+    if (diffDays < 7) return `${diffDays}d ago` // 1주 미만: 일
+    if (diffDays < 30) return `${diffWeeks}w ago` // 1개월 미만: 주
+    if (diffYears < 1) return `${diffMonths}mo ago` // 1년 미만: 개월
+    return `${diffYears}y ago` // 1년 이상: 년
+  }
+
+  // Korean
+  if (diffMinutes < 1) return '방금'
+  if (diffHours < 1) return `${diffMinutes}분 전` // 1시간 미만: 분
+  if (diffDays < 1) return `${diffHours}시간 전` // 1일 미만: 시간
+  if (diffDays < 7) return `${diffDays}일 전` // 1주 미만: 일
+  if (diffDays < 30) return `${diffWeeks}주 전` // 1개월 미만: 주
+  if (diffYears < 1) return `${diffMonths}개월 전` // 1년 미만: 개월
+  return `${diffYears}년 전` // 1년 이상: 년
 }
