@@ -90,9 +90,10 @@ export class TutorialSystem extends System {
 
   /**
    * 시스템 업데이트
+   * @param {import('../ecs/Entity.js').Entity[]} _entities - 매칭된 엔티티 (사용 안 함)
    * @param {number} deltaTime - 경과 시간 (초)
    */
-  update(deltaTime) {
+  update(_entities, deltaTime) {
     if (this.state !== TUTORIAL_STATE.IN_PROGRESS) return
 
     // 단계별 목표 자동 체크
@@ -248,7 +249,7 @@ export class TutorialSystem extends System {
     switch (this.currentStep) {
       case TUTORIAL_STEPS.STEP_1_COLLECT: {
         // 목표: 물(얼음) 5개, 레골리스 5개 수집
-        // gameStore에서는 resources.water가 숫자로 저장됨
+        // NOTE: subscribe 콜백에서도 완료 체크를 하므로 여기는 백업용
         const ice = gameState.resources.water ?? 0
         const regolith = gameState.resources.regolith ?? 0
         if (ice >= 5 && regolith >= 5) {
@@ -337,6 +338,16 @@ export class TutorialSystem extends System {
             { id: 'regolith', label: '레골리스', target: 5, current: regolith },
           ],
         })
+
+        // 완료 조건 즉시 체크 (프레임 업데이트 대기 없이)
+        if (
+          this.currentStep === TUTORIAL_STEPS.STEP_1_COLLECT &&
+          this.state === TUTORIAL_STATE.IN_PROGRESS &&
+          ice >= 5 &&
+          regolith >= 5
+        ) {
+          this.advanceToStep(TUTORIAL_STEPS.STEP_2_BUILD)
+        }
       }
     )
     this.unsubscribers.push(unsub)
