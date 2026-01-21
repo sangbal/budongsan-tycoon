@@ -88,6 +88,19 @@ header {
   display: none; /* Chrome, Safari */
 }
 
+/* statbar 칩 스타일 */
+.statbar .chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* 좁은 화면에서 칩 라벨(현금, 금융, 부동산, 초당) 숨김 */
+@media (max-width: 600px) {
+  .statbar .chip .chip-label {
+    display: none;
+  }
+}
+
 /* 공유/즐겨찾기 버튼 */
 .share-btn,
 .favorite-btn {
