@@ -2708,7 +2708,7 @@
       }
     }
   </style>
-  <script type="module" crossorigin src="../assets/seoulsurvival-C5WCzUKU.js"></script>
+  <script type="module" crossorigin src="../assets/seoulsurvival-DKo3ld9w.js"></script>
   <link rel="modulepreload" crossorigin href="../assets/modulepreload-polyfill-B5Qt9EMX.js">
   <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-i18n-CiaOUQQV.js">
   <link rel="modulepreload" crossorigin href="../assets/shared-auth-DeLik3hD.js">
@@ -2720,6 +2720,7 @@
   <link rel="modulepreload" crossorigin href="../assets/vendor-sentry-GDmcRtJk.js">
   <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-monitoring-X1MgozFp.js">
   <link rel="stylesheet" crossorigin href="../assets/shared-common-EV7XD_pA.css">
+  <link rel="stylesheet" crossorigin href="../assets/seoulsurvival-DLnIihpW.css">
 </head>
 <body data-theme="seoulsurvival">
   <!-- Skip Navigation 링크 (접근성) -->
@@ -2727,29 +2728,33 @@
 
   <div class="app" data-testid="seoulsurvival-root">
     <header>
-      <div class="header-brand" aria-label="Capital Clicker: Seoul Survival">
-        <img class="brand-icon" src="../assets/logo-i7-wKku9.webp" alt="" aria-hidden="true" />
-        <span class="brand-text"><b>Capital Clicker:</b> Seoul Survival</span>
+      <!-- 1번째 줄: 브랜드 + 버튼들 -->
+      <div class="header-row-1">
+        <div class="header-brand" aria-label="Capital Clicker: Seoul Survival">
+          <img class="brand-icon" src="../assets/logo-i7-wKku9.webp" alt="" aria-hidden="true" />
+          <span class="brand-text"><b>Capital Clicker:</b> Seoul Survival</span>
+        </div>
+
+        <!-- 즐겨찾기 / 홈 화면 안내 버튼 (공유 버튼 왼쪽) -->
+        <button
+          class="chip favorite-btn"
+          id="favoriteBtn"
+          type="button"
+          title="즐겨찾기 / 홈 화면에 추가 안내"
+          aria-label="즐겨찾기 / 홈 화면에 추가 안내"
+        >
+          <span class="favorite-icon">⭐</span>
+          <span class="favorite-label" data-i18n="header.favorite_btn">즐겨찾기</span>
+        </button>
+
+        <button class="chip share-btn" id="shareBtn" type="button" title="게임 공유하기" aria-label="게임 공유하기">
+          <svg class="share-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.6 2.6 0 0 0 0-1.39l7.02-4.11A2.99 2.99 0 1 0 14 5a3 3 0 0 0 .06.59L7.03 9.7A3 3 0 1 0 7 14.3l7.02 4.11A3 3 0 1 0 18 16.08z"></path>
+          </svg>
+          <span class="share-label" data-i18n="header.share_btn">공유</span>
+        </button>
       </div>
-
-      <!-- 즐겨찾기 / 홈 화면 안내 버튼 (공유 버튼 왼쪽) -->
-      <button
-        class="chip favorite-btn"
-        id="favoriteBtn"
-        type="button"
-        title="즐겨찾기 / 홈 화면에 추가 안내"
-        aria-label="즐겨찾기 / 홈 화면에 추가 안내"
-      >
-        <span class="favorite-icon">⭐</span>
-        <span class="favorite-label" data-i18n="header.favorite_btn">즐겨찾기</span>
-      </button>
-
-      <button class="chip share-btn" id="shareBtn" type="button" title="게임 공유하기" aria-label="게임 공유하기">
-        <svg class="share-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.6 2.6 0 0 0 0-1.39l7.02-4.11A2.99 2.99 0 1 0 14 5a3 3 0 0 0 .06.59L7.03 9.7A3 3 0 1 0 7 14.3l7.02 4.11A3 3 0 1 0 18 16.08z"></path>
-        </svg>
-        <span class="share-label" data-i18n="header.share_btn">공유</span>
-      </button>
+      <!-- 2번째 줄: 통계 바 -->
       <div class="statbar">
         <div class="chip" id="cashChip"><span class="chip-icon" aria-hidden="true">💵</span><span class="chip-label" data-i18n="header.cash.label">현금</span><b id="cash">0</b></div>
         <div class="chip stat-tooltip" id="financialChip" title=""><span class="chip-icon" aria-hidden="true">💰</span><span class="chip-label" data-i18n="header.financial.label">금융</span><b id="financial">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
