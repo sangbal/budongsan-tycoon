@@ -50,7 +50,7 @@ header {
 
 .brand-text {
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: -0.5px;
 }
 
