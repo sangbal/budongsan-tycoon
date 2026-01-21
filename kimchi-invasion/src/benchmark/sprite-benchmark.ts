@@ -78,7 +78,6 @@ export class SpriteBenchmark {
     this.running = true
 
     const startTime = performance.now()
-    let lastTime = startTime
 
     // Use Pixi's ticker for consistent loop
     const tickerCallback = (ticker: PIXI.Ticker) => {
