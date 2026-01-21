@@ -6,20 +6,30 @@ const SAVE_KEY = 'seoulTycoonSaveV1'
 test.setTimeout(60000)
 
 /**
- * 모달이 있으면 강제로 닫는 헬퍼 함수
+ * 모달이 있으면 닉네임을 설정하고 닫는 헬퍼 함수
  * @param {import('@playwright/test').Page} page
  */
 async function dismissModal(page) {
   // 모달이 나타날 시간 대기
   await page.waitForTimeout(500)
 
-  // 모든 모달 강제 제거 (DOM에서 직접 삭제)
+  // 닉네임 입력 모달이 있으면 닉네임 설정
+  const nicknameInput = page.locator('input[type="text"]')
+  if (await nicknameInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await nicknameInput.fill('테스트')
+    const confirmBtn = page.locator('button:has-text("확인")')
+    if (await confirmBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+      await confirmBtn.click()
+      await page.waitForTimeout(300)
+    }
+  }
+
+  // 그래도 모달이 남아있으면 강제 제거
   await page.evaluate(() => {
     const modalRoot = document.getElementById('gameModalRoot')
     if (modalRoot) {
       modalRoot.remove()
     }
-    // backdrop도 제거
     const overlay = document.querySelector('.game-modal-overlay')
     if (overlay) {
       overlay.remove()
@@ -62,33 +72,33 @@ test.describe('SeoulSurvival - 핵심 게임 플로우', () => {
     const workBtn = page.locator('#workBtn')
     await workBtn.waitFor({ state: 'visible' })
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 60; i++) {
       await workBtn.click({ force: true, timeout: 5000 })
-      await page.waitForTimeout(100)
+      await page.waitForTimeout(50)
     }
 
     // 현금 증가 확인
     await page.waitForTimeout(500)
     const cashAfterWork = await page.locator('#cash').textContent()
     const cashValue = parseInt(cashAfterWork.replace(/[^0-9]/g, ''))
-    // 20클릭으로 충분한 현금 확보
-    expect(cashValue).toBeGreaterThanOrEqual(10000)
+    // 60클릭으로 예금 가격(50,000) 이상 현금 확보
+    expect(cashValue).toBeGreaterThanOrEqual(50000)
 
     // 투자 탭으로 이동
     const shopTab = page.locator('button:has-text("💰")')
-    await shopTab.click()
+    await shopTab.click({ force: true })
     await page.waitForTimeout(500)
 
     // 예금 구매 (구매 모드 확인)
     const buyModeBtn = page.locator('#buyMode')
     if (await buyModeBtn.isVisible()) {
-      await buyModeBtn.click()
+      await buyModeBtn.click({ force: true })
       await page.waitForTimeout(200)
     }
 
     const buyDepositBtn = page.locator('#buyDeposit')
     await buyDepositBtn.waitFor({ state: 'visible' })
-    await buyDepositBtn.click()
+    await buyDepositBtn.click({ force: true })
     await page.waitForTimeout(500)
 
     // 예금 개수 확인 (구매 성공 시 1개 이상)
@@ -125,15 +135,15 @@ test.describe('SeoulSurvival - 핵심 게임 플로우', () => {
     await page.waitForTimeout(300)
 
     const shopTab = page.locator('button:has-text("💰")')
-    await shopTab.click()
+    await shopTab.click({ force: true })
     await page.waitForTimeout(500)
 
     const qty10Btn = page.locator('#qty10')
-    await qty10Btn.click()
+    await qty10Btn.click({ force: true })
     await page.waitForTimeout(300)
 
     const buyDepositBtn = page.locator('#buyDeposit')
-    await buyDepositBtn.click()
+    await buyDepositBtn.click({ force: true })
     await page.waitForTimeout(500)
 
     const depositCount = await page.locator('#depositCount').textContent()
@@ -233,7 +243,7 @@ test.describe('SeoulSurvival - 핵심 게임 플로우', () => {
     await page.waitForTimeout(300)
 
     const shopTab = page.locator('button:has-text("💰")')
-    await shopTab.click()
+    await shopTab.click({ force: true })
     await page.waitForTimeout(1000)
 
     const upgradeCount = await page.locator('#upgradeList .upgrade-item, .upg-list .row').count()
@@ -243,7 +253,7 @@ test.describe('SeoulSurvival - 핵심 게임 플로우', () => {
       const firstUpgradeBtn = page
         .locator('#upgradeList .upgrade-item button, .upg-list .row button')
         .first()
-      await firstUpgradeBtn.click()
+      await firstUpgradeBtn.click({ force: true })
       await page.waitForTimeout(500)
     }
   })

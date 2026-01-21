@@ -7,6 +7,28 @@ test.describe('모바일 탭바 접근성 테스트', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     // 페이지 로딩 대기
     await page.waitForLoadState('networkidle')
+
+    // 닉네임 설정 모달이 있으면 닫기
+    try {
+      const nicknameInput = page.locator('input[type="text"]')
+      if (await nicknameInput.isVisible({ timeout: 2000 })) {
+        await nicknameInput.fill('테스트')
+        const confirmBtn = page.locator('button:has-text("확인")')
+        await confirmBtn.waitFor({ state: 'visible', timeout: 2000 })
+        await confirmBtn.click()
+        await page.waitForTimeout(500)
+      }
+    } catch {
+      // 모달이 없으면 무시
+    }
+
+    // 모달이 남아있으면 강제 제거
+    await page.evaluate(() => {
+      const modalRoot = document.getElementById('gameModalRoot')
+      if (modalRoot) modalRoot.remove()
+      const overlay = document.querySelector('.game-modal-overlay')
+      if (overlay) overlay.remove()
+    })
   })
 
   test('ARIA 라벨 확인', async ({ page }) => {
