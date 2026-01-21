@@ -1,6 +1,7 @@
 /* Hub 전용 스타일 (최소 구현) */
 
-body {
+/* 허브 레이아웃: 허브 페이지에만 적용 (게임 페이지 제외) */
+body.hub-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
