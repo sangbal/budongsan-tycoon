@@ -1,6 +1,18 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
   "mcpServers": {
+    "github": {
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        ".mcp/load-env-and-run.ps1",
+        ".mcp/bin/github-mcp-server.exe",
+        "stdio"
+      ],
+      "description": "GitHub 공식 MCP 서버 v0.29.0 - 이슈, PR, 저장소 관리"
+    },
     "playwright": {
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@playwright/mcp"],

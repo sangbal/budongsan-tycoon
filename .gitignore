@@ -72,3 +72,6 @@ playwright/.auth/user.json
 # .mcp.json은 환경변수 참조만 포함하므로 커밋 가능
 
 .claude/ralph-loop.local.md
+
+# MCP 바이너리
+.mcp/bin/
