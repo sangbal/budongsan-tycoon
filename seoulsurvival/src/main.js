@@ -84,6 +84,10 @@ import {
 } from './state/gameState.js'
 import { getStartingCash } from './systems/prestigeBonus.js'
 
+// ===== CSS 번들링 보장 =====
+// Vite 빌드 시 HTML의 <link> 태그가 처리되지 않는 문제 해결
+import '../styles/header.css'
+
 // ===== 밸런스 설정 import =====
 import { MARKET_EVENTS, BASE_COSTS } from './balance/index.js'
 
