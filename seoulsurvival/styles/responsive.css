@@ -197,10 +197,10 @@
     font-size: 12px;
   }
 
-  /* App padding */
+  /* App padding - 헤더 2줄 구조 높이 고려 */
   .app {
     padding: 8px;
-    padding-top: 78px;
+    padding-top: 94px;
   }
 
   /* Touch optimized buttons */
@@ -428,7 +428,7 @@
 
   .app {
     padding: 4px;
-    padding-top: 74px;
+    padding-top: 88px;
   }
 
   header {
