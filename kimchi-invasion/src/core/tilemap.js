@@ -129,13 +129,13 @@ function generateTile(x, y) {
   } else if (noise < 0.25) {
     type = 'rock'
     buildable = false
-    // 암석 지역에 철광석 확률
+    // 암석 지역에 철광석 확률 (GDD: 노천 채굴)
     if (Math.random() < 0.3) {
-      resource = 'iron'
+      resource = 'ironOre'
     }
   } else if (noise > 0.85) {
     type = 'ice'
-    resource = 'water' // 얼음 해동 → 물
+    resource = 'ice' // 얼음 타일 → 얼음 (해동기에서 물로 변환)
   } else if (noise > 0.75) {
     type = 'sand'
   }
@@ -242,8 +242,9 @@ function drawResourceIndicator(parent, x, y, resourceType) {
   const cy = y + config.tileSize / 2
 
   let color = 0xffffff
-  if (resourceType === 'iron') color = 0x808080
-  if (resourceType === 'ice') color = 0x00bfff
+  if (resourceType === 'ironOre') color = 0x8b4513 // 철광석 (갈색)
+  if (resourceType === 'iron') color = 0x808080 // Legacy
+  if (resourceType === 'ice') color = 0x00bfff // 얼음 (하늘색)
 
   // PixiJS 8 체이닝
   indicator.circle(cx, cy, 8).fill({ color }).stroke({ width: 2, color: 0x000000, alpha: 0.5 })
@@ -318,6 +319,77 @@ export function getMapSize() {
 export function canBuild(tileX, tileY) {
   const tile = getTile(tileX, tileY)
   return tile?.buildable ?? false
+}
+
+/**
+ * 카메라 위치 기반으로 먼 청크 해제 (메모리 관리)
+ * @param {number} cameraTileX - 카메라 타일 X 좌표
+ * @param {number} cameraTileY - 카메라 타일 Y 좌표
+ * @param {number} [viewRadius=3] - 유지할 청크 반경 (청크 단위)
+ */
+export function unloadDistantChunks(cameraTileX, cameraTileY, viewRadius = 3) {
+  if (!tilemapContainer) return
+
+  const cameraChunkX = Math.floor(cameraTileX / config.chunkSize)
+  const cameraChunkY = Math.floor(cameraTileY / config.chunkSize)
+
+  const chunksToRemove = []
+
+  for (const [chunkKey] of chunks.entries()) {
+    const [cx, cy] = chunkKey.split(',').map(Number)
+
+    // 카메라에서 너무 멀리 있는 청크 확인
+    const distX = Math.abs(cx - cameraChunkX)
+    const distY = Math.abs(cy - cameraChunkY)
+
+    if (distX > viewRadius || distY > viewRadius) {
+      chunksToRemove.push(chunkKey)
+    }
+  }
+
+  // 먼 청크 제거
+  for (const chunkKey of chunksToRemove) {
+    const chunk = chunks.get(chunkKey)
+    if (chunk) {
+      chunk.destroy({ children: true })
+      chunks.delete(chunkKey)
+    }
+  }
+
+  if (chunksToRemove.length > 0) {
+    console.log(`[Tilemap] Unloaded ${chunksToRemove.length} distant chunks`)
+  }
+}
+
+/**
+ * 카메라 주변 청크만 로드 (필요시 재로드)
+ * @param {number} cameraTileX - 카메라 타일 X 좌표
+ * @param {number} cameraTileY - 카메라 타일 Y 좌표
+ * @param {number} [viewRadius=3] - 로드할 청크 반경 (청크 단위)
+ */
+export function loadNearbyChunks(cameraTileX, cameraTileY, viewRadius = 3) {
+  if (!tilemapContainer) return
+
+  const cameraChunkX = Math.floor(cameraTileX / config.chunkSize)
+  const cameraChunkY = Math.floor(cameraTileY / config.chunkSize)
+
+  const chunksX = Math.ceil(config.mapWidth / config.chunkSize)
+  const chunksY = Math.ceil(config.mapHeight / config.chunkSize)
+
+  for (let dy = -viewRadius; dy <= viewRadius; dy++) {
+    for (let dx = -viewRadius; dx <= viewRadius; dx++) {
+      const cx = cameraChunkX + dx
+      const cy = cameraChunkY + dy
+
+      // 맵 범위 체크
+      if (cx < 0 || cx >= chunksX || cy < 0 || cy >= chunksY) continue
+
+      const chunkKey = `${cx},${cy}`
+      if (!chunks.has(chunkKey)) {
+        renderChunk(cx, cy)
+      }
+    }
+  }
 }
 
 /**

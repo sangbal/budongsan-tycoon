@@ -8,6 +8,8 @@
 import { System } from '../ecs/System.js'
 import { buildingSystem } from './buildingSystem.js'
 import { resourceSystem } from './resourceSystem.js'
+import { RECIPES, getRecipe, getRecipeTypes } from '../data/recipes.js'
+import { getTutorialTime } from './tutorialSystem.js'
 
 /**
  * 가공 시스템
@@ -23,23 +25,10 @@ export class ProcessingSystem extends System {
     this.eventBus = new EventTarget()
 
     /**
-     * 가공 레시피 정의
+     * 가공 레시피 정의 (외부 데이터 참조)
      * @type {Object.<string, Object>}
      */
-    this.recipes = {
-      furnace: {
-        input: { iron: 2 }, // 철광석 2개
-        output: { iron: 1 }, // 철판 1개 (자원 ID는 동일하지만 가공품)
-        time: 15, // 15초
-        description: '철광석 제련',
-      },
-      brineStation: {
-        input: { water: 10 }, // 물 10개
-        output: { salt: 1 }, // 소금 1개
-        time: 20, // 20초
-        description: '소금 증발',
-      },
-    }
+    this.recipes = RECIPES
   }
 
   /**
@@ -74,6 +63,9 @@ export class ProcessingSystem extends System {
    * @param {number} deltaTime - 경과 시간 (초)
    */
   processBuilding(building, recipe, deltaTime) {
+    // 튜토리얼 모드에서는 가공 시간 단축 적용
+    const processTime = getTutorialTime(building.type) ?? recipe.time
+
     // 이미 진행 중인 경우
     if (building.processing) {
       // progress가 없으면 초기화
@@ -81,8 +73,8 @@ export class ProcessingSystem extends System {
         building.progress = 0
       }
 
-      // 진행률 업데이트
-      building.progress += deltaTime / recipe.time
+      // 진행률 업데이트 (튜토리얼 모드에서는 단축된 시간 적용)
+      building.progress += deltaTime / processTime
 
       // 가공 완료
       if (building.progress >= 1) {
@@ -147,7 +139,7 @@ export class ProcessingSystem extends System {
    * @returns {Object|null} 레시피 또는 null
    */
   getRecipe(buildingType) {
-    return this.recipes[buildingType] ?? null
+    return getRecipe(buildingType)
   }
 
   /**

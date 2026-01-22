@@ -9,22 +9,8 @@ import { System } from '../ecs/System.js'
 import { BUILDINGS } from '../data/buildings.js'
 import { resourceSystem } from './resourceSystem.js'
 import { useGameStore } from '../state/stores/gameStore.js'
-
-/**
- * 고유 컨베이어 ID 생성
- * @returns {string}
- */
-function generateConveyorId() {
-  return `conveyor_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-}
-
-/**
- * 고유 아이템 ID 생성
- * @returns {string}
- */
-function generateItemId() {
-  return `item_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-}
+import { buildingSystem } from './buildingSystem.js'
+import { generateConveyorId, generateItemId } from '../utils/idGenerator.js'
 
 /**
  * @typedef {Object} ConveyorItem
@@ -275,9 +261,10 @@ export class ConveyorSystem extends System {
       return false
     }
 
-    // 건물이 점유하고 있는지 확인 (buildingSystem 참조)
-    // TODO: buildingSystem과 통합
-    // 현재는 단순히 컨베이어만 체크
+    // 건물이 점유하고 있는지 확인
+    if (buildingSystem.isOccupied(x, y)) {
+      return false
+    }
 
     // 비용 확인
     const def = BUILDINGS.conveyor
@@ -321,8 +308,33 @@ export class ConveyorSystem extends System {
    * @param {ConveyorDefinition} conveyor - 컨베이어
    */
   updateConnections(conveyor) {
-    // TODO: buildingSystem과 연동하여 건물 입/출력 포트 연결
-    // 현재는 스텁 구현
+    // 인접 건물 확인
+    const adjacentPositions = [
+      { x: conveyor.x - 1, y: conveyor.y },
+      { x: conveyor.x + 1, y: conveyor.y },
+      { x: conveyor.x, y: conveyor.y - 1 },
+      { x: conveyor.x, y: conveyor.y + 1 },
+    ]
+
+    for (const pos of adjacentPositions) {
+      const building = buildingSystem.getBuildingAt(pos.x, pos.y)
+      if (building) {
+        // 입력 연결 등록
+        if (!this.inputConnections.has(building.id)) {
+          this.inputConnections.set(building.id, new Set())
+        }
+        this.inputConnections.get(building.id).add(conveyor.id)
+
+        // 출력 연결 등록 (컨베이어 방향 기준)
+        const nextPos = this.getNextPosition(conveyor.x, conveyor.y, conveyor.direction)
+        if (nextPos && nextPos.x === pos.x && nextPos.y === pos.y) {
+          if (!this.outputConnections.has(building.id)) {
+            this.outputConnections.set(building.id, new Set())
+          }
+          this.outputConnections.get(building.id).add(conveyor.id)
+        }
+      }
+    }
   }
 
   /**

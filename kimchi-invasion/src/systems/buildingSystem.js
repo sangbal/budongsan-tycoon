@@ -9,14 +9,9 @@ import { System } from '../ecs/System.js'
 import { BUILDINGS, canAfford, getUpgradeCost, getProductionRate } from '../data/buildings.js'
 import { resourceSystem } from './resourceSystem.js'
 import { useGameStore } from '../state/stores/gameStore.js'
-
-/**
- * 고유 건물 ID 생성
- * @returns {string}
- */
-function generateBuildingId() {
-  return `building_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-}
+import { generateBuildingId } from '../utils/idGenerator.js'
+import { getTile } from '../core/tilemap.js'
+import { getTutorialCost } from './tutorialSystem.js'
 
 /**
  * 건물 관리 시스템
@@ -165,8 +160,9 @@ export class BuildingSystem extends System {
       return null
     }
 
-    // 3. 비용 지불
-    if (!resourceSystem.consumeMultiple(def.cost)) {
+    // 3. 비용 지불 (튜토리얼 모드에서는 할인된 비용 적용)
+    const cost = getTutorialCost(buildingType) ?? def.cost
+    if (!resourceSystem.consumeMultiple(cost)) {
       return null
     }
 
@@ -203,26 +199,66 @@ export class BuildingSystem extends System {
    */
   canPlace(buildingType, tileX, tileY) {
     const def = BUILDINGS[buildingType]
-    if (!def) return false
+    if (!def) {
+      console.warn(`[BuildingSystem] canPlace: Unknown building type: ${buildingType}`)
+      return false
+    }
 
     const { width, height } = def.size
 
-    // 모든 타일이 비어있는지 확인
+    // 모든 타일이 비어있고, 건설 가능한지 확인
     for (let dx = 0; dx < width; dx++) {
       for (let dy = 0; dy < height; dy++) {
-        if (this.isOccupied(tileX + dx, tileY + dy)) {
+        const x = tileX + dx
+        const y = tileY + dy
+
+        // 타일이 건물로 점유되어 있는지 확인
+        if (this.isOccupied(x, y)) {
+          console.log(`[BuildingSystem] canPlace: Tile (${x}, ${y}) is occupied`)
+          return false
+        }
+
+        // 타일이 건설 가능한 지형인지 확인
+        const tile = getTile(x, y)
+        if (!tile) {
+          console.log(`[BuildingSystem] canPlace: Tile (${x}, ${y}) not found`)
+          return false
+        }
+        if (!tile.buildable) {
+          console.log(
+            `[BuildingSystem] canPlace: Tile (${x}, ${y}) is not buildable (type: ${tile.type})`
+          )
           return false
         }
       }
     }
 
-    // 비용 확인
+    // 비용 확인 (튜토리얼 모드에서는 할인된 비용 적용)
+    const cost = getTutorialCost(buildingType) ?? def.cost
     const resources = {}
-    for (const [resourceId, amount] of Object.entries(def.cost)) {
+    for (const resourceId of Object.keys(cost)) {
       resources[resourceId] = resourceSystem.get(resourceId)
     }
 
-    return canAfford(buildingType, resources)
+    // 튜토리얼 비용이 있으면 직접 비교, 없으면 canAfford 사용
+    let affordable = true
+    for (const [resourceId, amount] of Object.entries(cost)) {
+      if ((resources[resourceId] ?? 0) < amount) {
+        affordable = false
+        break
+      }
+    }
+
+    if (!affordable) {
+      console.log(
+        `[BuildingSystem] canPlace: Cannot afford ${buildingType}. Cost:`,
+        cost,
+        'Have:',
+        resources
+      )
+    }
+
+    return affordable
   }
 
   /**

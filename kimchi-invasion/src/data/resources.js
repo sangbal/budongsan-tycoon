@@ -73,6 +73,35 @@ export const RESOURCES = {
   // ========================================
   // RAW MATERIALS (원자재)
   // ========================================
+  ironOre: {
+    id: 'ironOre',
+    category: 'raw',
+    nameKey: 'resources.ironOre.name',
+    descKey: 'resources.ironOre.desc',
+    icon: '🪨',
+    color: '#8B4513', // Brown (철광석 색상)
+    initialValue: 0,
+    maxValue: 1000,
+    canTrade: true,
+    basePrice: 2,
+    tags: ['mineral', 'ore', 'raw'],
+  },
+
+  ironPlate: {
+    id: 'ironPlate',
+    category: 'processed',
+    nameKey: 'resources.ironPlate.name',
+    descKey: 'resources.ironPlate.desc',
+    icon: '🔩',
+    color: '#6B7280', // Gray (가공품)
+    initialValue: 0,
+    maxValue: 500,
+    canTrade: true,
+    basePrice: 8,
+    tags: ['mineral', 'processed', 'construction'],
+  },
+
+  // Legacy: iron은 ironPlate의 별칭으로 유지 (기존 코드 호환)
   iron: {
     id: 'iron',
     category: 'raw',
@@ -84,7 +113,7 @@ export const RESOURCES = {
     maxValue: 1000,
     canTrade: true,
     basePrice: 5,
-    tags: ['mineral', 'construction'],
+    tags: ['mineral', 'construction', 'legacy'],
   },
 
   water: {

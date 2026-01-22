@@ -45,7 +45,7 @@ describe('TutorialSystem', () => {
   describe('Initialization', () => {
     it('should initialize with NOT_STARTED state', () => {
       expect(tutorialSystem.state).toBe(TUTORIAL_STATE.NOT_STARTED)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
     })
 
     it('should be a valid System', () => {
@@ -59,7 +59,7 @@ describe('TutorialSystem', () => {
       tutorialSystem.start()
 
       expect(tutorialSystem.state).toBe(TUTORIAL_STATE.IN_PROGRESS)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
       expect(tutorialSystem.startTime).toBeGreaterThan(0)
     })
 
@@ -68,7 +68,7 @@ describe('TutorialSystem', () => {
       tutorialSystem.start()
 
       expect(tutorialSystem.state).toBe(TUTORIAL_STATE.IN_PROGRESS)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
     })
   })
 
@@ -115,20 +115,20 @@ describe('TutorialSystem', () => {
     })
 
     it('should advance from STEP_1 to STEP_2', () => {
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_1_COLLECT)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_1_COLLECT)
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_1_MINING)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_1_MINING)
 
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_BUILD)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_2_BUILD)
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_SMELTING)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_2_SMELTING)
     })
 
     it('should clear highlights when advancing steps', () => {
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_1_COLLECT)
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_1_MINING)
 
-      // 실제 하이라이트 요소가 생성될 때까지 기다림 (setupStep1Collect에서 생성)
+      // 실제 하이라이트 요소가 생성될 때까지 기다림 (setupStep1Mining에서 생성)
       const highlightCountAfterStep1 = tutorialSystem.highlightedElements.size
 
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_BUILD)
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_SMELTING)
 
       // clearAllHighlights()가 호출되어 이전 하이라이트 제거됨
       expect(tutorialSystem.highlightedElements.size).toBeLessThan(highlightCountAfterStep1 + 1)
@@ -136,39 +136,31 @@ describe('TutorialSystem', () => {
   })
 
   describe('Step Completion Check', () => {
-    it('should complete STEP_1 when resources collected', () => {
+    it('should complete STEP_1 when ironOre collected', () => {
       tutorialSystem.isFirstRun = false
       tutorialSystem.start()
 
-      // start()가 advanceToStep(STEP_1_COLLECT)을 호출하므로 이미 STEP_1 상태
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_1_COLLECT)
+      // start()가 advanceToStep(STEP_1_MINING)을 호출하므로 이미 STEP_1 상태
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_1_MINING)
 
       const gameState = useGameStore.getState()
 
-      // 자원이 정의되어 있지 않으면 생성
-      if (!gameState.resources.water) {
-        gameState.modifyResource('water', 0)
-      }
-      if (!gameState.resources.regolith) {
-        gameState.modifyResource('regolith', 0)
-      }
-
-      gameState.modifyResource('water', 5)
-      gameState.modifyResource('regolith', 5)
+      // 철광석 10개 채굴 (새로운 요구사항)
+      gameState.modifyResource('ironOre', 10)
 
       tutorialSystem.checkStepCompletion()
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_2_BUILD)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_2_SMELTING)
     })
 
-    it('should complete STEP_2 when buildings placed', () => {
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_BUILD)
+    it('should complete STEP_2 when ironPlate produced', () => {
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_2_SMELTING)
 
       const gameState = useGameStore.getState()
-      gameState.buildings.push({ type: 'extractor', x: 0, y: 0 })
-      gameState.buildings.push({ type: 'iceHarvester', x: 1, y: 0 })
+      // 철판 5개 생산 (새로운 요구사항)
+      gameState.modifyResource('ironPlate', 5)
 
       tutorialSystem.checkStepCompletion()
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_3_CROP)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_3_EXTRACTOR)
     })
 
     it('should complete STEP_5 when kimchi produced', () => {
@@ -232,14 +224,14 @@ describe('TutorialSystem', () => {
 
       const data = JSON.parse(saved)
       expect(data.state).toBe(TUTORIAL_STATE.IN_PROGRESS)
-      expect(data.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(data.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
     })
 
     it('should load state from localStorage', () => {
       const mockData = {
         state: TUTORIAL_STATE.IN_PROGRESS,
-        currentStep: TUTORIAL_STEPS.STEP_3_CROP,
-        stepProgress: { step3: { cabbage: 2 } },
+        currentStep: TUTORIAL_STEPS.STEP_3_EXTRACTOR,
+        stepProgress: { step3: { extractorPlaced: true } },
         isFirstRun: false,
         startTime: Date.now(),
       }
@@ -248,7 +240,7 @@ describe('TutorialSystem', () => {
 
       const newTutorialSystem = new TutorialSystem()
       expect(newTutorialSystem.state).toBe(TUTORIAL_STATE.IN_PROGRESS)
-      expect(newTutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_3_CROP)
+      expect(newTutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_3_EXTRACTOR)
       expect(newTutorialSystem.isFirstRun).toBe(false)
     })
   })
@@ -272,13 +264,13 @@ describe('TutorialSystem', () => {
   describe('Reset', () => {
     it('should reset tutorial to initial state', () => {
       tutorialSystem.start()
-      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_3_CROP)
+      tutorialSystem.advanceToStep(TUTORIAL_STEPS.STEP_3_EXTRACTOR)
       tutorialSystem.highlightElement('test')
 
       tutorialSystem.reset()
 
       expect(tutorialSystem.state).toBe(TUTORIAL_STATE.NOT_STARTED)
-      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(tutorialSystem.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
       expect(tutorialSystem.highlightedElements.size).toBe(0)
       expect(Object.keys(tutorialSystem.stepProgress).length).toBe(0)
     })
@@ -302,7 +294,7 @@ describe('TutorialSystem', () => {
       const debug = tutorialSystem.getDebugInfo()
 
       expect(debug.state).toBe(TUTORIAL_STATE.IN_PROGRESS)
-      expect(debug.currentStep).toBe(TUTORIAL_STEPS.PROLOGUE)
+      expect(debug.currentStep).toBe(TUTORIAL_STEPS.STEP_0_PROLOGUE)
       expect(debug.highlightedElements).toContain('test-element')
     })
   })

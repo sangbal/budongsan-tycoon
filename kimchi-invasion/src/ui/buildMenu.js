@@ -9,6 +9,8 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { BUILDINGS } from '../data/buildings.js'
 import { buildingSystem } from '../systems/buildingSystem.js'
 import { useUIStore } from '../state/stores/uiStore.js'
+import { getTileSize } from '../core/tilemap.js'
+import { screenToWorld } from '../core/camera.js'
 
 /**
  * 화면 좌표를 타일 좌표로 변환
@@ -17,25 +19,26 @@ import { useUIStore } from '../state/stores/uiStore.js'
  * @returns {{ tileX: number, tileY: number }}
  */
 function screenToTile(screenX, screenY) {
-  const TILE_SIZE = 32
-  // 카메라 오프셋 고려 필요 시 추가
+  const tileSize = getTileSize()
+  // 화면 좌표를 월드 좌표로 변환 후 타일 좌표로 변환
+  const world = screenToWorld(screenX, screenY)
   return {
-    tileX: Math.floor(screenX / TILE_SIZE),
-    tileY: Math.floor(screenY / TILE_SIZE),
+    tileX: Math.floor(world.x / tileSize),
+    tileY: Math.floor(world.y / tileSize),
   }
 }
 
 /**
- * 타일 좌표를 화면 좌표로 변환
+ * 타일 좌표를 월드 좌표로 변환 (좌상단 기준)
  * @param {number} tileX - 타일 X 좌표
  * @param {number} tileY - 타일 Y 좌표
  * @returns {{ x: number, y: number }}
  */
-function tileToScreen(tileX, tileY) {
-  const TILE_SIZE = 32
+function tileToWorldCorner(tileX, tileY) {
+  const tileSize = getTileSize()
   return {
-    x: tileX * TILE_SIZE,
-    y: tileY * TILE_SIZE,
+    x: tileX * tileSize,
+    y: tileY * tileSize,
   }
 }
 
@@ -95,8 +98,15 @@ export class BuildMenu extends Container {
     this.x = (screenWidth - menuWidth) / 2
     this.y = screenHeight - menuHeight - 10
 
-    // 건물 버튼들 (Tier 1 건물 5개)
-    const tier1Buildings = ['extractor', 'iceHarvester', 'greenhouse', 'furnace', 'coalPowerPlant']
+    // 건물 버튼들 (Tier 1 건물 6개)
+    const tier1Buildings = [
+      'extractor',
+      'iceHarvester',
+      'greenhouse',
+      'furnace',
+      'coalPowerPlant',
+      'conveyor',
+    ]
 
     tier1Buildings.forEach((buildingId, index) => {
       const btn = this.createButton(buildingId, index)
@@ -142,8 +152,9 @@ export class BuildMenu extends Container {
     icon.y = 15
     btn.addChild(icon)
 
-    // 비용 표시
-    const costText = `$${def.cost.dollars ?? 0}`
+    // 비용 표시 (주요 광물: iron)
+    const ironCost = def.cost.iron ?? 0
+    const costText = `⚙️${ironCost}`
     const cost = new Text({
       text: costText,
       style: {
@@ -295,13 +306,13 @@ export class BuildMenu extends Container {
     this.ghostSprite = new Graphics()
     this.ghostSprite.label = 'ghost'
 
-    const TILE_SIZE = 32
+    const tileSize = getTileSize()
     const { width, height } = def.size
     const color = canPlace ? 0x10b981 : 0xef4444 // Green / Red
     const alpha = 0.5
 
     // 반투명 사각형
-    this.ghostSprite.rect(0, 0, width * TILE_SIZE, height * TILE_SIZE)
+    this.ghostSprite.rect(0, 0, width * tileSize, height * tileSize)
     this.ghostSprite.fill({ color, alpha })
 
     // 테두리
@@ -316,13 +327,13 @@ export class BuildMenu extends Container {
       },
     })
     icon.anchor.set(0.5)
-    icon.x = (width * TILE_SIZE) / 2
-    icon.y = (height * TILE_SIZE) / 2
+    icon.x = (width * tileSize) / 2
+    icon.y = (height * tileSize) / 2
     icon.alpha = 0.8
     this.ghostSprite.addChild(icon)
 
-    // 위치 설정
-    const { x, y } = tileToScreen(tileX, tileY)
+    // 위치 설정 (월드 좌표)
+    const { x, y } = tileToWorldCorner(tileX, tileY)
     this.ghostSprite.x = x
     this.ghostSprite.y = y
 
@@ -385,14 +396,15 @@ export class BuildMenu extends Container {
         e.preventDefault()
       }
 
-      // 숫자 키 1-5: 건물 빠른 선택
-      if (e.key >= '1' && e.key <= '5') {
+      // 숫자 키 1-6: 건물 빠른 선택
+      if (e.key >= '1' && e.key <= '6') {
         const tier1Buildings = [
           'extractor',
           'iceHarvester',
           'greenhouse',
           'furnace',
           'coalPowerPlant',
+          'conveyor',
         ]
         const index = parseInt(e.key) - 1
         if (index >= 0 && index < tier1Buildings.length) {

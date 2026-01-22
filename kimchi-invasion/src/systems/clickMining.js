@@ -7,9 +7,11 @@
 
 import { System } from '../ecs/System.js'
 import { resourceSystem } from './resourceSystem.js'
+import { buildingSystem } from './buildingSystem.js'
 import { getTile, worldToTile } from '../core/tilemap.js'
 import { onInput } from '../core/input.js'
 import { screenToWorld } from '../core/camera.js'
+import { useUIStore } from '../state/stores/uiStore.js'
 
 /**
  * 클릭 채굴 시스템
@@ -40,10 +42,10 @@ export class ClickMiningSystem extends System {
     this.baseMiningAmount = 1
 
     /**
-     * 임시: 타일에 자원 정보가 없을 경우 기본 자원
+     * 타일에 자원 정보가 없을 경우 기본 자원
      * @private
      */
-    this.defaultResource = 'iron'
+    this.defaultResource = 'ironOre'
   }
 
   /**
@@ -83,11 +85,22 @@ export class ClickMiningSystem extends System {
    * @private
    */
   handleClick(screenX, screenY) {
+    // 빌드 모드인 경우 채굴 건너뛰기
+    const uiState = useUIStore.getState()
+    if (uiState.buildMode.active) {
+      return
+    }
+
     // 화면 좌표를 월드 좌표로 변환
     const worldPos = screenToWorld(screenX, screenY)
 
     // 월드 좌표를 타일 좌표로 변환
     const tilePos = worldToTile(worldPos.x, worldPos.y)
+
+    // 건물이 있는 타일은 채굴 건너뛰기 (버그 수정: 건물 위 클릭 시 채굴 방지)
+    if (buildingSystem.isOccupied(tilePos.x, tilePos.y)) {
+      return
+    }
 
     // 타일 정보 가져오기
     const tile = getTile(tilePos.x, tilePos.y)
@@ -169,10 +182,14 @@ export class ClickMiningSystem extends System {
       return tile.resource
     }
 
-    // 타입별 기본 자원 매핑
+    // 타입별 기본 자원 매핑 (GDD 기준)
+    // - rock: 철광석 (노천 채굴) → 용광로 → 철판
+    // - ice: 얼음 → 해동기 → 물
+    // - ground: 레골리스 (화성 토양)
+    // - sand: 모래
     const typeToResource = {
-      rock: 'regolith', // 암석 → 레골리스 (화성 토양)
-      ice: 'water', // 얼음 → 물 (해동된 물)
+      rock: 'ironOre', // 암석 → 철광석 (GDD: 표면 노천 채굴)
+      ice: 'ice', // 얼음 타일 → 얼음 (해동기에서 물로 변환)
       ground: 'regolith', // 지면 → 레골리스
       sand: 'sand',
     }

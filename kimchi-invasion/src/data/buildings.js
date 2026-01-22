@@ -39,12 +39,11 @@ export const BUILDINGS = {
     icon: '⛏️',
     color: '#6B7280', // Gray
     cost: {
-      dollars: 100,
-      iron: 20,
+      ironPlate: 30, // GDD: 철판으로 건설
     },
     input: {},
     output: {
-      iron: 0.5, // 0.5개/sec
+      ironOre: 0.5, // 0.5 철광석/sec (GDD: 자동 채굴)
     },
     processTime: 0, // 연속 생산
     energyPerTick: 1, // 1 에너지/sec
@@ -61,8 +60,7 @@ export const BUILDINGS = {
     icon: '🧊',
     color: '#BAE6FD', // Light Cyan
     cost: {
-      dollars: 80,
-      iron: 15,
+      ironPlate: 25,
     },
     input: {},
     output: {
@@ -86,9 +84,8 @@ export const BUILDINGS = {
     icon: '🏡',
     color: '#10B981', // Green
     cost: {
-      dollars: 200,
-      iron: 30,
-      sand: 10, // 유리 제작용
+      ironPlate: 40,
+      sand: 20, // 유리 제작용
     },
     input: {
       water: 0.1, // 0.1개/sec
@@ -111,14 +108,14 @@ export const BUILDINGS = {
     icon: '🔥',
     color: '#F97316', // Orange
     cost: {
-      dollars: 150,
-      iron: 50,
+      ironPlate: 60,
+      regolith: 20,
     },
     input: {
-      iron: 2, // 2개 소비
+      ironOre: 2, // 철광석 2개 소비
     },
     output: {
-      iron: 1, // 철판 1개 생산 (자원 ID 동일하지만 가공품)
+      ironPlate: 1, // 철판 1개 생산
     },
     processTime: 15, // 15초
     energyPerTick: 5, // 5 에너지/sec
@@ -135,8 +132,8 @@ export const BUILDINGS = {
     icon: '🧂',
     color: '#F3F4F6', // White
     cost: {
-      dollars: 120,
-      iron: 25,
+      ironPlate: 35,
+      sand: 10,
     },
     input: {
       water: 10, // 10개 소비
@@ -159,9 +156,8 @@ export const BUILDINGS = {
     icon: '🥬',
     color: '#DC2626', // Red
     cost: {
-      dollars: 500,
-      iron: 60,
-      sand: 20,
+      ironPlate: 80,
+      sand: 30,
     },
     input: {
       cabbage: 1, // 절인 배추 1개
@@ -189,8 +185,8 @@ export const BUILDINGS = {
     icon: '⚡',
     color: '#FCD34D', // Yellow
     cost: {
-      dollars: 300,
-      iron: 50,
+      ironPlate: 70,
+      regolith: 30,
     },
     input: {
       regolith: 0.3, // 3개/10초 (레골리스를 연료로 사용)
@@ -216,8 +212,8 @@ export const BUILDINGS = {
     icon: '📦',
     color: '#8B5CF6', // Purple
     cost: {
-      dollars: 200,
-      iron: 40,
+      ironPlate: 50,
+      sand: 15,
     },
     input: {},
     output: {},
@@ -243,8 +239,7 @@ export const BUILDINGS = {
     icon: '➡️',
     color: '#A16207', // Brown
     cost: {
-      dollars: 10,
-      iron: 2,
+      ironPlate: 3,
     },
     input: {},
     output: {},
@@ -267,8 +262,7 @@ export const BUILDINGS = {
     icon: '🦾',
     color: '#6B7280', // Gray
     cost: {
-      dollars: 50,
-      iron: 5,
+      ironPlate: 8,
     },
     input: {},
     output: {},

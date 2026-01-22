@@ -147,10 +147,11 @@ export class TutorialUI {
       })
     }
 
-    // UI 스토어 구독 (모달 상태 변화 감지)
+    // UI 스토어 구독 (모달 상태 및 데이터 변화 감지)
+    // Note: 배열로 구독하여 modalData 변경 시에도 UI 갱신
     useUIStore.subscribe(
-      state => state.activeModal,
-      activeModal => {
+      state => [state.activeModal, state.modalData],
+      ([activeModal, _modalData]) => {
         if (activeModal?.startsWith('tutorial-')) {
           this.showModal(activeModal)
         } else {

@@ -11,11 +11,13 @@ import { useGameStore } from '../../state/stores/gameStore.js'
 beforeEach(() => {
   useGameStore.setState({
     resources: {
-      iron: 100,
+      ironOre: 100,
+      ironPlate: 0,
       water: 100,
       salt: 0,
     },
     buildings: [],
+    isTutorialMode: false, // 테스트 시 튜토리얼 모드 비활성화
   })
 })
 
@@ -30,8 +32,8 @@ describe('ProcessingSystem', () => {
   describe('recipes', () => {
     it('furnace 레시피가 정의되어야 함', () => {
       expect(system.recipes.furnace).toBeDefined()
-      expect(system.recipes.furnace.input).toEqual({ iron: 2 })
-      expect(system.recipes.furnace.output).toEqual({ iron: 1 })
+      expect(system.recipes.furnace.input).toEqual({ ironOre: 2 })
+      expect(system.recipes.furnace.output).toEqual({ ironPlate: 1 })
       expect(system.recipes.furnace.time).toBe(15)
     })
 
@@ -51,8 +53,8 @@ describe('ProcessingSystem', () => {
   describe('processBuilding()', () => {
     let furnace
     const furnaceRecipe = {
-      input: { iron: 2 },
-      output: { iron: 1 },
+      input: { ironOre: 2 },
+      output: { ironPlate: 1 },
       time: 15,
     }
 
@@ -69,18 +71,18 @@ describe('ProcessingSystem', () => {
     })
 
     it('입력 자원이 충분하면 가공 시작', () => {
-      const ironBefore = resourceSystem.get('iron')
-      resourceSystem.add('iron', 10)
+      const ironOreBefore = resourceSystem.get('ironOre')
+      resourceSystem.add('ironOre', 10)
 
       system.processBuilding(furnace, furnaceRecipe, 1)
 
       expect(furnace.processing).toBe(true)
-      // ironBefore + 10 (추가) - 2 (레시피 소비) = ironBefore + 8
-      expect(resourceSystem.get('iron')).toBe(ironBefore + 8)
+      // ironOreBefore + 10 (추가) - 2 (레시피 소비) = ironOreBefore + 8
+      expect(resourceSystem.get('ironOre')).toBe(ironOreBefore + 8)
     })
 
     it('입력 자원 부족 시 가공 시작 안됨', () => {
-      resourceSystem.consume('iron', 100) // 자원 모두 소비
+      resourceSystem.consume('ironOre', 100) // 자원 모두 소비
 
       system.processBuilding(furnace, furnaceRecipe, 1)
 
@@ -88,7 +90,7 @@ describe('ProcessingSystem', () => {
     })
 
     it('가공 시작 시 processingStarted 이벤트 발생', () => {
-      resourceSystem.add('iron', 10)
+      resourceSystem.add('ironOre', 10)
       const callback = vi.fn()
       system.on('processingStarted', callback)
 
@@ -97,7 +99,7 @@ describe('ProcessingSystem', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           buildingId: 'furnace_1',
-          input: { iron: 2 },
+          input: { ironOre: 2 },
         })
       )
     })
@@ -133,7 +135,7 @@ describe('ProcessingSystem', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           buildingId: 'furnace_1',
-          output: { iron: 1 },
+          output: { ironPlate: 1 },
         })
       )
     })
@@ -141,15 +143,15 @@ describe('ProcessingSystem', () => {
     it('완료 시 출력 자원이 추가되어야 함', () => {
       furnace.processing = true
       furnace.progress = 0.9
-      const ironBefore = resourceSystem.get('iron')
+      const ironPlateBefore = resourceSystem.get('ironPlate')
 
       system.processBuilding(furnace, furnaceRecipe, 5)
 
-      expect(resourceSystem.get('iron')).toBe(ironBefore + 1)
+      expect(resourceSystem.get('ironPlate')).toBe(ironPlateBefore + 1)
     })
 
     it('가공 중이 아니고 자원 부족하면 아무것도 안함', () => {
-      resourceSystem.consume('iron', 100)
+      resourceSystem.consume('ironOre', 100)
 
       system.processBuilding(furnace, furnaceRecipe, 1)
 
@@ -160,27 +162,27 @@ describe('ProcessingSystem', () => {
 
   describe('canStartProcessing()', () => {
     it('모든 입력 자원이 충분하면 true', () => {
-      resourceSystem.add('iron', 10)
-      const recipe = { input: { iron: 5 } }
+      resourceSystem.add('ironOre', 10)
+      const recipe = { input: { ironOre: 5 } }
 
       expect(system.canStartProcessing(recipe)).toBe(true)
     })
 
     it('하나라도 부족하면 false', () => {
       // 자원을 0으로 리셋 후 2만 추가 (5 미만)
-      resourceSystem.set('iron', 2)
-      const recipe = { input: { iron: 5 } }
+      resourceSystem.set('ironOre', 2)
+      const recipe = { input: { ironOre: 5 } }
 
       expect(system.canStartProcessing(recipe)).toBe(false)
     })
 
     it('여러 자원 중 하나라도 부족하면 false', () => {
-      // iron은 충분하지만 water가 부족하도록 설정
-      resourceSystem.set('iron', 10)
+      // ironOre은 충분하지만 water가 부족하도록 설정
+      resourceSystem.set('ironOre', 10)
       resourceSystem.set('water', 5) // 10 필요, 5만 있음
       const recipe = {
         input: {
-          iron: 5,
+          ironOre: 5,
           water: 10, // 부족
         },
       }
@@ -240,7 +242,7 @@ describe('ProcessingSystem', () => {
     it('정의된 레시피를 반환해야 함', () => {
       const recipe = system.getRecipe('furnace')
       expect(recipe).toBeDefined()
-      expect(recipe.input).toEqual({ iron: 2 })
+      expect(recipe.input).toEqual({ ironOre: 2 })
     })
 
     it('없는 레시피는 null 반환', () => {
@@ -265,7 +267,7 @@ describe('ProcessingSystem', () => {
     it('기존 레시피를 덮어쓸 수 있어야 함', () => {
       const modifiedRecipe = {
         input: { iron: 1 },
-        output: { iron: 2 },
+        output: { ironOre: 2 },
         time: 5,
       }
 
@@ -288,7 +290,7 @@ describe('ProcessingSystem', () => {
 
     it('input 누락 시 false 반환', () => {
       const invalidRecipe = {
-        output: { iron: 1 },
+        output: { ironPlate: 1 },
         time: 10,
       }
 
@@ -298,7 +300,7 @@ describe('ProcessingSystem', () => {
     it('time 누락 시 false 반환', () => {
       const invalidRecipe = {
         input: { iron: 1 },
-        output: { iron: 1 },
+        output: { ironPlate: 1 },
       }
 
       expect(system.setRecipe('invalid', invalidRecipe)).toBe(false)

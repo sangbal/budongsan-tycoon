@@ -105,22 +105,22 @@ describe('buildings.js - M1 건물 정의', () => {
 
   describe('canAfford - 건설 비용 검사', () => {
     it('충분한 자원이 있으면 true', () => {
-      const resources = { dollars: 200, iron: 50 }
-      expect(canAfford('extractor', resources)).toBe(true) // cost: $100, iron 20
+      const resources = { ironPlate: 50 }
+      expect(canAfford('extractor', resources)).toBe(true) // cost: ironPlate 30
     })
 
     it('자원이 부족하면 false', () => {
-      const resources = { dollars: 50, iron: 10 }
+      const resources = { ironPlate: 10 }
       expect(canAfford('extractor', resources)).toBe(false)
     })
 
     it('자원이 정확히 일치하면 true', () => {
-      const resources = { dollars: 100, iron: 20 }
+      const resources = { ironPlate: 30 }
       expect(canAfford('extractor', resources)).toBe(true)
     })
 
     it('유효하지 않은 건물 ID는 false', () => {
-      const resources = { dollars: 1000, iron: 500 }
+      const resources = { ironPlate: 500 }
       expect(canAfford('invalid_building', resources)).toBe(false)
     })
   })
@@ -206,8 +206,7 @@ describe('buildings.js - M1 건물 정의', () => {
     it('업그레이드 비용 계산 (1.5배씩 증가)', () => {
       const cost = getUpgradeCost('extractor', 1)
       expect(cost).toBeDefined()
-      expect(cost.dollars).toBe(150) // 100 * 1.5
-      expect(cost.iron).toBe(30) // 20 * 1.5
+      expect(cost.ironPlate).toBe(45) // 30 * 1.5
     })
 
     it('최대 레벨에서는 null 반환', () => {
@@ -226,8 +225,8 @@ describe('buildings.js - M1 건물 정의', () => {
       const level1 = getProductionRate('extractor', 1)
       const level2 = getProductionRate('extractor', 2)
 
-      expect(level1.iron).toBe(0.5) // 기본 생산량
-      expect(level2.iron).toBe(0.6) // 0.5 * 1.2
+      expect(level1.ironOre).toBe(0.5) // 기본 생산량
+      expect(level2.ironOre).toBe(0.6) // 0.5 * 1.2
     })
 
     it('출력이 없는 건물은 빈 객체 반환', () => {

@@ -53,7 +53,9 @@ import { subscribeWithSelector } from 'zustand/middleware'
 /** @type {Resources} */
 const DEFAULT_RESOURCES = {
   dollars: 100, // 시작 자금
-  iron: 0,
+  ironOre: 0, // 철광석 (원재료)
+  ironPlate: 0, // 철판 (가공품)
+  iron: 0, // Legacy (하위 호환)
   water: 0,
   salt: 0,
   ice: 0,
@@ -109,6 +111,13 @@ export const useGameStore = create(
     createdAt: null,
     lastSavedAt: null,
     playTime: 0,
+
+    // Tutorial Mode
+    /** @type {boolean} 튜토리얼 모드 활성화 여부 */
+    isTutorialMode: true,
+
+    /** @type {boolean} 튜토리얼용 초기 용광로 배치 완료 여부 */
+    tutorialFurnacePlaced: false,
 
     // === Actions: Resources ===
 
@@ -414,6 +423,33 @@ export const useGameStore = create(
       }))
     },
 
+    // === Actions: Tutorial Mode ===
+
+    /**
+     * 튜토리얼 모드 종료
+     * @description 튜토리얼 완료 시 호출. 정상 비용/속도로 전환
+     */
+    exitTutorialMode: () => {
+      set({ isTutorialMode: false })
+      console.log('[GameStore] Tutorial mode exited - normal costs restored')
+    },
+
+    /**
+     * 튜토리얼 모드 진입
+     * @description 새 게임 또는 리셋 시 호출
+     */
+    enterTutorialMode: () => {
+      set({ isTutorialMode: true, tutorialFurnacePlaced: false })
+      console.log('[GameStore] Tutorial mode entered')
+    },
+
+    /**
+     * 튜토리얼용 초기 용광로 배치 완료 표시
+     */
+    setTutorialFurnacePlaced: () => {
+      set({ tutorialFurnacePlaced: true })
+    },
+
     // === Actions: Save/Load ===
 
     /**
@@ -433,6 +469,9 @@ export const useGameStore = create(
         buildingCounts: state.buildingCounts,
         research: state.research,
         stats: state.stats,
+        // Tutorial state
+        isTutorialMode: state.isTutorialMode,
+        tutorialFurnacePlaced: state.tutorialFurnacePlaced,
       }
     },
 
@@ -454,6 +493,9 @@ export const useGameStore = create(
         buildingCounts: savedState.buildingCounts ?? {},
         research: savedState.research ?? { completed: [], current: null, progress: 0 },
         stats: { ...DEFAULT_STATS, ...savedState.stats },
+        // Tutorial state
+        isTutorialMode: savedState.isTutorialMode ?? true,
+        tutorialFurnacePlaced: savedState.tutorialFurnacePlaced ?? false,
       })
     },
 
@@ -473,6 +515,9 @@ export const useGameStore = create(
         createdAt: Date.now(),
         lastSavedAt: null,
         playTime: 0,
+        // Tutorial state
+        isTutorialMode: true,
+        tutorialFurnacePlaced: false,
       })
     },
   }))

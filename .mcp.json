@@ -17,6 +17,11 @@
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@playwright/mcp"],
       "description": "Playwright - 브라우저 자동화 및 E2E 테스트"
+    },
+    "sequential-thinking": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Sequential Thinking - 단계별 추론 및 문제 해결"
     }
   },
   "_comment": "🎯 MCP 서버 그룹화 완료",
