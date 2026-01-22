@@ -1,0 +1,391 @@
+/* ==========================================================================
+   Seoul Survival - Animations
+   @keyframes, 트랜지션, 애니메이션 관련 스타일
+   ========================================================================== */
+
+/* ---------- Auto Work Pulse ---------- */
+.work.auto-click-enabled .auto-work-indicator {
+  animation: autoWorkPulse 1.4s ease-out infinite;
+}
+
+@keyframes autoWorkPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+}
+
+/* ---------- Auto Click Pulse ---------- */
+@keyframes autoClickPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.55);
+  }
+  70% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 9px rgba(250, 204, 21, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+}
+
+#workBtn.auto-click-pulse {
+  animation: autoClickPulse 0.25s ease-out;
+}
+
+/* ---------- Click Effect ---------- */
+.click-effect {
+  animation: clickPulse 0.3s ease-out;
+}
+
+@keyframes clickPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------- Income Float ---------- */
+.income-increase {
+  position: absolute;
+  color: var(--good);
+  font-weight: 700;
+  pointer-events: none;
+  animation: incomeFloat 2s ease-out forwards;
+}
+
+@keyframes incomeFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
+
+/* ---------- Slide In (Market Event) ---------- */
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ---------- Achievement Pop ---------- */
+@keyframes achievementPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------- Slide In Left ---------- */
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ---------- Falling Cookie ---------- */
+.falling-cookie {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  font-size: 24px;
+  animation: fallDown 2s ease-in forwards;
+}
+
+/* ---------- Falling Tower ---------- */
+.falling-tower {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10001;
+  font-size: 32px;
+  animation: fallDown 2s ease-in forwards;
+}
+
+@keyframes fallDown {
+  0% {
+    transform: translateY(-100px) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* ---------- Button Pulse (Affordable) ---------- */
+.btn.affordable {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------- Button Pulse (Sell Mode) ---------- */
+.btn.affordable-sell {
+  animation: pulse-sell 2s infinite;
+}
+
+@keyframes pulse-sell {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* ---------- Building Glow ---------- */
+.building-item.affordable {
+  animation: upgradeGlow 2s infinite;
+}
+
+.building-item.affordable-sell {
+  animation: sellGlow 2s infinite;
+}
+
+@keyframes sellGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* ---------- Upgrade Glow ---------- */
+.upgrade-item.affordable {
+  animation: upgradeGlow 2s infinite;
+}
+
+@keyframes upgradeGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+  }
+}
+
+/* ---------- Career Promotion ---------- */
+@keyframes careerPromotion {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(94, 234, 212, 0);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(94, 234, 212, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(94, 234, 212, 0);
+  }
+}
+
+/* ---------- Unlock Glow ---------- */
+.row.just-unlocked {
+  animation: unlockGlow 1s ease-out;
+  position: relative;
+  z-index: 100;
+  isolation: isolate;
+  will-change: box-shadow, border-color;
+}
+
+@keyframes unlockGlow {
+  0% {
+    box-shadow: 0 0 40px var(--good);
+    border-color: var(--good);
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 60px var(--good);
+    background-color: rgba(34, 197, 94, 0.2);
+  }
+  100% {
+    box-shadow: none;
+    border-color: transparent;
+    background-color: transparent;
+  }
+}
+
+/* ---------- Status Pulse ---------- */
+.upgrade-status {
+  animation: statusPulse 1s infinite;
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ---------- Purchase Success (Sparkle) ---------- */
+.purchase-success {
+  animation: sparkle 0.6s ease-out !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  isolation: isolate !important;
+  will-change: background-color, box-shadow !important;
+}
+
+@keyframes sparkle {
+  0% {
+    background-color: var(--good) !important;
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7) !important;
+  }
+  50% {
+    background-color: #ffd700 !important;
+    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.5) !important;
+  }
+  100% {
+    background-color: var(--good) !important;
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0) !important;
+  }
+}
+
+/* ---------- Pulse Once (Focus Highlight) ---------- */
+.pulse-once {
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  animation: pulseOnce 0.8s ease-out;
+}
+
+@keyframes pulseOnce {
+  0% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+  }
+}
+
+/* ---------- Income Bar Shimmer ---------- */
+.income-segment::before {
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ---------- Income Bar Slide In ---------- */
+.income-bar.animated .income-segment {
+  animation: incomeSlideIn 0.6s ease-out;
+}
+
+@keyframes incomeSlideIn {
+  from {
+    width: 0% !important;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Leaderboard Refresh Spin ---------- */
+.leaderboard-refresh-btn.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Synergy Particle ---------- */
+.synergy-particle {
+  position: fixed;
+  font-size: 32px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: synergyParticleFly 2s ease-out forwards;
+}
+
+@keyframes synergyParticleFly {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---------- Fade In (Mobile Overlay) ---------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

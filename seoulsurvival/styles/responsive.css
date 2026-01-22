@@ -1,0 +1,498 @@
+/* ==========================================================================
+   Seoul Survival - Responsive Styles
+   모든 미디어 쿼리를 중앙화
+   ========================================================================== */
+
+/* ==========================================================================
+   DESKTOP ULTRA-WIDE (1650px+): 5-column layout
+   ========================================================================== */
+@media (min-width: 1650px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  #app,
+  .app,
+  .root,
+  .container {
+    overflow-x: hidden;
+  }
+
+  .tab-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: flex-start;
+    overflow-x: hidden;
+    padding: 0 0 16px;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tab-content {
+    display: block !important;
+    flex: 1 1 clamp(320px, 20vw, 380px);
+    max-width: clamp(320px, 20vw, 380px);
+    min-width: 320px;
+    height: auto;
+    overflow-y: visible;
+    box-sizing: border-box;
+  }
+
+  .tab-content * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ==========================================================================
+   TABLET/MOBILE BREAKPOINT (1439px-): Bottom nav + single tab view
+   ========================================================================== */
+@media (max-width: 1439px) {
+  .tab-wrapper {
+    display: block;
+    width: 100%;
+  }
+
+  /* Bottom Navigation */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, #0b1220, #0b1324);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 18px;
+    min-width: 0;
+  }
+
+  .nav-btn span {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .nav-btn.active {
+    color: var(--accent);
+  }
+
+  .nav-btn:hover {
+    background: var(--bg2);
+  }
+
+  .nav-btn:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+    background: var(--bg2);
+  }
+
+  /* Tab Content */
+  .tab-content {
+    display: none;
+    width: 100%;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  #statsTab,
+  #settingsTab {
+    display: none;
+  }
+
+  #statsTab.active,
+  #settingsTab.active {
+    display: block;
+  }
+
+  /* Padding for bottom nav */
+  .app {
+    padding-bottom: 80px;
+  }
+
+  /* Stats Tab Mobile */
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-item {
+    padding: 10px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .income-bar {
+    height: 50px;
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  }
+
+  .achievement-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+/* ==========================================================================
+   MOBILE (768px-)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Grid to single column */
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Header */
+  header {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+  }
+
+  .statbar {
+    gap: 6px;
+    width: 100%;
+  }
+
+  .share-btn,
+  .favorite-btn {
+    font-size: 12px;
+  }
+
+  .share-btn .share-label,
+  .favorite-btn .favorite-label {
+    display: none;
+  }
+
+  .chip {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .chip b {
+    font-size: 12px;
+  }
+
+  /* App padding */
+  .app {
+    padding: 8px;
+    padding-top: 78px;
+  }
+
+  /* Touch optimized buttons */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 14px;
+  }
+
+  .btn-lg {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  /* Shop section */
+  .mode-toggle button,
+  .quantity-selector button {
+    min-height: 40px;
+    min-width: 40px;
+    font-size: 14px;
+  }
+
+  /* Card padding */
+  .card {
+    padding: 12px;
+  }
+
+  /* Work area */
+  .work {
+    height: 200px;
+  }
+
+  /* Building items */
+  .building-item {
+    font-size: 13px;
+  }
+
+  /* Upgrade items */
+  .upgrade-item {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  /* Footer vertical layout */
+  footer > div > div:last-child {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  footer button {
+    width: 100%;
+  }
+
+  /* Log height */
+  .log {
+    max-height: 120px;
+  }
+
+  /* Diary log */
+  .diary-log {
+    max-height: calc(100vh - 400px);
+    min-height: 120px;
+    width: 100%;
+  }
+
+  /* Reset button */
+  .reset-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  /* Achievement tooltip */
+  .achievement-tooltip {
+    min-width: 250px;
+    max-width: 90vw;
+  }
+
+  /* Synergy badge */
+  .synergy-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .synergy-effect {
+    align-self: flex-end;
+  }
+
+  .synergy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Leaderboard refresh */
+  .leaderboard-refresh-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .leaderboard-refresh-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .leaderboard-refresh-btn {
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+
+  #leaderboardLastUpdated {
+    font-size: 11px;
+  }
+
+  /* Mobile bottom sheet for account dropdown */
+  .account-dropdown {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    margin: 0 !important;
+    border-radius: 16px 16px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0;
+    min-width: auto;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    z-index: 10000 !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease-out;
+    pointer-events: auto;
+    will-change: transform;
+  }
+
+  .account-dropdown.show {
+    transform: translateY(0) !important;
+  }
+
+  .account-menu-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .account-menu-nickname {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .account-menu-item {
+    padding: 16px 20px;
+    font-size: 16px;
+    border-radius: 0;
+    display: block;
+    width: 100%;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .account-menu-item:not(:last-child) {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .account-menu-item:active {
+    background: var(--bg2);
+    opacity: 0.8;
+  }
+
+  /* Mobile overlay */
+  .account-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+    pointer-events: auto;
+  }
+}
+
+/* ==========================================================================
+   STATBAR RESPONSIVE: 600px- (chip label hide)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .statbar {
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .statbar .chip {
+    flex-shrink: 1;
+    min-width: 0;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  /* Hide chip labels (현금, 금융, 부동산, 초당) */
+  .statbar .chip .chip-label {
+    display: none;
+  }
+
+  #rpsChip .chip-label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   SMALL MOBILE (480px-)
+   ========================================================================== */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .app {
+    padding: 4px;
+    padding-top: 74px;
+  }
+
+  header {
+    padding: 6px 8px;
+  }
+
+  .chip {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+
+  .chip b {
+    font-size: 13px;
+  }
+
+  .card h2 {
+    font-size: 16px;
+  }
+
+  .work {
+    height: 180px;
+  }
+
+  .diary-log {
+    max-height: calc(100vh - 350px);
+    min-height: 100px;
+  }
+
+  .btn-lg {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  /* Hide property chip label */
+  #propertyChip .chip-label {
+    display: none;
+  }
+
+  /* Hide unit suffixes */
+  .statbar .chip .muted {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   EXTRA SMALL (400px-)
+   ========================================================================== */
+@media (max-width: 400px) {
+  /* Hide financial chip label */
+  #financialChip .chip-label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   ULTRA SMALL (350px-)
+   ========================================================================== */
+@media (max-width: 350px) {
+  /* Hide all chip labels */
+  .statbar .chip .chip-label {
+    display: none;
+  }
+
+  .chip .chip-label {
+    display: none;
+  }
+}

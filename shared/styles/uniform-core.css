@@ -59,6 +59,36 @@
   --warning: #fbbf24;
   --info: #3b82f6;
 
+  /* 시맨틱 색상 (표준화) */
+  --color-success: #34d399;
+  --color-success-dark: #059669;
+  --color-danger: #fb7185;
+  --color-danger-dark: #f44336;
+  --color-warning: #fbbf24;
+  --color-warning-dark: #d97706;
+  --color-info: #3b82f6;
+  --color-info-dark: #2563eb;
+  --color-gold: #ffd700;
+
+  /* 리스크 레벨 (투자 시스템) */
+  --color-risk-low: #4caf50;
+  --color-risk-medium: #ff9800;
+  --color-risk-high: #f44336;
+  --color-risk-extreme: #9c27b0;
+
+  /* 액센트 색상 (HSL 기반) */
+  --accent-h: 174;
+  --accent-s: 76%;
+  --accent-l: 64%;
+
+  /* 수입 카테고리 (Income Bar) */
+  --color-income-labor: #f59e0b;
+  --color-income-labor-dark: #d97706;
+  --color-income-financial: #3b82f6;
+  --color-income-financial-dark: #2563eb;
+  --color-income-property: #10b981;
+  --color-income-property-dark: #059669;
+
   /* 공통 변수 매핑 */
   --bg-panel: var(--panel);
   --text-muted: var(--muted);
