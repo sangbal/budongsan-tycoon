@@ -462,24 +462,10 @@
     font-size: 14px;
   }
 
-  /* Hide property chip label */
-  #propertyChip .chip-label {
-    display: none;
-  }
-
-  /* Hide unit suffixes */
-  .statbar .chip .muted {
-    display: none;
-  }
-}
-
-/* ==========================================================================
-   EXTRA SMALL (400px-)
-   ========================================================================== */
-@media (max-width: 400px) {
-  /* Hide financial chip label */
-  #financialChip .chip-label {
-    display: none;
+  /* 금융과 부동산 칩을 세트로 숨김 - 좁은 화면에서 가독성 확보 */
+  #financialChip,
+  #propertyChip {
+    display: none !important;
   }
 }
 
