@@ -51,6 +51,7 @@ body {
 }
 #workBtn {
   touch-action: manipulation;
+  background: linear-gradient(180deg, rgba(31, 42, 68, 0.5), rgba(26, 35, 64, 0.5));
 }
 
 body {

@@ -171,7 +171,7 @@ export default {
 
   // Work Tab
   'work.title': 'Work',
-  'work.button': 'Work',
+  'work.button': '🛠️ Work',
 
   // Other UI text
   'ui.work': 'Labor',

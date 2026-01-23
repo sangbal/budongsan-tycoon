@@ -173,7 +173,7 @@ export default {
 
   // Work Tab
   'work.title': '노동',
-  'work.button': '노동',
+  'work.button': '🛠️ 노동',
 
   // 기타 UI 텍스트
   'ui.work': '노동',
