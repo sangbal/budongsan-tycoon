@@ -716,6 +716,104 @@ export default {
   'prestige.discount': '할인',
   'prestige.effect.active': '활성',
 
+  // ===== CP 시스템 (경력 포인트) =====
+  'cp.title': '경력 포인트',
+  'cp.total': '누적',
+  'cp.purchased': '구매완료',
+  'cp.needCp': '{cost} CP 필요',
+  'cp.requires': '선행 필요',
+  'cp.active': '활성',
+  'cp.hint.none': '첫 타워를 획득하면 경력 포인트(CP)를 얻고 업그레이드를 구매할 수 있습니다.',
+  'cp.networkBonus': '인맥 보너스',
+  'cp.networkDesc': '전체 수익',
+  'cp.firstTowerBonus': '첫 타워 보너스',
+
+  // CP 카테고리
+  'cp.category.A': '기본 부스트',
+  'cp.category.B': '금융 경로',
+  'cp.category.C': '부동산 경로',
+  'cp.category.D': '클릭/노동 경로',
+  'cp.category.E': '시작 가속',
+  'cp.category.F': '영구 슬롯',
+  'cp.category.G': '게임플레이 변경',
+
+  // CP 힌트
+  'cp.hint': '🗼 서울타워 구매 시 CP를 획득합니다. CP는 다음 런에 영구 보너스로 적용됩니다.',
+
+  // CP 업그레이드 - A: 기본 부스트
+  'cp.A1.name': '신입 멘토링',
+  'cp.A1.desc': '클릭 수익 +20%',
+  'cp.A2.name': '사회 초년생 네트워크',
+  'cp.A2.desc': '자동 수익 +25%',
+  'cp.A3.name': '경력 인정',
+  'cp.A3.desc': '시작 자금 +1,000만원',
+  'cp.A4.name': '업계 평판',
+  'cp.A4.desc': '모든 가격 -10%',
+
+  // CP 업그레이드 - B: 금융 경로
+  'cp.B1.name': '증권사 인맥',
+  'cp.B1.desc': '금융 수익 +30%',
+  'cp.B2.name': '펀드매니저 경력',
+  'cp.B2.desc': '금융 해금 가격 -25%',
+  'cp.B3.name': '헤지펀드 운용사',
+  'cp.B3.desc': '금융→부동산 시너지 +15%',
+
+  // CP 업그레이드 - C: 부동산 경로
+  'cp.C1.name': '공인중개사 네트워크',
+  'cp.C1.desc': '부동산 수익 +30%',
+  'cp.C2.name': '건설사 인맥',
+  'cp.C2.desc': '부동산 해금 가격 -25%',
+  'cp.C3.name': '재개발 전문가',
+  'cp.C3.desc': '부동산→금융 시너지 +15%',
+
+  // CP 업그레이드 - D: 클릭/노동 경로
+  'cp.D1.name': '워커홀릭 DNA',
+  'cp.D1.desc': '클릭 수익 +50%',
+  'cp.D2.name': '업무 자동화 마스터',
+  'cp.D2.desc': '자동클릭 속도 2배',
+  'cp.D3.name': 'CEO 멘탈리티',
+  'cp.D3.desc': '클릭 시 5% 확률 보너스',
+
+  // CP 업그레이드 - E: 시작 가속
+  'cp.E1.name': '부모님 지원',
+  'cp.E1.desc': '시작 시 예금 5개',
+  'cp.E2.name': '학연/지연',
+  'cp.E2.desc': '시작 시 계약직',
+  'cp.E3.name': '금수저 출생',
+  'cp.E3.desc': '시작 시 빌라 1개 + 사원',
+
+  // CP 업그레이드 - F: 영구 슬롯
+  'cp.F1.name': '핵심 역량 보존 I',
+  'cp.F1.desc': '업그레이드 1개 영구 유지',
+  'cp.F2.name': '핵심 역량 보존 II',
+  'cp.F2.desc': '2번째 슬롯 해금',
+
+  // CP 업그레이드 - G: 게임플레이 변경
+  'cp.G1.name': '시장 예측 능력',
+  'cp.G1.desc': '시장 이벤트 +50%',
+  'cp.G2.name': '정보 비대칭 활용',
+  'cp.G2.desc': '다음 이벤트 미리보기',
+
+  // CP UI
+  'cp.permSlots': '영구 슬롯',
+  'cp.permSlots.hint': '리셋 시에도 유지되는 업그레이드',
+  'cp.emptySlot': '빈 슬롯',
+  'cp.removeSlot': '제거',
+  'cp.buildGuide': '빌드 가이드',
+
+  // CP 빌드 경로
+  'cp.build.financial': '금융 특화',
+  'cp.build.financial.desc': '중반 강함, 후반 완만한 성장',
+  'cp.build.property': '부동산 특화',
+  'cp.build.property.desc': '초반 느림, 후반 폭발 성장',
+  'cp.build.active': '액티브 클릭',
+  'cp.build.active.desc': '클릭 플레이 최고 효율',
+  'cp.build.speedrun': '스피드런',
+  'cp.build.speedrun.desc': '최단 타워 획득 빌드',
+
+  // CP 탭
+  'tab.career': '경력',
+
   // 시장 이벤트
   'event.gangnamBoom.name': '강남 아파트 대박',
   'event.gangnamBoom.desc': '강남 아파트발 상승 랠리로 주거형 부동산 수익이 상승합니다.',
@@ -765,6 +863,11 @@ export default {
   'inapp.banner.hint': 'Chrome / Safari 등 기본 브라우저에서 다시 열어 주세요.',
   'inapp.banner.copyBtn': 'URL 복사',
   'inapp.banner.closeBtn': '확인',
+
+  // 타워 구매 프레스티지 확인 모달
+  'modal.prestige.tower.title': '🗼 서울타워 구매 완료!',
+  'modal.prestige.tower.message':
+    '축하합니다! 서울에서의 성공을 달성했습니다.\n\n프레스티지를 진행하여 새로운 시작을 할까요?\n(프레스티지 보너스가 적용됩니다)',
 
   // 엔딩 모달
   'ending.title': '🎉 엔딩',

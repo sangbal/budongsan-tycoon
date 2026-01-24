@@ -722,6 +722,104 @@ export default {
   'prestige.discount': 'discount',
   'prestige.effect.active': 'Active',
 
+  // ===== CP System (Career Points) =====
+  'cp.title': 'Career Points',
+  'cp.total': 'Total',
+  'cp.purchased': 'Purchased',
+  'cp.needCp': '{cost} CP needed',
+  'cp.requires': 'Requires',
+  'cp.active': 'Active',
+  'cp.hint.none': 'Get your first tower to earn Career Points (CP) and unlock upgrades.',
+  'cp.networkBonus': 'Network Bonus',
+  'cp.networkDesc': 'Total Income',
+  'cp.firstTowerBonus': 'First Tower Bonus',
+
+  // CP Categories
+  'cp.category.A': 'Basic Boosts',
+  'cp.category.B': 'Financial Path',
+  'cp.category.C': 'Real Estate Path',
+  'cp.category.D': 'Click/Labor Path',
+  'cp.category.E': 'Head Start',
+  'cp.category.F': 'Permanent Slots',
+  'cp.category.G': 'Gameplay Modifiers',
+
+  // CP Hint
+  'cp.hint': '🗼 Earn CP by purchasing Seoul Tower. CP provides permanent bonuses in future runs.',
+
+  // CP Upgrades - A: Basic Boosts
+  'cp.A1.name': 'New Hire Mentoring',
+  'cp.A1.desc': 'Click income +20%',
+  'cp.A2.name': 'Career Starter Network',
+  'cp.A2.desc': 'Auto income +25%',
+  'cp.A3.name': 'Career Recognition',
+  'cp.A3.desc': 'Starting cash +10M',
+  'cp.A4.name': 'Industry Reputation',
+  'cp.A4.desc': 'All prices -10%',
+
+  // CP Upgrades - B: Financial Path
+  'cp.B1.name': 'Broker Connections',
+  'cp.B1.desc': 'Financial income +30%',
+  'cp.B2.name': 'Fund Manager Experience',
+  'cp.B2.desc': 'Financial unlock prices -25%',
+  'cp.B3.name': 'Hedge Fund Operator',
+  'cp.B3.desc': 'Financial→Property synergy +15%',
+
+  // CP Upgrades - C: Real Estate Path
+  'cp.C1.name': 'Realtor Network',
+  'cp.C1.desc': 'Property income +30%',
+  'cp.C2.name': 'Builder Connections',
+  'cp.C2.desc': 'Property unlock prices -25%',
+  'cp.C3.name': 'Redevelopment Expert',
+  'cp.C3.desc': 'Property→Financial synergy +15%',
+
+  // CP Upgrades - D: Click/Labor Path
+  'cp.D1.name': 'Workaholic DNA',
+  'cp.D1.desc': 'Click income +50%',
+  'cp.D2.name': 'Automation Master',
+  'cp.D2.desc': 'Auto-click speed x2',
+  'cp.D3.name': 'CEO Mentality',
+  'cp.D3.desc': '5% chance bonus on click',
+
+  // CP Upgrades - E: Head Start
+  'cp.E1.name': 'Parent Support',
+  'cp.E1.desc': 'Start with 5 deposits',
+  'cp.E2.name': 'School Connections',
+  'cp.E2.desc': 'Start as Contract Worker',
+  'cp.E3.name': 'Silver Spoon',
+  'cp.E3.desc': 'Start with 1 villa + Worker title',
+
+  // CP Upgrades - F: Permanent Slots
+  'cp.F1.name': 'Core Competency Preservation I',
+  'cp.F1.desc': '1 upgrade persists through reset',
+  'cp.F2.name': 'Core Competency Preservation II',
+  'cp.F2.desc': 'Unlock 2nd permanent slot',
+
+  // CP Upgrades - G: Gameplay Modifiers
+  'cp.G1.name': 'Market Prediction',
+  'cp.G1.desc': 'Market event effects +50%',
+  'cp.G2.name': 'Information Asymmetry',
+  'cp.G2.desc': 'Preview next market event',
+
+  // CP UI
+  'cp.permSlots': 'Permanent Slots',
+  'cp.permSlots.hint': 'Upgrades that persist through prestige',
+  'cp.emptySlot': 'Empty Slot',
+  'cp.removeSlot': 'Remove',
+  'cp.buildGuide': 'Build Guide',
+
+  // CP Build Paths
+  'cp.build.financial': 'Financial Specialist',
+  'cp.build.financial.desc': 'Strong mid-game, steady late-game',
+  'cp.build.property': 'Property Specialist',
+  'cp.build.property.desc': 'Slow start, explosive late-game',
+  'cp.build.active': 'Active Clicker',
+  'cp.build.active.desc': 'Best efficiency for active play',
+  'cp.build.speedrun': 'Speedrun',
+  'cp.build.speedrun.desc': 'Fastest path to tower',
+
+  // CP Tab
+  'tab.career': 'Career',
+
   // Market Events
   'event.gangnamBoom.name': 'Gangnam Apartment Boom',
   'event.gangnamBoom.desc':
@@ -773,6 +871,11 @@ export default {
   'inapp.banner.hint': 'Please reopen in Chrome / Safari.',
   'inapp.banner.copyBtn': 'Copy URL',
   'inapp.banner.closeBtn': 'OK',
+
+  // Tower purchase prestige confirmation modal
+  'modal.prestige.tower.title': '🗼 Seoul Tower Purchased!',
+  'modal.prestige.tower.message':
+    'Congratulations! You have achieved success in Seoul.\n\nWould you like to prestige and start fresh?\n(Prestige bonuses will be applied)',
 
   // Ending modal
   'ending.title': '🎉 Ending',
