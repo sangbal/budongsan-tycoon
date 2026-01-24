@@ -171,6 +171,12 @@ export function applyI18nToDOM() {
   if (langSelect) {
     langSelect.value = currentLang
   }
+
+  // document.title 업데이트 (게임 타이틀)
+  const gameTitle = table['game.title']
+  if (gameTitle) {
+    document.title = gameTitle
+  }
 }
 
 // 초기화: 현재 언어로 설정

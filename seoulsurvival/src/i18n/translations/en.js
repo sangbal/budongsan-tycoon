@@ -2,6 +2,11 @@
 // Initially same as Korean, will be translated progressively
 
 export default {
+  // Game title
+  'game.title': 'Seoul Survival : Rags to Riches',
+  'game.name': 'Seoul Survival',
+  'game.subtitle': 'Rags to Riches',
+
   // Tab/Section titles
   'tab.labor': 'Labor',
   'tab.investment': 'Investment',

@@ -2,6 +2,11 @@
 // 모든 텍스트는 현재 하드코딩된 한국어 값을 번역 키로 매핑
 
 export default {
+  // 게임 타이틀
+  'game.title': '서울 생존기 : 흙수저 탈출',
+  'game.name': '서울 생존기',
+  'game.subtitle': '흙수저 탈출',
+
   // 탭/섹션 제목
   'tab.labor': '노동',
   'tab.investment': '투자',

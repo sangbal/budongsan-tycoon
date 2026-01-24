@@ -24,7 +24,7 @@ export function createSocialFeatures(deps) {
    */
   async function shareGame() {
     const gameUrl = window.location.href
-    const gameTitle = 'Seoul Survival : Rags to Riches'
+    const gameTitle = t('game.title')
     const gameDescription = t('share.description', {
       assets: NumberFormat.formatCashDisplay(getCash(), settings),
       rps: NumberFormat.formatCashDisplay(getRps(), settings),
@@ -57,7 +57,7 @@ export function createSocialFeatures(deps) {
    */
   function handleFavoriteClick() {
     const url = window.location.href
-    const title = document.title || 'Seoul Survival : Rags to Riches'
+    const title = document.title || t('game.title')
     const ua = navigator.userAgent.toLowerCase()
     const isMobile = /iphone|ipad|ipod|android/.test(ua)
     const isIOS = /iphone|ipad|ipod/.test(ua)
