@@ -24,7 +24,7 @@ export function createSocialFeatures(deps) {
    */
   async function shareGame() {
     const gameUrl = window.location.href
-    const gameTitle = 'Capital Clicker: Seoul Survival'
+    const gameTitle = 'Seoul Survival : Rags to Riches'
     const gameDescription = t('share.description', {
       assets: NumberFormat.formatCashDisplay(getCash(), settings),
       rps: NumberFormat.formatCashDisplay(getRps(), settings),
@@ -57,7 +57,7 @@ export function createSocialFeatures(deps) {
    */
   function handleFavoriteClick() {
     const url = window.location.href
-    const title = document.title || 'Capital Clicker: Seoul Survival'
+    const title = document.title || 'Seoul Survival : Rags to Riches'
     const ua = navigator.userAgent.toLowerCase()
     const isMobile = /iphone|ipad|ipod|android/.test(ua)
     const isIOS = /iphone|ipad|ipod/.test(ua)

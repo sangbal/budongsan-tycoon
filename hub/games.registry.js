@@ -20,8 +20,8 @@ export const GAMES = [
     id: 'seoulsurvival',
     slug: 'seoulsurvival',
     featured: true,
-    title: { ko: 'SeoulSurvival', en: 'SeoulSurvival' },
-    subtitle: { ko: '서울에서 살아남는 자본 클리커', en: 'Capital Clicker Seoul' },
+    title: { ko: '서울 생존기', en: 'Seoul Survival' },
+    subtitle: { ko: '흙수저 탈출', en: 'Rags to Riches' },
     description: {
       ko: '노동으로 시드를 만들고, 투자로 가속하세요.\n승진과 이벤트로 다음 목표가 열립니다.',
       en: 'Build seed through labor, accelerate with investments.\nPromotions and events unlock your next goals.',

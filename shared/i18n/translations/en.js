@@ -3,9 +3,9 @@ export default {
   'hub.header.about': 'About',
   'hub.header.account': 'Account',
   'hub.header.login': 'Sign in',
-  'hub.hero.badge': 'Capital Clicker · Seoul',
-  'hub.hero.title': 'SeoulSurvival',
-  'hub.hero.subtitle': 'A capital clicker set in Seoul',
+  'hub.hero.badge': 'Seoul Survival',
+  'hub.hero.title': 'Seoul Survival',
+  'hub.hero.subtitle': 'Rags to Riches',
   'hub.hero.description':
     'Start with labor to build capital, accelerate with investment.\nPromotions and events unlock your next goals.',
   'hub.hero.feature1': 'Play instantly in your browser',
