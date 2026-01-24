@@ -369,97 +369,80 @@ document.addEventListener('DOMContentLoaded', () => {
   // ACHIEVEMENTS 정의는 data/achievements.js로 이동
   // 아래 주석 처리된 275줄의 ACHIEVEMENTS 배열은 삭제됨
 
-  // ======= DOM =======
-  const elCash = document.getElementById('cash')
-  const elFinancial = document.getElementById('financial')
-  const elProperties = document.getElementById('properties')
-  const elRps = document.getElementById('rps')
-  const elWork = document.getElementById('workBtn')
-  const elWorkArea = document.querySelector('.work') // 노동 배경 영역
-  const elAutoWorkIndicator = document.getElementById('autoWorkIndicator')
-  const elLog = document.getElementById('log')
-  const elShareBtn = document.getElementById('shareBtn')
-  const elFavoriteBtn = document.getElementById('favoriteBtn') // 즐겨찾기 / 홈 화면 안내 버튼
-  const elClickIncomeButton = document.getElementById('clickIncomeButton')
-  const elClickIncomeLabel = document.getElementById('clickIncomeLabel')
-  const elClickMultiplier = document.getElementById('clickMultiplier')
-  const elRentMultiplier = document.getElementById('rentMultiplier')
+  // ======= DOM (캐시된 참조 사용) =======
+  const DOM = getDomRefs()
 
-  // 금융상품 관련
-  const elDepositCount = document.getElementById('depositCount')
-  const elIncomePerDeposit = document.getElementById('incomePerDeposit')
-  const elBuyDeposit = document.getElementById('buyDeposit')
-
-  const elSavingsCount = document.getElementById('savingsCount')
-  const elIncomePerSavings = document.getElementById('incomePerSavings')
-  const elBuySavings = document.getElementById('buySavings')
-
-  const elBondCount = document.getElementById('bondCount')
-  const elIncomePerBond = document.getElementById('incomePerBond')
-  const elBuyBond = document.getElementById('buyBond')
-
-  // 미국주식과 코인 관련
-  const elUsStockCount = document.getElementById('usStockCount')
-  const elIncomePerUsStock = document.getElementById('incomePerUsStock')
-  const elBuyUsStock = document.getElementById('buyUsStock')
-
-  const elCryptoCount = document.getElementById('cryptoCount')
-  const elIncomePerCrypto = document.getElementById('incomePerCrypto')
-  const elBuyCrypto = document.getElementById('buyCrypto')
-
-  // 구매 수량 선택 시스템
-  const elBuyMode = document.getElementById('buyMode')
-  const elSellMode = document.getElementById('sellMode')
-  const elQty1 = document.getElementById('qty1')
-  const elQty5 = document.getElementById('qty5')
-  const elQty10 = document.getElementById('qty10')
-
-  // 저장 상태 표시
-  const elSaveStatus = document.getElementById('saveStatus')
-  const elResetBtn = document.getElementById('resetBtn')
-
-  // 현재가 표시 요소들
-  const elDepositCurrentPrice = document.getElementById('depositCurrentPrice')
-  const elSavingsCurrentPrice = document.getElementById('savingsCurrentPrice')
-  const elBondCurrentPrice = document.getElementById('bondCurrentPrice')
-  const elVillaCurrentPrice = document.getElementById('villaCurrentPrice')
-  const elOfficetelCurrentPrice = document.getElementById('officetelCurrentPrice')
-  const elAptCurrentPrice = document.getElementById('aptCurrentPrice')
-  const elShopCurrentPrice = document.getElementById('shopCurrentPrice')
-  const elBuildingCurrentPrice = document.getElementById('buildingCurrentPrice')
-
-  // 부동산 구입 관련
-  const elVillaCount = document.getElementById('villaCount')
-  const elRentPerVilla = document.getElementById('rentPerVilla')
-  const elBuyVilla = document.getElementById('buyVilla')
-
-  const elOfficetelCount = document.getElementById('officetelCount')
-  const elRentPerOfficetel = document.getElementById('rentPerOfficetel')
-  const elBuyOfficetel = document.getElementById('buyOfficetel')
-
-  const elAptCount = document.getElementById('aptCount')
-  const elRentPerApt = document.getElementById('rentPerApt')
-  const elBuyApt = document.getElementById('buyApt')
-
-  const elShopCount = document.getElementById('shopCount')
-  const elRentPerShop = document.getElementById('rentPerShop')
-  const elBuyShop = document.getElementById('buyShop')
-
-  const elBuildingCount = document.getElementById('buildingCount')
-  const elRentPerBuilding = document.getElementById('rentPerBuilding')
-  const elBuyBuilding = document.getElementById('buyBuilding')
-
-  const elTowerCountDisplay = document.getElementById('towerCountDisplay')
-  const elTowerCountBadge = document.getElementById('towerCountBadge')
-  const elTowerCurrentPrice = document.getElementById('towerCurrentPrice')
-  const elBuyTower = document.getElementById('buyTower')
-
-  // 커리어 관련
-  const elCurrentCareer = document.getElementById('currentCareer')
-  const elCareerCost = document.getElementById('careerCost')
-  const elCareerProgress = document.getElementById('careerProgress')
-  const elCareerProgressText = document.getElementById('careerProgressText')
-  const elCareerRemaining = document.getElementById('careerRemaining')
+  // DOM 요소 단축 참조 (기존 코드 호환성 유지)
+  const {
+    elCash,
+    elFinancial,
+    elProperties,
+    elRps,
+    elWork,
+    elWorkArea,
+    elAutoWorkIndicator,
+    elLog,
+    elShareBtn,
+    elFavoriteBtn,
+    elClickIncomeButton,
+    elClickIncomeLabel,
+    elClickMultiplier,
+    elRentMultiplier,
+    elDepositCount,
+    elIncomePerDeposit,
+    elBuyDeposit,
+    elSavingsCount,
+    elIncomePerSavings,
+    elBuySavings,
+    elBondCount,
+    elIncomePerBond,
+    elBuyBond,
+    elUsStockCount,
+    elIncomePerUsStock,
+    elBuyUsStock,
+    elCryptoCount,
+    elIncomePerCrypto,
+    elBuyCrypto,
+    elBuyMode,
+    elSellMode,
+    elQty1,
+    elQty5,
+    elQty10,
+    elSaveStatus,
+    elResetBtn,
+    elDepositCurrentPrice,
+    elSavingsCurrentPrice,
+    elBondCurrentPrice,
+    elVillaCurrentPrice,
+    elOfficetelCurrentPrice,
+    elAptCurrentPrice,
+    elShopCurrentPrice,
+    elBuildingCurrentPrice,
+    elVillaCount,
+    elRentPerVilla,
+    elBuyVilla,
+    elOfficetelCount,
+    elRentPerOfficetel,
+    elBuyOfficetel,
+    elAptCount,
+    elRentPerApt,
+    elBuyApt,
+    elShopCount,
+    elRentPerShop,
+    elBuyShop,
+    elBuildingCount,
+    elRentPerBuilding,
+    elBuyBuilding,
+    elTowerCountDisplay,
+    elTowerCountBadge,
+    elTowerCurrentPrice,
+    elBuyTower,
+    elCurrentCareer,
+    elCareerCost,
+    elCareerProgress,
+    elCareerProgressText,
+    elCareerRemaining,
+  } = DOM
 
   // 업그레이드 관련 (구형 DOM 제거됨 - 새로운 Cookie Clicker 스타일 사용)
 
