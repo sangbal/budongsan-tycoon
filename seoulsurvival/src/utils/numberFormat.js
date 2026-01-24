@@ -515,3 +515,6 @@ export function formatRelativeTime(timestamp) {
   if (diffYears < 1) return `${diffMonths}개월 전` // 1년 미만: 개월
   return `${diffYears}년 전` // 1년 이상: 년
 }
+
+// Alias exports for backward compatibility
+export { formatNumberForLang as formatNumber }
