@@ -14,6 +14,11 @@ vi.mock('../../state/gameState.js', () => ({
     totalClicks: 0,
     clickMultiplier: 1,
   },
+  CAREER_LEVELS: [
+    { nameKey: 'career.alba', bgImage: 'alba.png' },
+    { nameKey: 'career.gyeyakjik', bgImage: 'gyeyakjik.png' },
+    { nameKey: 'career.sawon', bgImage: 'sawon.png' },
+  ],
 }))
 
 // Mock incomeCalculator

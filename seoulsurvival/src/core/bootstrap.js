@@ -29,7 +29,7 @@ import { createUpgradeUnlockSystem } from '../systems/upgrades.js'
 import { createUpgradeManager } from '../systems/upgradeManager.js'
 import { createWorkSystem } from '../systems/workSystem.js'
 import { createPrestigeSystem } from '../systems/prestigeSystem.js'
-import { createCareerSystem } from '../systems/careerSystem.js'
+import { createCareerSystem, preloadCareerImages } from '../systems/careerSystem.js'
 import { getDomRefs } from '../ui/domRefs.js'
 import { safeClass, safeHTML, safeText } from '../ui/domUtils.js'
 import {
@@ -641,6 +641,7 @@ export {
   applyI18nToDOMAsync,
   safeText,
   createCareerSystem,
+  preloadCareerImages,
   createWorkSystem,
   createCollapsibleManager,
   createSocialFeatures,

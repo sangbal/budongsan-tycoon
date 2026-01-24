@@ -42,6 +42,7 @@ import {
   ensureTranslationLoaded,
   safeText,
   createCareerSystem,
+  preloadCareerImages,
   createWorkSystem,
   createCollapsibleManager,
   createSocialFeatures,
@@ -442,6 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 초기 렌더 함수
   async function initializeGame() {
     const gameLoaded = saveLoadManager.loadGame()
+
+    // 현재/다음 레벨 배경 이미지 프리로드 (비동기, 에러 무시)
+    preloadCareerImages()
 
     // 일기장 시스템 초기화
     if (elLog) {

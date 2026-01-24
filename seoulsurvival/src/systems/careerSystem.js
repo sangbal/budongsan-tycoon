@@ -5,7 +5,7 @@
  * main.js에서 분리된 승진 체크 및 애니메이션 로직
  */
 
-import { gameState } from '../state/gameState.js'
+import { gameState, CAREER_LEVELS } from '../state/gameState.js'
 import {
   getClickIncome,
   getCurrentCareer,
@@ -16,6 +16,52 @@ import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import * as Diary from './diary.js'
 import { ANIMATION } from '../balance/timing.js'
+
+// 프리로드된 이미지 URL 캐시
+const preloadedImages = new Set()
+
+/**
+ * 이미지 프리로드
+ * @param {string} imageUrl - 프리로드할 이미지 URL
+ * @returns {Promise<void>}
+ */
+function preloadImage(imageUrl) {
+  if (!imageUrl || preloadedImages.has(imageUrl)) {
+    return Promise.resolve()
+  }
+
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => {
+      preloadedImages.add(imageUrl)
+      resolve()
+    }
+    img.onerror = resolve // 에러 시에도 resolve (무시)
+    img.src = imageUrl
+  })
+}
+
+/**
+ * 현재 레벨 및 다음 레벨 배경 이미지 프리로드
+ * 게임 시작 시 호출하여 부드러운 전환 보장
+ */
+export function preloadCareerImages() {
+  const currentLevel = gameState.careerLevel
+  const imagesToPreload = []
+
+  // 현재 레벨 이미지
+  if (CAREER_LEVELS[currentLevel]?.bgImage) {
+    imagesToPreload.push(CAREER_LEVELS[currentLevel].bgImage)
+  }
+
+  // 다음 레벨 이미지
+  if (CAREER_LEVELS[currentLevel + 1]?.bgImage) {
+    imagesToPreload.push(CAREER_LEVELS[currentLevel + 1].bgImage)
+  }
+
+  // 병렬 프리로드
+  return Promise.all(imagesToPreload.map(preloadImage))
+}
 
 /**
  * 커리어 시스템 생성
@@ -85,6 +131,12 @@ export function createCareerSystem(deps) {
             income: NumberFormat.formatKoreanNumber(clickIncome),
           })
         )
+      }
+
+      // 다음 레벨 이미지 프리로드 (비동기, 에러 무시)
+      const upcomingCareer = CAREER_LEVELS[gameState.careerLevel + 1]
+      if (upcomingCareer?.bgImage) {
+        preloadImage(upcomingCareer.bgImage)
       }
 
       return true
