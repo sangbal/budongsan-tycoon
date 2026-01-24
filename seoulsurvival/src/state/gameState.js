@@ -194,6 +194,198 @@ export function reapplyIncomeTableAffectingUpgradeEffects(UPGRADES) {
   }
 }
 
+// ======= 직렬화 함수 =======
+
+/**
+ * 저장 가능한 상태 반환
+ * saveLoad.js에서 사용하여 gameVars 프록시 대신 직접 접근
+ *
+ * @returns {Object} 저장할 상태 데이터
+ */
+export function getSerializableState() {
+  return {
+    // 통화 및 시간
+    cash: gameState.cash,
+    totalPlayTime: gameState.totalPlayTime,
+    sessionStartTime: gameState.sessionStartTime,
+    gameStartTime: gameState.gameStartTime,
+
+    // 클릭 및 노동
+    totalClicks: gameState.totalClicks,
+    totalLaborIncome: gameState.totalLaborIncome,
+    careerLevel: gameState.careerLevel,
+    clickMultiplier: gameState.clickMultiplier,
+
+    // 배수 및 업그레이드 비용
+    rentMultiplier: gameState.rentMultiplier,
+    autoClickEnabled: gameState.autoClickEnabled,
+    managerLevel: gameState.managerLevel,
+    rentCost: gameState.rentCost,
+    mgrCost: gameState.mgrCost,
+
+    // 금융상품 보유
+    deposits: gameState.deposits,
+    savings: gameState.savings,
+    bonds: gameState.bonds,
+    usStocks: gameState.usStocks,
+    cryptos: gameState.cryptos,
+
+    // 금융상품 누적 생산량
+    depositsLifetime: gameState.depositsLifetime,
+    savingsLifetime: gameState.savingsLifetime,
+    bondsLifetime: gameState.bondsLifetime,
+    usStocksLifetime: gameState.usStocksLifetime,
+    cryptosLifetime: gameState.cryptosLifetime,
+
+    // 부동산 보유
+    villas: gameState.villas,
+    officetels: gameState.officetels,
+    apartments: gameState.apartments,
+    shops: gameState.shops,
+    buildings: gameState.buildings,
+    towers_run: gameState.towers_run,
+    towers_lifetime: gameState.towers_lifetime,
+
+    // 부동산 누적 생산량
+    villasLifetime: gameState.villasLifetime,
+    officetelsLifetime: gameState.officetelsLifetime,
+    apartmentsLifetime: gameState.apartmentsLifetime,
+    shopsLifetime: gameState.shopsLifetime,
+    buildingsLifetime: gameState.buildingsLifetime,
+
+    // CP 시스템 (경력 포인트)
+    // lifetimeEarnings: 런 내 누적 수익, CP 계산에만 사용
+    // - 프레스티지 시 0으로 초기화되지 않음 (계정 누적)
+    // - 타워 구매 시 CP로 변환
+    careerPoints: gameState.careerPoints,
+    totalCareerPoints: gameState.totalCareerPoints,
+    purchasedUpgrades: gameState.purchasedUpgrades,
+    permanentSlots: gameState.permanentSlots,
+    lifetimeEarnings: gameState.lifetimeEarnings,
+
+    // 시장 이벤트
+    marketMultiplier: gameState.marketMultiplier,
+    marketEventEndTime: gameState.marketEventEndTime,
+
+    // 닉네임
+    nickname: gameState.playerNickname,
+  }
+}
+
+/**
+ * 저장된 상태 복원
+ * saveLoad.js에서 사용하여 gameVars 프록시 대신 직접 접근
+ *
+ * @param {Object} data - 저장된 상태 데이터
+ */
+export function restoreState(data) {
+  // 통화 및 시간
+  gameState.cash = data.cash || 0
+  gameState.totalPlayTime = data.totalPlayTime || 0
+  gameState.gameStartTime = data.gameStartTime || Date.now()
+
+  // 클릭 및 노동
+  gameState.totalClicks = data.totalClicks || 0
+  gameState.totalLaborIncome = data.totalLaborIncome || 0
+  gameState.careerLevel = data.careerLevel || 0
+  gameState.clickMultiplier = data.clickMultiplier || 1
+
+  // 배수 및 업그레이드 비용
+  gameState.rentMultiplier = data.rentMultiplier || 1
+  gameState.autoClickEnabled = data.autoClickEnabled || false
+  gameState.managerLevel = data.managerLevel || 0
+  gameState.rentCost = data.rentCost || 1000000000
+  gameState.mgrCost = data.mgrCost || 5000000000
+
+  // 금융상품 보유
+  gameState.deposits = data.deposits || 0
+  gameState.savings = data.savings || 0
+  gameState.bonds = data.bonds || 0
+  gameState.usStocks = data.usStocks || 0
+  gameState.cryptos = data.cryptos || 0
+
+  // 금융상품 누적 생산량
+  gameState.depositsLifetime = data.depositsLifetime || 0
+  gameState.savingsLifetime = data.savingsLifetime || 0
+  gameState.bondsLifetime = data.bondsLifetime || 0
+  gameState.usStocksLifetime = data.usStocksLifetime || 0
+  gameState.cryptosLifetime = data.cryptosLifetime || 0
+
+  // 부동산 보유
+  gameState.villas = data.villas || 0
+  gameState.officetels = data.officetels || 0
+  gameState.apartments = data.apartments || 0
+  gameState.shops = data.shops || 0
+  gameState.buildings = data.buildings || 0
+  gameState.towers_run = data.towers_run || 0
+  // 마이그레이션: 기존 towers를 towers_lifetime으로
+  gameState.towers_lifetime = data.towers_lifetime || data.towers || 0
+
+  // 부동산 누적 생산량
+  gameState.villasLifetime = data.villasLifetime || 0
+  gameState.officetelsLifetime = data.officetelsLifetime || 0
+  gameState.apartmentsLifetime = data.apartmentsLifetime || 0
+  gameState.shopsLifetime = data.shopsLifetime || 0
+  gameState.buildingsLifetime = data.buildingsLifetime || 0
+
+  // CP 시스템
+  gameState.careerPoints = data.careerPoints || 0
+  gameState.totalCareerPoints = data.totalCareerPoints || 0
+  gameState.purchasedUpgrades = data.purchasedUpgrades || []
+  gameState.permanentSlots = data.permanentSlots || []
+  gameState.lifetimeEarnings = data.lifetimeEarnings || 0
+
+  // 시장 이벤트
+  gameState.marketMultiplier = data.marketMultiplier || 1
+  gameState.marketEventEndTime = data.marketEventEndTime || 0
+
+  // 닉네임
+  gameState.playerNickname = data.nickname || ''
+
+  // 새 세션 시작
+  gameState.sessionStartTime = Date.now()
+}
+
+/**
+ * 런 상태만 초기화 (프레스티지용)
+ * towers_lifetime, careerPoints, 업적 등 계정 누적 데이터는 유지
+ */
+export function resetRunState() {
+  // 기본 시작 자금
+  gameState.cash = 1000
+  gameState.totalClicks = 0
+  gameState.totalLaborIncome = 0
+  gameState.careerLevel = 0
+  gameState.clickMultiplier = 1
+  gameState.rentMultiplier = 1
+  gameState.autoClickEnabled = false
+  gameState.managerLevel = 0
+
+  // 금융상품 보유 초기화
+  gameState.deposits = 0
+  gameState.savings = 0
+  gameState.bonds = 0
+  gameState.usStocks = 0
+  gameState.cryptos = 0
+
+  // 부동산 보유 초기화
+  gameState.villas = 0
+  gameState.officetels = 0
+  gameState.apartments = 0
+  gameState.shops = 0
+  gameState.buildings = 0
+  gameState.towers_run = 0
+  // towers_lifetime은 유지 (계정 누적)
+
+  // 시장 이벤트 초기화
+  gameState.marketMultiplier = 1
+  gameState.marketEventEndTime = 0
+  gameState.currentMarketEvent = null
+
+  // 세션 시간 초기화
+  gameState.sessionStartTime = Date.now()
+}
+
 // ======= 유틸리티 함수 =======
 
 /**
