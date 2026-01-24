@@ -127,5 +127,114 @@ describe('inAppBrowserHandler', () => {
       closeBtn.click()
       expect(document.querySelector('.inapp-warning-banner')).toBeNull()
     })
+
+    it('복사 버튼 클릭 시 clipboard API 사용', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 KAKAOTALK',
+        configurable: true,
+      })
+
+      // clipboard API mock
+      const writeTextMock = vi.fn().mockResolvedValue(undefined)
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeTextMock },
+        writable: true,
+        configurable: true,
+      })
+
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      handler.showWarningIfNeeded()
+      const copyBtn = document.getElementById('copyGameUrlBtn')
+      expect(copyBtn).not.toBeNull()
+
+      await copyBtn.click()
+
+      await vi.waitFor(() => {
+        expect(writeTextMock).toHaveBeenCalledWith('https://clicksurvivor.com/seoulsurvival/')
+      })
+
+      alertMock.mockRestore()
+    })
+
+    it('clipboard API 없을 때 execCommand fallback 사용', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 KAKAOTALK',
+        configurable: true,
+      })
+
+      // clipboard API 제거
+      Object.defineProperty(navigator, 'clipboard', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      })
+
+      // document.execCommand mock (jsdom에는 없음)
+      document.execCommand = vi.fn().mockReturnValue(true)
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      handler.showWarningIfNeeded()
+      const copyBtn = document.getElementById('copyGameUrlBtn')
+      await copyBtn.click()
+
+      expect(document.execCommand).toHaveBeenCalledWith('copy')
+
+      delete document.execCommand
+      alertMock.mockRestore()
+    })
+
+    it('execCommand 실패 시 fallback 메시지 표시', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 KAKAOTALK',
+        configurable: true,
+      })
+
+      Object.defineProperty(navigator, 'clipboard', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      })
+
+      // document.execCommand mock - 실패 반환
+      document.execCommand = vi.fn().mockReturnValue(false)
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      handler.showWarningIfNeeded()
+      const copyBtn = document.getElementById('copyGameUrlBtn')
+      await copyBtn.click()
+
+      expect(mockT).toHaveBeenCalledWith('inapp.copyFallback', expect.any(Object))
+
+      delete document.execCommand
+      alertMock.mockRestore()
+    })
+
+    it('clipboard API 에러 시 fallback 메시지 표시', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 KAKAOTALK',
+        configurable: true,
+      })
+
+      // clipboard API 에러 발생
+      const writeTextMock = vi.fn().mockRejectedValue(new Error('Permission denied'))
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeTextMock },
+        writable: true,
+        configurable: true,
+      })
+
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+      handler.showWarningIfNeeded()
+      const copyBtn = document.getElementById('copyGameUrlBtn')
+      await copyBtn.click()
+
+      await vi.waitFor(() => {
+        expect(mockT).toHaveBeenCalledWith('inapp.copyFallback', expect.any(Object))
+      })
+
+      alertMock.mockRestore()
+    })
   })
 })
