@@ -156,6 +156,15 @@ export function applyI18nToDOM() {
     }
   })
 
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title')
+    if (!key) return
+    const v = table[key]
+    if (typeof v === 'string') {
+      el.setAttribute('title', v)
+    }
+  })
+
   // 언어 선택 드롭다운 옵션 텍스트 업데이트
   document.querySelectorAll('#languageSelect option[data-i18n-option]').forEach(option => {
     const key = option.getAttribute('data-i18n-option')

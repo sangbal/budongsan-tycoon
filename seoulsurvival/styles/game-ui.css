@@ -1706,6 +1706,17 @@ button.favorite-btn.chip:disabled {
   font-size: 20px;
 }
 
+.efficiency-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.efficiency-item.best .efficiency-value {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 /* ---------- Leaderboard ---------- */
 .leaderboard-loading {
   text-align: center;

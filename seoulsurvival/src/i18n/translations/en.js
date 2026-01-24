@@ -172,11 +172,15 @@ export default {
   'header.properties.label': 'Properties',
   'header.rps.label': 'Per Sec',
   'header.favorite_btn': 'Favorite',
+  'header.favorite_btn.title': 'Add to Favorites / Home Screen',
   'header.share_btn': 'Share',
+  'header.share_btn.title': 'Share the Game',
 
   // Work Tab
   'work.title': 'Work',
   'work.button': '🛠️ Work',
+  'work.button.ariaLabel': 'Work button, income per click',
+  'work.clickIncome.ariaLabel': 'Income per click amount',
 
   // Other UI text
   'ui.work': 'Labor',
@@ -209,6 +213,7 @@ export default {
   'ui.currency': ' KRW',
   'ui.currencyShort': ' KRW',
   'ui.noTimeInfo': 'No time info',
+  'ui.skipToContent': 'Skip to content',
 
   // Header tooltips
   'header.tooltip.financialIncome': 'Financial Income: {amount}',
@@ -267,6 +272,7 @@ export default {
   'ranking.loading': 'Loading leaderboard...',
   'ranking.lastUpdated': 'Last updated: {time}',
   'ranking.refreshNote': 'Records are updated periodically.',
+  'ranking.refreshBtn': 'Refresh Leaderboard',
   'ranking.nicknameRequired': 'Set a nickname to see your rank and record here.',
   'ranking.loginRequired': 'Please log in to see your rank.',
   'ranking.achievements': 'Achievements',
@@ -722,6 +728,7 @@ export default {
 
   // Error messages
   'error.loginFailed': 'Login failed. Please try again.',
+  'error.logoutFailed': 'Logout failed.',
 
   // Prestige additional
   'prestige.discount': 'discount',
@@ -733,6 +740,7 @@ export default {
   'cp.purchased': 'Purchased',
   'cp.needCp': '{cost} CP needed',
   'cp.requires': 'Requires',
+  'cp.cost': 'Cost',
   'cp.active': 'Active',
   'cp.hint.none': 'Get your first tower to earn Career Points (CP) and unlock upgrades.',
   'cp.networkBonus': 'Network Bonus',

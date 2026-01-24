@@ -21,6 +21,8 @@ export function createI18nUIManager(deps) {
     updateAchievementGrid,
     refreshPrestigeTab,
     updateSaveStatus,
+    updateLeaderboardUI,
+    updateUpgradeList,
     NumberFormat,
   } = deps
 
@@ -50,6 +52,16 @@ export function createI18nUIManager(deps) {
     // 저장 상태 업데이트 (시간 포맷 번역을 위해)
     if (updateSaveStatus) {
       updateSaveStatus()
+    }
+
+    // 리더보드 UI 업데이트 (테이블 헤더 등 번역을 위해)
+    if (updateLeaderboardUI) {
+      updateLeaderboardUI(true)
+    }
+
+    // 업그레이드 리스트 업데이트 (업그레이드 이름 번역을 위해)
+    if (updateUpgradeList) {
+      updateUpgradeList()
     }
   }
 

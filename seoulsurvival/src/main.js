@@ -501,6 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAchievementGrid,
     refreshPrestigeTab,
     updateSaveStatus,
+    updateLeaderboardUI: LeaderboardUI.updateLeaderboardUI,
+    updateUpgradeList,
     NumberFormat,
   })
   i18nUIManager.initSettingsToggles(settings)
@@ -555,7 +557,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (upgradeListElement) {
     upgradeListElement.classList.remove('collapsed-section')
   }
-  updateUpgradeList()
+  // 번역 로드 후 업그레이드 목록 렌더링
+  ensureTranslationLoaded(getLang()).then(() => {
+    updateUpgradeList()
+  })
 
   // 닉네임 변경 기능
   setupNicknameButtons({ nicknameManager })

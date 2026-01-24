@@ -27,10 +27,26 @@ export function createAuthUIManager(deps) {
     const authProviderButtons = document.getElementById('authProviderButtons')
     const logoutButtonContainer = document.getElementById('logoutButtonContainer')
     const cloudSaveSection = document.getElementById('cloudSaveSection')
+    const authStatusLabel = document.getElementById('authStatusLabel')
 
     if (authProviderButtons) authProviderButtons.style.display = isLoggedIn ? 'none' : 'flex'
     if (logoutButtonContainer) logoutButtonContainer.hidden = !isLoggedIn
     if (cloudSaveSection) cloudSaveSection.style.display = isLoggedIn ? 'block' : 'none'
+
+    // 인증 상태 라벨 업데이트
+    if (authStatusLabel) {
+      if (isLoggedIn) {
+        // 로그인 시: data-i18n 속성 제거하고 직접 텍스트 설정
+        authStatusLabel.removeAttribute('data-i18n')
+        authStatusLabel.textContent = t('settings.authStatus.loggedIn')
+        authStatusLabel.style.color = 'rgba(52, 211, 153, .95)'
+      } else {
+        // 비로그인 시: data-i18n 속성 유지하여 applyI18nToDOM()과 호환
+        authStatusLabel.setAttribute('data-i18n', 'settings.guestMode')
+        authStatusLabel.textContent = t('settings.guestMode')
+        authStatusLabel.style.color = 'rgba(148, 163, 184, .95)'
+      }
+    }
   }
 
   /**
@@ -67,7 +83,7 @@ export function createAuthUIManager(deps) {
           toastSuccess(t('settings.logout') + ' ✅')
           setTimeout(() => location.reload(), 500)
         } else {
-          toastError('로그아웃 실패')
+          toastError(t('error.logoutFailed'))
         }
       })
     }

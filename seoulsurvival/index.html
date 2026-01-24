@@ -44,7 +44,7 @@
 </head>
 <body data-theme="seoulsurvival">
   <!-- Skip Navigation 링크 (접근성) -->
-  <a href="#main-content" class="skip-link">본문으로 바로가기</a>
+  <a href="#main-content" class="skip-link" data-i18n="ui.skipToContent">본문으로 바로가기</a>
 
   <div class="app" data-testid="seoulsurvival-root">
     <header>
@@ -62,12 +62,14 @@
           type="button"
           title="즐겨찾기 / 홈 화면에 추가 안내"
           aria-label="즐겨찾기 / 홈 화면에 추가 안내"
+          data-i18n-title="header.favorite_btn.title"
+          data-i18n-aria-label="header.favorite_btn.title"
         >
           <span class="favorite-icon">⭐</span>
           <span class="favorite-label" data-i18n="header.favorite_btn">즐겨찾기</span>
         </button>
 
-        <button class="chip share-btn" id="shareBtn" type="button" title="게임 공유하기" aria-label="게임 공유하기">
+        <button class="chip share-btn" id="shareBtn" type="button" title="게임 공유하기" aria-label="게임 공유하기" data-i18n-title="header.share_btn.title" data-i18n-aria-label="header.share_btn.title">
           <svg class="share-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.6 2.6 0 0 0 0-1.39l7.02-4.11A2.99 2.99 0 1 0 14 5a3 3 0 0 0 .06.59L7.03 9.7A3 3 0 1 0 7 14.3l7.02 4.11A3 3 0 1 0 18 16.08z"></path>
           </svg>
@@ -92,7 +94,7 @@
           <h2 style="margin: 0;"><span class="tab-icon" aria-hidden="true">🛠️</span> <span data-i18n="ui.work">노동</span></h2>
         </div>
         <div class="work">
-          <button id="workBtn" class="btn btn-lg" aria-label="노동하기 버튼, 클릭당 수익" aria-describedby="clickIncomeButton"><span data-i18n="work.button">🛠️ 노동</span> +<span id="clickIncomeButton" aria-label="클릭당 수익 금액">1만</span><span data-i18n="ui.currencyShort">원</span></button>
+          <button id="workBtn" class="btn btn-lg" aria-label="노동하기 버튼, 클릭당 수익" aria-describedby="clickIncomeButton" data-i18n-aria-label="work.button.ariaLabel"><span data-i18n="work.button">🛠️ 노동</span> +<span id="clickIncomeButton" aria-label="클릭당 수익 금액" data-i18n-aria-label="work.clickIncome.ariaLabel">1만</span><span data-i18n="ui.currencyShort">원</span></button>
           <div class="auto-work-indicator" id="autoWorkIndicator">
             <span>🤖 AI 업무 처리 중...</span>
           </div>
@@ -461,15 +463,15 @@
             <div class="efficiency-list">
               <div class="efficiency-item best">
                 <span class="rank">🥇</span>
-                <span id="bestEfficiency">-</span>
+                <span id="bestEfficiency" class="efficiency-value">-</span>
               </div>
               <div class="efficiency-item">
                 <span class="rank">🥈</span>
-                <span id="secondEfficiency">-</span>
+                <span id="secondEfficiency" class="efficiency-value">-</span>
               </div>
               <div class="efficiency-item">
                 <span class="rank">🥉</span>
-                <span id="thirdEfficiency">-</span>
+                <span id="thirdEfficiency" class="efficiency-value">-</span>
               </div>
             </div>
           </div>
@@ -645,6 +647,8 @@
               class="leaderboard-refresh-btn"
               aria-label="리더보드 새로고침"
               title="리더보드 새로고침"
+              data-i18n-aria-label="ranking.refreshBtn"
+              data-i18n-title="ranking.refreshBtn"
             >
               🔄
             </button>

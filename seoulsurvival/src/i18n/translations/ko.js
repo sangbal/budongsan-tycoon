@@ -174,11 +174,15 @@ export default {
   'header.properties.label': '부동산',
   'header.rps.label': '초당',
   'header.favorite_btn': '즐겨찾기',
+  'header.favorite_btn.title': '즐겨찾기 / 홈 화면에 추가 안내',
   'header.share_btn': '공유',
+  'header.share_btn.title': '게임 공유하기',
 
   // Work Tab
   'work.title': '노동',
   'work.button': '🛠️ 노동',
+  'work.button.ariaLabel': '노동하기 버튼, 클릭당 수익',
+  'work.clickIncome.ariaLabel': '클릭당 수익 금액',
 
   // 기타 UI 텍스트
   'ui.work': '노동',
@@ -211,6 +215,7 @@ export default {
   'ui.currency': '원',
   'ui.currencyShort': '원',
   'ui.noTimeInfo': '시간 정보 없음',
+  'ui.skipToContent': '본문으로 바로가기',
 
   // 헤더 툴팁
   'header.tooltip.financialIncome': '금융 수익: {amount}',
@@ -268,6 +273,7 @@ export default {
   'ranking.loading': '리더보드를 불러오는 중...',
   'ranking.lastUpdated': '마지막 갱신: {time}',
   'ranking.refreshNote': '기록은 주기적으로 갱신됩니다.',
+  'ranking.refreshBtn': '리더보드 새로고침',
   'ranking.nicknameRequired': '닉네임을 설정하면 내 순위와 기록이 여기 표시됩니다.',
   'ranking.loginRequired': '로그인 후에 내 순위를 볼 수 있습니다.',
   'ranking.achievements': '업적',
@@ -295,6 +301,7 @@ export default {
   'settings.nickname': '닉네임',
   'settings.guestMode': '게스트 모드 (로그인 준비 중)',
   'settings.guest': '게스트',
+  'settings.notLoggedIn': '로그인 안 됨',
   'settings.loginGoogle': 'Google로 로그인',
   'settings.logout': '로그아웃',
   'settings.resetWarning': '이번 런을 초기화합니다. 🗼 누적 기록과 ⏱ 누적 시간은 유지됩니다.',
@@ -716,6 +723,7 @@ export default {
 
   // 에러 메시지
   'error.loginFailed': '로그인에 실패했습니다. 다시 시도해 주세요.',
+  'error.logoutFailed': '로그아웃에 실패했습니다.',
 
   // 프레스티지 추가
   'prestige.discount': '할인',

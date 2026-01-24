@@ -17,6 +17,7 @@ describe('authUIManager', () => {
       <div id="authProviderButtons" style="display: flex;"></div>
       <div id="logoutButtonContainer" hidden></div>
       <div id="cloudSaveSection" style="display: none;"></div>
+      <span id="authStatusLabel">Guest Mode</span>
       <button data-auth-provider="google">Google Login</button>
       <button id="logoutBtn">Logout</button>
     `
@@ -122,7 +123,7 @@ describe('authUIManager', () => {
       logoutBtn.click()
 
       await vi.waitFor(() => {
-        expect(mockDeps.toastError).toHaveBeenCalledWith('로그아웃 실패')
+        expect(mockDeps.toastError).toHaveBeenCalledWith('error.logoutFailed')
       })
     })
   })
