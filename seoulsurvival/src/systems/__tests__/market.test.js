@@ -4,8 +4,14 @@
  * 시장 이벤트 시스템 단위 테스트
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest'
 import { createMarketSystem } from '../market.js'
+import { ensureTranslationLoaded } from '../../i18n/index.js'
+
+// 테스트 시작 전 번역 파일 로드
+beforeAll(async () => {
+  await ensureTranslationLoaded('en')
+})
 
 // 테스트용 시장 이벤트 목록
 const mockMarketEvents = [
@@ -206,8 +212,9 @@ describe('createMarketSystem', () => {
       )
       system.checkMarketEvent()
 
-      // t('msg.eventEnded') 번역 키가 반환됨
-      expect(logs).toContain('msg.eventEnded')
+      // t('msg.eventEnded') 번역 결과 검증
+      expect(logs.length).toBe(1)
+      expect(logs[0]).toContain('Market event ended')
     })
 
     it('이벤트 종료 시 markDirty 호출', () => {
@@ -298,8 +305,9 @@ describe('createMarketSystem', () => {
       system.startMarketEvent()
 
       expect(logs).toHaveLength(1)
-      // t('msg.eventStarted') 번역 키가 반환됨
-      expect(logs[0]).toBe('msg.eventStarted')
+      // t('msg.eventStarted', { name: ..., duration: ... }) 번역 결과 검증
+      expect(logs[0]).toContain('event started')
+      expect(logs[0]).toContain('강세장')
     })
 
     it('marketMultiplier는 1로 설정 (개별 배수 사용)', () => {

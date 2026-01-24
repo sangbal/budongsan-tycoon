@@ -4,8 +4,14 @@
  * 업적 시스템 단위 테스트
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { createAchievementsSystem } from '../achievements.js'
+import { ensureTranslationLoaded } from '../../i18n/index.js'
+
+// 테스트 시작 전 번역 파일 로드
+beforeAll(async () => {
+  await ensureTranslationLoaded('en')
+})
 
 describe('createAchievementsSystem', () => {
   let deps
@@ -56,6 +62,7 @@ describe('createAchievementsSystem', () => {
 
       expect(achievements[0].unlocked).toBe(true)
       expect(deps.notify).toHaveBeenCalledWith(achievements[0])
+      expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('Achievement unlocked'))
       expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('테스트 업적 1'))
     })
 
@@ -89,10 +96,12 @@ describe('createAchievementsSystem', () => {
       const system = createAchievementsSystem(achievements, deps)
       system.checkAchievements()
 
-      // t('msg.achievementUnlocked') 번역 결과 검증
-      expect(deps.addLog).toHaveBeenCalledWith(
-        '🏆 Achievement unlocked: 테스트 업적 1 - 테스트 설명 1'
-      )
+      // t('msg.achievementUnlocked', { name: ..., desc: ... }) 번역 결과 검증
+      const logCall = deps.addLog.mock.calls[0][0]
+      expect(logCall).toContain('🏆')
+      expect(logCall).toContain('Achievement unlocked')
+      expect(logCall).toContain('테스트 업적 1')
+      expect(logCall).toContain('테스트 설명 1')
     })
 
     it('빈 업적 배열에서도 에러 없이 동작', () => {

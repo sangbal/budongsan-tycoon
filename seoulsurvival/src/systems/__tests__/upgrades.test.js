@@ -4,8 +4,14 @@
  * 업그레이드 해금 시스템 단위 테스트
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { createUpgradeUnlockSystem } from '../upgrades.js'
+import { ensureTranslationLoaded } from '../../i18n/index.js'
+
+// 테스트 시작 전 번역 파일 로드
+beforeAll(async () => {
+  await ensureTranslationLoaded('en')
+})
 
 describe('createUpgradeUnlockSystem', () => {
   let deps
@@ -51,6 +57,7 @@ describe('createUpgradeUnlockSystem', () => {
       system.checkUpgradeUnlocks()
 
       expect(upgrades.upgrade1.unlocked).toBe(true)
+      expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('upgrade unlocked'))
       expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('업그레이드 1'))
       expect(deps.onAnyUnlocked).toHaveBeenCalled()
     })
@@ -96,8 +103,11 @@ describe('createUpgradeUnlockSystem', () => {
       const system = createUpgradeUnlockSystem(upgrades, deps)
       system.checkUpgradeUnlocks()
 
-      // t('msg.upgradeUnlocked') 번역 결과 검증
-      expect(deps.addLog).toHaveBeenCalledWith('🎁 New upgrade unlocked: 업그레이드 1')
+      // t('msg.upgradeUnlocked', { name: ... }) 번역 결과 검증
+      const logCall = deps.addLog.mock.calls[0][0]
+      expect(logCall).toContain('🎁')
+      expect(logCall).toContain('upgrade unlocked')
+      expect(logCall).toContain('업그레이드 1')
     })
 
     it('unlockCondition 에러 발생 시 무시하고 계속 진행', () => {

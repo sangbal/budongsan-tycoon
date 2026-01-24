@@ -71,6 +71,28 @@ import { initSentry } from './monitoring/sentry.js'
 import { setupErrorBoundary } from './core/errorBoundary.js'
 import { createUpgrades } from './data/upgrades.js'
 import { createAchievements } from './data/achievements.js'
+import { createTabNavigation } from './ui/tabNavigation.js'
+import { createSocialFeatures } from './ui/socialFeatures.js'
+import { createKeyboardShortcuts } from './ui/keyboardShortcuts.js'
+import { createInAppBrowserHandler } from './ui/inAppBrowserHandler.js'
+import { createHeaderResponsiveManager } from './ui/headerResponsiveManager.js'
+import { createSettingsTabManager } from './ui/settingsTabManager.js'
+import { createAuthUIManager } from './ui/authUIManager.js'
+import { createDevCheatSystem } from './systems/devCheatSystem.js'
+import {
+  setupPurchaseModeButtons,
+  setupPurchaseQuantityButtons,
+  setupWorkClickHandler,
+  setupSettingsTabButtons,
+  setupCloudSaveButtons,
+  setupResetButtons,
+  setupToggleSwitches,
+  setupNicknameButtons,
+  setupGesturePreventions,
+} from './ui/eventSetup.js'
+import { createGameLoopManager } from './systems/gameLoopManager.js'
+import { createI18nUIManager } from './ui/i18nUIManager.js'
+import { showAchievementNotification } from './ui/achievementNotification.js'
 import {
   gameState,
   FINANCIAL_INCOME,
@@ -115,80 +137,6 @@ const gameLog = __IS_DEV__ ? console.log.bind(console) : () => {}
 const gameWarn = __IS_DEV__ ? console.warn.bind(console) : () => {}
 const gameError = __IS_DEV__ ? console.error.bind(console) : () => {}
 
-// 인앱 브라우저(카카오톡/인스타 등) 감지
-function detectInAppBrowser() {
-  const ua = navigator.userAgent || ''
-  const isKakao = ua.includes('KAKAOTALK')
-  const isInstagram = ua.includes('Instagram')
-  const isFacebook = ua.includes('FBAN') || ua.includes('FBAV')
-  const isLine = ua.includes('Line')
-  const isWeChat = ua.includes('MicroMessenger')
-  const isInApp = isKakao || isInstagram || isFacebook || isLine || isWeChat
-  return { isInApp, isKakao, isInstagram, isFacebook, isLine, isWeChat }
-}
-
-function showInAppBrowserWarningIfNeeded() {
-  const { isInApp } = detectInAppBrowser()
-  if (!isInApp) return
-
-  const banner = document.createElement('div')
-  banner.className = 'inapp-warning-banner'
-  banner.innerHTML = `
-    ${t('inapp.banner.message')}<br />
-    <strong>${t('inapp.banner.hint')}</strong>
-    <div class="inapp-warning-actions">
-      <button type="button" class="btn-small" id="copyGameUrlBtn">${t('inapp.banner.copyBtn')}</button>
-      <button type="button" class="btn-small" id="closeInappWarningBtn">${t('inapp.banner.closeBtn')}</button>
-    </div>
-  `
-  document.body.prepend(banner)
-
-  const copyBtn = banner.querySelector('#copyGameUrlBtn')
-  if (copyBtn) {
-    copyBtn.addEventListener('click', async () => {
-      const url = 'https://clicksurvivor.com/seoulsurvival/'
-      try {
-        // 클립보드 API 시도 (HTTPS/localhost에서 동작)
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(url)
-          alert(t('inapp.copied'))
-          return
-        }
-        // Fallback: execCommand 사용
-        const textArea = document.createElement('textarea')
-        textArea.value = url
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        try {
-          const successful = document.execCommand('copy')
-          if (successful) {
-            alert(t('inapp.copied'))
-          } else {
-            throw new Error('execCommand failed')
-          }
-        } catch (err) {
-          alert(t('inapp.copyFallback', { url }))
-        } finally {
-          document.body.removeChild(textArea)
-        }
-      } catch (err) {
-        alert(t('inapp.copyFallback', { url }))
-      }
-    })
-  }
-
-  const closeBtn = banner.querySelector('#closeInappWarningBtn')
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      banner.remove()
-    })
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   // ======= 모듈 인스턴스 선언 (나중에 초기화) =======
   let saveLoadManager = null
@@ -197,6 +145,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let gameUIInstance = null // gameUI.js 모듈 인스턴스
   let workSystem = null // workSystem.js 모듈 인스턴스
   let prestigeSystem = null // prestigeSystem.js 모듈 인스턴스
+
+  // ======= 자산 계산기 초기화 =======
+  const assetCalculator = createAssetCalculator({ gameState })
+
+  // assetCalculator 위임 함수들 (TDZ 방지를 위해 즉시 정의)
+  const calculateFinancialValue = () => assetCalculator.calculateFinancialValue()
+  const calculatePropertyValue = () => assetCalculator.calculatePropertyValue()
+  const calculateTotalAssetValue = () => assetCalculator.calculateTotalAssetValue()
+  const getTotalAssets = () => assetCalculator.getTotalAssets()
+  const calculateFinancialValueForType = (type, count) =>
+    assetCalculator.calculateFinancialValueForType(type, count)
+  const calculatePropertyValueForType = (type, count) =>
+    assetCalculator.calculatePropertyValueForType(type, count)
+  const calculateTotalAssetValueFromSave = saveData =>
+    assetCalculator.calculateTotalAssetValueFromSave(saveData)
+  const calculatePlayTimeMsFromSave = (saveData, sessionStartTime) =>
+    assetCalculator.calculatePlayTimeMsFromSave(saveData, sessionStartTime)
 
   // updateSaveStatus 함수 (saveLoadManager 초기화 후 호출 가능)
   function updateSaveStatus() {
@@ -223,130 +188,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 모달 시스템 초기화 =======
   Modal.initModal()
 
-  // ======= fixed header 높이만큼 본문 상단 여백 자동 보정 =======
-  // 모바일에서 헤더가 2줄로 늘어나면(.statbar 래핑) 본문 상단 요소(직급 등)가 헤더에 가려질 수 있어,
-  // 헤더 실제 높이를 CSS 변수(--header-h)로 주입해 .app padding-top이 자동으로 따라가도록 한다.
-  function __syncHeaderHeightVar() {
-    const header = document.querySelector('header')
-    if (!header) return
-    const h = Math.ceil(header.getBoundingClientRect().height || 0)
-    if (h > 0) document.documentElement.style.setProperty('--header-h', `${h}px`)
-  }
+  // ======= 헤더 반응형 관리자 초기화 =======
+  const headerResponsiveManager = createHeaderResponsiveManager()
+  headerResponsiveManager.initResizeListeners()
 
-  __syncHeaderHeightVar()
-  showInAppBrowserWarningIfNeeded()
-  window.addEventListener('resize', __syncHeaderHeightVar)
-  // 모바일 주소창/뷰포트 변화 대응
-  try {
-    window.visualViewport?.addEventListener('resize', __syncHeaderHeightVar)
-  } catch {
-    // Ignore if browser doesn't support this event
-  }
-  // 헤더 래핑/폰트 로딩 등으로 높이가 바뀌는 경우 대응
-  try {
-    const header = document.querySelector('header')
-    if (header && 'ResizeObserver' in window) {
-      new ResizeObserver(__syncHeaderHeightVar).observe(header)
-    }
-  } catch {
-    // Ignore if browser doesn't support this event
-  }
+  // ======= 인앱 브라우저 핸들러 초기화 =======
+  const inAppBrowserHandler = createInAppBrowserHandler({ t })
+  inAppBrowserHandler.showWarningIfNeeded()
 
   // ======= (iOS) 더블탭/핀치로 인한 화면 확대 방지 =======
   // 요구사항: 노동하기 반복 터치 시 발생하는 화면 확대를 차단
   // - meta viewport(user-scalable=no) + gesture 이벤트 preventDefault로 이중 안전장치
-  try {
-    const prevent = e => e.preventDefault()
-    document.addEventListener('gesturestart', prevent, { passive: false })
-    document.addEventListener('gesturechange', prevent, { passive: false })
-    document.addEventListener('gestureend', prevent, { passive: false })
-  } catch {
-    // 브라우저가 해당 이벤트를 지원하지 않아도 무시
-  }
+  setupGesturePreventions()
 
   // ======= 상태 =======
-  // NOTE: safeText, safeHTML, safeClass는 './ui/domUtils.js'에서 import됨
   const fmt = new Intl.NumberFormat('ko-KR')
 
-  // cash는 gameState.cash 사용 (SSOT 마이그레이션)
-
-  // 누적 플레이시간 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // totalPlayTime, sessionStartTime, gameStartTime → gameState.xxx
-
-  // 금융상품 보유 수량 - gameState 사용 (SSOT 마이그레이션)
-  // deposits, savings, bonds, usStocks, cryptos → gameState.xxx
-
-  // 금융상품 누적 생산량 - gameState 사용 (SSOT 마이그레이션)
-  // depositsLifetime, savingsLifetime, bondsLifetime, usStocksLifetime, cryptosLifetime → gameState.xxx
-
-  // 부동산 누적 생산량 - gameState 사용 (SSOT 마이그레이션)
-  // villasLifetime, officetelsLifetime, apartmentsLifetime, shopsLifetime, buildingsLifetime → gameState.xxx
-
-  // 구매 수량 선택 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // purchaseMode, purchaseQuantity → gameState.xxx
-
-  // achievementGrid 모듈 인스턴스
+  // 모듈 인스턴스
   let achievementGridInstance = null
-
-  // buttonStateManager 모듈 인스턴스
   let buttonStateManager = null
 
-  // 자동 저장 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // NOTE: SAVE_KEY, CLOUD_RESTORE_BLOCK_KEY, CLOUD_RESTORE_SKIP_KEY는 './state/gameState.js'에서 import됨
-  // lastSaveTime → gameState.lastSaveTime
-
-  // 닉네임 (리더보드용) - gameState 사용 (SSOT 마이그레이션)
-  // playerNickname, __nicknameModalShown → gameState.xxx
-
-  // cloudSyncManager는 상단에서 선언됨
-
-  // ======= 업그레이드 시스템 (Cookie Clicker 스타일) =======
-  // UPGRADES 객체는 팩토리 함수로 생성 (data/upgrades.js)
+  // ======= 업그레이드 시스템 =======
   let UPGRADES = null
-
-  // ======= 업그레이드 관리 시스템 초기화 =======
-  // UPGRADES는 나중에 팩토리 함수로 생성됨
   let upgradeManager = null
   let updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade
 
-  // upgradeManager 초기화는 UPGRADES 생성 후 수행 (라인 1320 이후)
-  /*
-  const upgradeManager_OLD = createUpgradeManager({
-    UPGRADES,
-    getCash: () => cash,
-    setCash: newCash => {
-      cash = newCash
-    },
-    CAREER_LEVELS,
-  })
-  const { updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade } =
-    upgradeManager
-  */
-
-  // 부동산 보유 수량 - gameState 사용 (SSOT 마이그레이션)
-  // villas, officetels, apartments, shops, buildings, towers_run, towers_lifetime → gameState.xxx
-
-  // 해금 상태 추적 - gameState.unlockedProducts 사용 (중복 제거됨)
-  // 실제 해금 로직은 investmentTab.js에서 관리
-
-  // Note: FINANCIAL_INCOME, BASE_RENT, resetIncomeTablesToDefault,
-  // reapplyIncomeTableAffectingUpgradeEffects는 gameState.js에서 이미 import됨
-
-  // 업그레이드 배수 - gameState 사용 (SSOT 마이그레이션)
-  // clickMultiplier, rentMultiplier, autoClickEnabled, managerLevel → gameState.xxx
-
   // 설정 옵션
-  // NOTE: SETTINGS_KEY는 './state/gameState.js'에서 import됨
   let settings = {
-    particles: true, // 파티클 애니메이션
-    fancyGraphics: true, // 화려한 그래픽
-    shortNumbers: false, // 짧은 숫자 표시 (기본값: 끔)
+    particles: true,
+    fancyGraphics: true,
+    shortNumbers: false,
   }
-
-  // 노동 커리어 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // careerLevel, totalLaborIncome → gameState.xxx
-
-  // Note: CAREER_LEVELS는 gameState.js에서 이미 bgImage와 함께 import됨
 
   // 직급 이름 가져오기 함수
   function getCareerName(level) {
@@ -354,26 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return t(CAREER_LEVELS[level].nameKey)
   }
 
-  // 가격은 이제 동적으로 계산됨 (getPropertyCost 함수 사용)
-
-  // 업그레이드 비용 - gameState 사용 (SSOT 마이그레이션)
-  // rentCost, mgrCost → gameState.xxx
-
-  // BASE_CLICK_GAIN - balance/career.js에서 import됨
-
-  // 부동산 시장 이벤트 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // marketMultiplier, marketEventEndTime, currentMarketEvent → gameState.xxx
-
-  // MARKET_EVENTS - balance/marketEvents.js에서 import됨
-
-  // 업적 시스템 - gameState 사용 (SSOT 마이그레이션)
-  // totalClicks → gameState.totalClicks
-
-  // ACHIEVEMENTS 배열은 팩토리 함수로 생성
+  // ACHIEVEMENTS 배열 (팩토리 함수로 생성)
   let ACHIEVEMENTS = null
-
-  // ACHIEVEMENTS 정의는 data/achievements.js로 이동
-  // 아래 주석 처리된 275줄의 ACHIEVEMENTS 배열은 삭제됨
 
   // ======= DOM (캐시된 참조 사용) =======
   const DOM = getDomRefs()
@@ -450,22 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elCareerRemaining,
   } = DOM
 
-  // 업그레이드 관련 (구형 DOM 제거됨 - 새로운 Cookie Clicker 스타일 사용)
-
-  // ======= 애니메이션 시스템 초기화 (DOM 요소 선언 후) =======
+  // ======= 애니메이션 시스템 초기화 =======
   Animations.initAnimations(elWork)
-
-  // ======= buttonStateManager 초기화 (DOM 요소 선언 후) =======
-  // Note: isProductUnlocked 함수가 정의된 후에 실제로 동작
-  // 여기서는 deps만 정의하고, isProductUnlocked 함수 정의 후 초기화 호출
-
-  // ======= 유틸 =======
-  // NOTE: getTotalFinancialProducts, getTotalProperties는 './state/gameState.js'에서 import됨
-  // 중복 정의 제거됨 - import된 함수 사용
-
-  // (단순화) 랜덤 변동 제거: 초당 수익은 예측 가능하게 유지하고,
-  // 변동성은 '시장 이벤트'만으로 표현합니다.
-  // NOTE: 수익 계산 함수들은 economy/income.js로 이동됨
 
   // 오토 업무 처리 시스템 UI 상태 동기화
   function updateAutoWorkUI() {
@@ -566,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     getShops: () => gameState.shops,
     getBuildings: () => gameState.buildings,
     getTotalProperties,
-    getTotalAssets,
+    getTotalAssets: () => assetCalculator.getTotalAssets(),
     getCareerLevel: () => gameState.careerLevel,
     getTowersLifetime: () => gameState.towers_lifetime,
     UPGRADES,
@@ -580,68 +420,18 @@ document.addEventListener('DOMContentLoaded', () => {
     isDev: __IS_DEV__,
   })
 
-  // (단순화) 리스크 UI 제거
-
-  // 업적 체크
+  // 업적 체크 (achievementNotification.js 모듈 사용)
   function checkAchievements() {
     ACHIEVEMENTS.forEach(achievement => {
       if (!achievement.unlocked && achievement.condition()) {
         achievement.unlocked = true
-        showAchievementNotification(achievement)
+        showAchievementNotification(achievement, t)
         // 업적 번역 키가 없으면 원본 한글 사용 (fallback)
         const achievementName = t(`achievement.${achievement.id}.name`, {}, achievement.name)
         const achievementDesc = t(`achievement.${achievement.id}.desc`, {}, achievement.desc)
         Diary.addLog(t('msg.achievementUnlocked', { name: achievementName, desc: achievementDesc }))
       }
     })
-  }
-
-  // 업적 알림 표시
-  function showAchievementNotification(achievement) {
-    const notification = document.createElement('div')
-    notification.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #FFD700, #FFA500);
-        color: #000;
-        padding: 20px 30px;
-        border-radius: 15px;
-        font-weight: bold;
-        z-index: 2000;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        animation: achievementPop 1s ease-out;
-      `
-    // 번역 키가 없으면 fallback으로 한글 사용 (개발 중)
-    const achievementName = t(`achievement.${achievement.id}.name`)
-    const achievementDesc = t(`achievement.${achievement.id}.desc`)
-
-    // XSS 방지: innerHTML 대신 DOM API 사용
-    const iconDiv = document.createElement('div')
-    iconDiv.style.cssText = 'font-size: 24px; margin-bottom: 10px;'
-    iconDiv.textContent = '🏆'
-
-    const nameDiv = document.createElement('div')
-    nameDiv.style.cssText = 'font-size: 18px; margin-bottom: 5px;'
-    nameDiv.textContent = achievementName
-
-    const descDiv = document.createElement('div')
-    descDiv.style.cssText = 'font-size: 14px; opacity: 0.8;'
-    descDiv.textContent = achievementDesc
-
-    notification.appendChild(iconDiv)
-    notification.appendChild(nameDiv)
-    notification.appendChild(descDiv)
-
-    document.body.appendChild(notification)
-
-    setTimeout(() => {
-      if (notification.parentElement) {
-        notification.parentElement.removeChild(notification)
-      }
-    }, 3000)
   }
 
   // ======= 업그레이드 시스템 함수 =======
@@ -671,11 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 구매 가능 알림 체크
-
-  // NOTE: 수익 계산 함수들은 economy/income.js로 이동됨
-  // 래퍼 함수 (원래 이름 유지, 전역 변수를 모듈 함수에 전달)
-
+  // ======= 수익 계산 래퍼 함수 =======
   function getClickIncome() {
     return calculateClickIncome(gameState.careerLevel, gameState.clickMultiplier)
   }
@@ -809,16 +595,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 업그레이드 그리드 상태 업데이트 함수
-  // 구형 updateUpgradeGrid 함수 제거됨 - 새로운 updateUpgradeList 사용
-
-  // ======= 저장/로드/닉네임 관리 함수는 모듈로 이동됨 =======
-  // saveGame(), loadGame(), resetGame(), exportSave(), importSave(), updateSaveStatus()
-  // → seoulsurvival/src/persist/saveLoad.js의 saveLoadManager 사용
-  // ensureNicknameModal(), openNicknameChangeModal(), handleNicknameChangeFromModal()
-  // → seoulsurvival/src/systems/nicknameManager.js의 nicknameManager 사용
-
-  // 설정 저장 함수
   function saveSettings() {
     try {
       safeSetJSON(SETTINGS_KEY, settings)
@@ -839,7 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // updateUI - gameUI 모듈로 위임 (Phase 1 리팩토링으로 890줄 → 8줄)
   function updateUI() {
     if (gameUIInstance) {
       gameUIInstance.updateUI()
@@ -854,10 +629,6 @@ document.addEventListener('DOMContentLoaded', () => {
       careerNavBtn.style.display = shouldShowCareer ? '' : 'none'
     }
   }
-
-  // ========== 레거시 updateUI() 코드 완전 삭제됨 ==========
-  // gameUI.js 모듈로 위임 완료 (890줄 → 8줄 감소)
-  // 원본 코드: gameUI.js의 createGameUI() 참조
 
   // ======= 투자 탭 UI 시스템 초기화 =======
   const investmentTab = createInvestmentTab({
@@ -1130,121 +901,27 @@ document.addEventListener('DOMContentLoaded', () => {
     elWork,
   })
 
-  // ======= 구매 수량 선택 시스템 =======
-  const setupModeBtn = (btn, mode, other) => {
-    btn?.addEventListener('click', () => {
-      gameState.purchaseMode = mode
-      btn.classList.add('active')
-      other?.classList.remove('active')
-      updateUI()
-    })
-  }
-  const setupQtyBtn = (btn, qty, others) => {
-    btn?.addEventListener('click', () => {
-      gameState.purchaseQuantity = qty
-      btn.classList.add('active')
-      others.forEach(o => o?.classList.remove('active'))
-      updateUI()
-    })
-  }
-  setupModeBtn(elBuyMode, 'buy', elSellMode)
-  setupModeBtn(elSellMode, 'sell', elBuyMode)
-  setupQtyBtn(elQty1, 1, [elQty5, elQty10])
-  setupQtyBtn(elQty5, 5, [elQty1, elQty10])
-  setupQtyBtn(elQty10, 10, [elQty1, elQty5])
+  // ======= 구매 수량 선택 시스템 (eventSetup.js 모듈로 위임) =======
+  setupPurchaseModeButtons({ elBuyMode, elSellMode, gameState, updateUI })
+  setupPurchaseQuantityButtons({ elQty1, elQty5, elQty10, gameState, updateUI })
 
-  // ======= 액션 =======
-  // workSystem.js로 이동됨 - 아래에서 초기화
+  // ======= 액션 (eventSetup.js 모듈로 위임) =======
+  setupWorkClickHandler({ elWork, workSystem })
 
-  // pointerdown으로 변경: 터치 즉시 반응하여 빠른 연타 인식률 개선
-  elWork.addEventListener('pointerdown', e => {
-    // 마우스 우클릭/중간버튼 무시
-    if (e.pointerType === 'mouse' && e.button !== 0) return
-    if (workSystem) {
-      workSystem.handleWorkAction(e.clientX, e.clientY)
-    }
+  // ======= 공유하기/즐겨찾기 기능 (socialFeatures.js 모듈) =======
+  const socialFeatures = createSocialFeatures({
+    t,
+    Diary,
+    Modal,
+    NumberFormat,
+    settings,
+    getCash: () => gameState.cash,
+    getRps,
   })
-
-  // ======= 공유하기 기능 =======
-  async function shareGame() {
-    const gameUrl = window.location.href
-    const gameTitle = 'Capital Clicker: Seoul Survival'
-    const gameDescription = t('share.description', {
-      assets: NumberFormat.formatCashDisplay(gameState.cash, settings),
-      rps: NumberFormat.formatCashDisplay(getRps(), settings),
-    })
-    // 요구사항: 공유 버튼은 Web Share API만 사용 (링크 복사 fallback 제거)
-    if (!navigator.share) {
-      Diary.addLog(t('share.notSupported'))
-      return
-    }
-
-    try {
-      await navigator.share({
-        title: gameTitle,
-        text: gameDescription,
-        url: gameUrl,
-      })
-      Diary.addLog(t('share.success'))
-    } catch (err) {
-      // 사용자가 공유 UI를 닫은 경우는 조용히 무시
-      if (err?.name !== 'AbortError') {
-        console.error('Share failed:', err)
-        Diary.addLog(t('share.failed'))
-      }
-    }
-  }
-
-  if (elShareBtn) {
-    elShareBtn.addEventListener('click', shareGame)
-  } else {
-    console.error('공유 버튼을 찾을 수 없습니다.')
-  }
-
-  // ======= 즐겨찾기 / 홈 화면 안내 =======
-  function handleFavoriteClick() {
-    const url = window.location.href
-    const title = document.title || 'Capital Clicker: Seoul Survival'
-    const ua = navigator.userAgent.toLowerCase()
-    const isMobile = /iphone|ipad|ipod|android/.test(ua)
-    const isIOS = /iphone|ipad|ipod/.test(ua)
-    const isAndroid = /android/.test(ua)
-    const isMac = navigator.platform.toUpperCase().includes('MAC')
-
-    // (아주 옛날 IE 전용) 가능한 경우 직접 즐겨찾기 추가 시도
-    if (window.external && typeof window.external.AddFavorite === 'function') {
-      try {
-        window.external.AddFavorite(url, title)
-        Diary.addLog(t('favorite.added'))
-        return
-      } catch {
-        // 실패하면 아래 안내로 fallback
-      }
-    }
-
-    let message = ''
-    const modalTitle = t('favorite.title')
-    const icon = '⭐'
-
-    if (isMobile) {
-      if (isIOS) {
-        message = t('favorite.ios')
-      } else if (isAndroid) {
-        message = t('favorite.android')
-      } else {
-        message = t('favorite.otherMobile')
-      }
-    } else {
-      const shortcut = isMac ? '⌘ + D' : 'Ctrl + D'
-      message = t('favorite.desktop', { shortcut })
-    }
-
-    Modal.openInfoModal(modalTitle, message, icon)
-  }
-
-  if (elFavoriteBtn) {
-    elFavoriteBtn.addEventListener('click', handleFavoriteClick)
-  }
+  socialFeatures.initEventListeners({
+    shareBtn: elShareBtn,
+    favoriteBtn: elFavoriteBtn,
+  })
 
   // 새로 시작 버튼 이벤트 리스너는 saveLoadManager 초기화 후에 설정됨
   // (아래 saveLoadManager 생성 후 설정)
@@ -1265,42 +942,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elBuyTower,
   })
 
-  // 런(현재 게임) 보유 수량 일괄 초기화 함수
-  function resetRunHoldings() {
-    // 금융상품 초기화
-    gameState.deposits = 0
-    gameState.savings = 0
-    gameState.bonds = 0
-    gameState.usStocks = 0
-    gameState.cryptos = 0
-
-    // 부동산 초기화
-    gameState.villas = 0
-    gameState.officetels = 0
-    gameState.apartments = 0
-    gameState.shops = 0
-    gameState.buildings = 0
-
-    // 타워 런 초기화 (towers_lifetime은 유지)
-    gameState.towers_run = 0
-
-    // Lifetime 변수 초기화
-    gameState.depositsLifetime = 0
-    gameState.savingsLifetime = 0
-    gameState.bondsLifetime = 0
-    gameState.usStocksLifetime = 0
-    gameState.cryptosLifetime = 0
-    gameState.villasLifetime = 0
-    gameState.officetelsLifetime = 0
-    gameState.apartmentsLifetime = 0
-    gameState.shopsLifetime = 0
-    gameState.buildingsLifetime = 0
-
-    if (__IS_DEV__) {
-      console.debug('[resetRunHoldings] 초기화 완료')
-    }
-  }
-
   // 자동 프레스티지 실행 함수 - prestigeSystem.js로 이동됨
   async function performAutoPrestige(source = 'unknown') {
     if (prestigeSystem) {
@@ -1309,132 +950,41 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('❌ prestigeSystem이 초기화되지 않았습니다.')
   }
 
-  // ======= 업그레이드 효과 적용 함수 =======
-  // 구형 applyUpgradeEffect 및 업그레이드 시스템 제거됨 - 새로운 Cookie Clicker 스타일 시스템 사용
-
-  // ======= 키보드 단축키 =======
-  document.addEventListener('keydown', e => {
-    // 탭 전환: Alt + 1-5 (접근성)
-    if (e.altKey && e.key >= '1' && e.key <= '5') {
-      e.preventDefault()
-      const tabMapping = {
-        1: 'workTab',
-        2: 'shopTab',
-        3: 'statsTab',
-        4: 'rankingTab',
-        5: 'settingsTab',
-      }
-      const targetTab = tabMapping[e.key]
-      const targetBtn = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`)
-      if (targetBtn) {
-        targetBtn.click()
-      }
-    }
-
-    // Ctrl + Shift + R: 게임 초기화 (브라우저 새로고침과 충돌 방지)
-    if (e.ctrlKey && e.shiftKey && e.key === 'R') {
-      e.preventDefault()
-      saveLoadManager.resetGame()
-    }
-    // Ctrl + S: 수동 저장
-    if (e.ctrlKey && e.key === 's') {
-      e.preventDefault() // 브라우저 저장 방지
-      saveLoadManager.saveGame()
-      Diary.addLog(t('msg.manualSave'))
-    }
-    // Ctrl + O: 저장 가져오기
-    if (e.ctrlKey && e.key === 'o') {
-      e.preventDefault()
-      if (elImportFileInput) {
-        elImportFileInput.click()
-      }
-    }
+  // ======= 키보드 단축키 (keyboardShortcuts.js 모듈) =======
+  const keyboardShortcuts = createKeyboardShortcuts({
+    saveLoadManager,
+    Diary,
+    t,
+    getImportFileInput: () => document.getElementById('importFileInput'),
   })
+  keyboardShortcuts.initKeyboardShortcuts()
 
-  // ======= 수익 틱 =======
-  const TICK = 50 // ms (성능 최적화: 250ms → 50ms)
-  let lastTickTime = performance.now() // 정확한 deltaTime 계산을 위한 타임스탬프
-  setInterval(() => {
-    checkMarketEvent() // 시장 이벤트 체크
-    checkAchievements() // 업적 체크
-    checkUpgradeUnlocks() // 업그레이드 해금 체크
+  // ======= 게임 루프 매니저 =======
+  let gameLoopManager = null
 
-    // 실제 경과 시간 계산 (탭 백그라운드/CPU 부하 시 정확도 보장)
-    const now = performance.now()
-    const deltaTime = Math.min((now - lastTickTime) / 1000, 1) // 최대 1초 제한 (비정상 지연 방지)
-    lastTickTime = now
-    const tickIncome = getRps() * deltaTime
-    gameState.cash += tickIncome
-    gameState.lifetimeEarnings += tickIncome // CP 계산용 누적 수익
-
-    // 누적 생산량 계산 (시너지/프레스티지/마켓 배수 적용)
-    gameState.depositsLifetime += getFinancialIncome('deposit', gameState.deposits) * deltaTime
-    gameState.savingsLifetime += getFinancialIncome('savings', gameState.savings) * deltaTime
-    gameState.bondsLifetime += getFinancialIncome('bond', gameState.bonds) * deltaTime
-    gameState.usStocksLifetime += getFinancialIncome('usStock', gameState.usStocks) * deltaTime
-    gameState.cryptosLifetime += getFinancialIncome('crypto', gameState.cryptos) * deltaTime
-    gameState.villasLifetime += getPropertyIncome('villa', gameState.villas) * deltaTime
-    gameState.officetelsLifetime += getPropertyIncome('officetel', gameState.officetels) * deltaTime
-    gameState.apartmentsLifetime += getPropertyIncome('apartment', gameState.apartments) * deltaTime
-    gameState.shopsLifetime += getPropertyIncome('shop', gameState.shops) * deltaTime
-    gameState.buildingsLifetime += getPropertyIncome('building', gameState.buildings) * deltaTime
-
-    updateUI()
-  }, TICK)
-
-  // ======= 자동 저장 시스템 =======
-  setInterval(() => {
-    if (saveLoadManager) {
-      saveLoadManager.saveGame()
-    }
-  }, TIMING.AUTO_SAVE_INTERVAL_MS)
-
-  // ======= 오토클릭 시스템 =======
-  setInterval(() => {
-    if (gameState.autoClickEnabled) {
-      const income = getClickIncome()
-      gameState.cash += income
-      gameState.totalClicks += 1
-      gameState.totalLaborIncome += income
-      gameState.lifetimeEarnings += income // CP 계산용 누적 수익
-      checkCareerPromotion()
-
-      // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
-      if (elWork) {
-        elWork.classList.remove('auto-click-pulse')
-        // 리플로우 강제 후 다시 추가하여 매 틱마다 애니메이션 재생
-        void elWork.offsetHeight
-        elWork.classList.add('auto-click-pulse')
-      }
-      // 수익 증가 애니메이션(초록색 돈 텍스트)도 함께 표시
-      Animations.showIncomeAnimation(income)
-
-      // 성과급은 오토클릭에도 적용
-      if (
-        UPGRADES['performance_bonus'] &&
-        UPGRADES['performance_bonus'].purchased &&
-        Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
-      ) {
-        // 기본 income(1배)은 이미 지급됨 → 총 10배가 되도록 추가 9배 지급
-        const bonusIncome = income * 9
-        gameState.cash += bonusIncome
-        gameState.totalLaborIncome += bonusIncome
-        gameState.lifetimeEarnings += bonusIncome // CP 계산용 누적 수익
-      }
-    }
-  }, 1000) // 1초마다
-
-  // ======= 시장 이벤트 시스템 =======
-  // 2-5분마다 랜덤하게 시장 이벤트 발생
-  setInterval(
-    () => {
-      if (gameState.marketEventEndTime === 0) {
-        // 현재 이벤트가 진행 중이 아닐 때만
-        startMarketEvent()
-      }
-    },
-    Math.random() * MARKET_EVENT_TIMING.RANDOM_RANGE_MS + MARKET_EVENT_TIMING.MIN_INTERVAL_MS
-  )
+  function initGameLoopManager() {
+    gameLoopManager = createGameLoopManager({
+      gameState,
+      UPGRADES,
+      TIMING,
+      MARKET_EVENT_TIMING,
+      PROBABILITY,
+      getRps,
+      getFinancialIncome,
+      getPropertyIncome,
+      getClickIncome,
+      checkCareerPromotion,
+      checkMarketEvent,
+      checkAchievements,
+      checkUpgradeUnlocks,
+      startMarketEvent,
+      updateUI,
+      saveGame: () => saveLoadManager?.saveGame(),
+      Animations,
+      elWork,
+    })
+    gameLoopManager.startAllLoops()
+  }
 
   // 설정 불러오기
   loadSettings()
@@ -1476,8 +1026,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // willReload가 true면 리로드가 예약되었으므로 닉네임 모달은 리로드 후 처리됨
     }
   }
-  // initializeGame은 saveLoadManager 초기화 후 호출됨 (아래 참조)
-
   // 초기 배경 이미지 설정
   const initialCareer = getCurrentCareer()
   if (elWorkArea && initialCareer && initialCareer.bgImage) {
@@ -1504,78 +1052,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initPrestigeTab(t, NumberFormat.formatNumber)
   })
 
-  // 설정 탭 UI 초기화
-  const elToggleParticles = document.getElementById('toggleParticles')
-  const elToggleFancyGraphics = document.getElementById('toggleFancyGraphics')
-  const elToggleShortNumbers = document.getElementById('toggleShortNumbers')
+  // ======= 언어 UI 관리자 초기화 (i18nUIManager.js 모듈) =======
+  const i18nUIManager = createI18nUIManager({
+    t,
+    setLang,
+    getLang,
+    applyI18nToDOMAsync,
+    safeText,
+    getCareerName,
+    getCareerLevel: () => gameState.careerLevel,
+    updateUI,
+    updateAchievementGrid,
+    refreshPrestigeTab,
+    updateSaveStatus,
+    NumberFormat,
+  })
+  i18nUIManager.initSettingsToggles(settings)
+  i18nUIManager.initLanguageSelector()
 
-  if (elToggleParticles) elToggleParticles.checked = settings.particles
-  if (elToggleFancyGraphics) elToggleFancyGraphics.checked = settings.fancyGraphics
-  if (elToggleShortNumbers) elToggleShortNumbers.checked = settings.shortNumbers
-
-  // 언어 변경 시 모든 UI 업데이트 함수
-  function updateAllUIForLanguage() {
-    // 직급 표시 업데이트
-    const currentCareerEl = document.getElementById('currentCareer')
-    if (currentCareerEl) {
-      safeText(currentCareerEl, getCareerName(gameState.careerLevel))
-    }
-
-    // UI 업데이트 호출 (직급, 상품 이름 등이 포함됨)
-    updateUI()
-
-    // 업적 그리드 다시 렌더링 (툴팁 번역을 위해)
-    updateAchievementGrid()
-
-    // 경력 탭 다시 렌더링 (번역을 위해)
-    refreshPrestigeTab(t, NumberFormat.formatNumber)
-
-    // 저장 상태 업데이트 (시간 포맷 번역을 위해)
-    updateSaveStatus()
-  }
-
-  // 언어 선택 핸들러
-  const elLanguageSelect = document.getElementById('languageSelect')
-  if (elLanguageSelect) {
-    elLanguageSelect.value = getLang()
-    elLanguageSelect.addEventListener('change', async e => {
-      const newLang = e.target.value
-      setLang(newLang)
-      await applyI18nToDOMAsync()
-      updateAllUIForLanguage()
-    })
-  }
-
-  // 설정 탭 이벤트 리스너
-  const elExportSaveBtn = document.getElementById('exportSaveBtn')
-  const elImportSaveBtn = document.getElementById('importSaveBtn')
-  const elImportFileInput = document.getElementById('importFileInput')
-  const elCloudUploadBtn = document.getElementById('cloudUploadBtn')
-  const elCloudDownloadBtn = document.getElementById('cloudDownloadBtn')
-
-  if (elExportSaveBtn) {
-    elExportSaveBtn.addEventListener('click', () => saveLoadManager.exportSave())
-  }
-
-  if (elImportSaveBtn) {
-    elImportSaveBtn.addEventListener('click', () => {
-      if (elImportFileInput) {
-        elImportFileInput.click()
-      }
-    })
-  }
-
-  if (elImportFileInput) {
-    elImportFileInput.addEventListener('change', e => {
-      const file = e.target.files[0]
-      if (file) {
-        saveLoadManager.importSave(file)
-      }
-    })
-  }
-
-  // ======= 클라우드 세이브(로그인 사용자 전용) =======
-  // cloudSync.js 모듈로 분리됨
+  // ======= 클라우드 세이브 =======
   cloudSyncManager = createCloudSyncManager({
     getUser,
     Modal,
@@ -1633,17 +1128,11 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateCP,
   })
 
-  // 새로 시작 버튼 이벤트 리스너 (saveLoadManager 초기화 후)
-  if (elResetBtn) {
-    elResetBtn.addEventListener('click', () => saveLoadManager.resetGame())
-  }
-  const elResetBtnSettings = document.getElementById('resetBtnSettings')
-  if (elResetBtnSettings) {
-    elResetBtnSettings.addEventListener('click', () => saveLoadManager.resetGame())
-  }
+  setupResetButtons({ elResetBtn, saveLoadManager })
+  setupSettingsTabButtons({ saveLoadManager })
+  initGameLoopManager()
 
-  // ======= 프레스티지 시스템 초기화 (prestigeSystem.js 모듈) =======
-  // saveLoadManager가 초기화된 후에 생성
+  // ======= 프레스티지 시스템 초기화 =======
   prestigeSystem = createPrestigeSystem({
     state: gameState,
     UPGRADES,
@@ -1678,117 +1167,23 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateCP,
   })
 
-  // 게임 초기화 (saveLoadManager/nicknameManager 준비 완료 후)
   initializeGame()
-
-  // 클라우드 업로드/다운로드 버튼 연결
-  if (elCloudUploadBtn) elCloudUploadBtn.addEventListener('click', cloudSyncManager.cloudUpload)
-  if (elCloudDownloadBtn)
-    elCloudDownloadBtn.addEventListener('click', cloudSyncManager.cloudDownload)
-
-  // 인증 리스너 초기화 (닉네임 마이그레이션, 저장 동기화 포함)
+  setupCloudSaveButtons({ cloudSyncManager })
   cloudSyncManager.initAuthListener()
 
-  // ======= 인증 버튼 UI 업데이트 =======
-  function updateAuthButtons(user) {
-    const isLoggedIn = !!user
-    const authProviderButtons = document.getElementById('authProviderButtons')
-    const logoutButtonContainer = document.getElementById('logoutButtonContainer')
-    const cloudSaveSection = document.getElementById('cloudSaveSection')
-
-    if (authProviderButtons) authProviderButtons.style.display = isLoggedIn ? 'none' : 'flex'
-    if (logoutButtonContainer) logoutButtonContainer.hidden = !isLoggedIn
-    if (cloudSaveSection) cloudSaveSection.style.display = isLoggedIn ? 'block' : 'none'
-  }
-
-  // 초기 인증 상태 확인 및 버튼 업데이트
-  getUser().then(user => {
-    updateAuthButtons(user)
+  // ======= 인증 UI 관리자 초기화 =======
+  const authUIManager = createAuthUIManager({
+    getUser,
+    onAuthStateChange,
+    signInGoogle,
+    signOut,
+    t,
+    toastSuccess,
+    toastError,
   })
-
-  // 인증 상태 변경 시 버튼 업데이트
-  onAuthStateChange(user => {
-    updateAuthButtons(user)
-  })
-
-  // 로그인 버튼 이벤트 리스너
-  const googleLoginBtn = document.querySelector('[data-auth-provider="google"]')
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', async () => {
-      const result = await signInGoogle()
-      if (!result.ok) {
-        toastError(t('error.loginFailed'))
-      }
-    })
-  }
-
-  // 로그아웃 버튼 이벤트 리스너
-  const logoutBtn = document.getElementById('logoutBtn')
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      const result = await signOut()
-      if (result.ok) {
-        toastSuccess(t('settings.logout') + ' ✅')
-        setTimeout(() => location.reload(), 500)
-      } else {
-        toastError('로그아웃 실패')
-      }
-    })
-  }
-
-  // 탭 숨김/닫기 시 자동 플러시 리스너 초기화
+  authUIManager.initAuthUI()
   cloudSyncManager.initVisibilityListeners()
-
-  // 토글 스위치 이벤트 리스너
-  if (elToggleParticles) {
-    elToggleParticles.addEventListener('change', e => {
-      settings.particles = e.target.checked
-      saveSettings()
-    })
-  }
-
-  if (elToggleFancyGraphics) {
-    elToggleFancyGraphics.addEventListener('change', e => {
-      settings.fancyGraphics = e.target.checked
-      saveSettings()
-      // 화려한 그래픽 설정 적용 (향후 확장 가능)
-    })
-  }
-
-  if (elToggleShortNumbers) {
-    elToggleShortNumbers.addEventListener('change', e => {
-      settings.shortNumbers = e.target.checked
-      saveSettings()
-      // UI 즉시 업데이트 (숫자 포맷 변경 반영)
-      updateUI()
-    })
-  }
-
-  // ======= 금융상품/부동산 가치 계산 (statsTab.js에서 사용) =======
-
-  // 금융상품 총 가치 계산 (ForType 함수 활용)
-  function calculateFinancialValue() {
-    return (
-      calculateFinancialValueForType('deposit', gameState.deposits) +
-      calculateFinancialValueForType('savings', gameState.savings) +
-      calculateFinancialValueForType('bond', gameState.bonds) +
-      calculateFinancialValueForType('usStock', gameState.usStocks) +
-      calculateFinancialValueForType('crypto', gameState.cryptos)
-    )
-  }
-
-  // 부동산 총 가치 계산 (ForType 함수 활용)
-  function calculatePropertyValue() {
-    return (
-      calculatePropertyValueForType('villa', gameState.villas) +
-      calculatePropertyValueForType('officetel', gameState.officetels) +
-      calculatePropertyValueForType('apartment', gameState.apartments) +
-      calculatePropertyValueForType('shop', gameState.shops) +
-      calculatePropertyValueForType('building', gameState.buildings)
-    )
-  }
-
-  // ======= 통계 탭 업데이트 함수 (statsTab.js 모듈로 위임) =======
+  setupToggleSwitches({ settings, saveSettings, updateUI })
 
   function updateStatsTab() {
     // statsTab.js 모듈의 updateStatsTab에 필요한 의존성 전달
@@ -1842,160 +1237,25 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSynergyDisplay()
   }
 
-  // 금융상품 타입별 가치 계산
-  function calculateFinancialValueForType(type, count) {
-    let value = 0
-    for (let i = 0; i < count; i++) {
-      value += getFinancialCost(type, i)
-    }
-    return value
-  }
-
-  // 부동산 타입별 가치 계산
-  function calculatePropertyValueForType(type, count) {
-    let value = 0
-    for (let i = 0; i < count; i++) {
-      value += getPropertyCost(type, i)
-    }
-    return value
-  }
-
-  // 총 자산 가치 계산 (현재 보유 자산을 현재가로 환산)
-  function calculateTotalAssetValue() {
-    return calculateFinancialValue() + calculatePropertyValue()
-  }
-
-  // 총 자산 = 현금 + 보유 자산 가치
-  function getTotalAssets() {
-    return gameState.cash + calculateTotalAssetValue()
-  }
-
-  /**
-   * 저장 데이터에서 총 자산 계산 (saveData 객체 기준)
-   */
-  function calculateTotalAssetValueFromSave(saveData) {
-    if (!saveData) return 0
-
-    const cash = Number(saveData.cash || 0)
-
-    // 금융상품 가치
-    const financialValue =
-      calculateFinancialValueForType('deposit', Number(saveData.deposits || 0)) +
-      calculateFinancialValueForType('savings', Number(saveData.savings || 0)) +
-      calculateFinancialValueForType('bond', Number(saveData.bonds || 0)) +
-      calculateFinancialValueForType('usStock', Number(saveData.usStocks || 0)) +
-      calculateFinancialValueForType('crypto', Number(saveData.cryptos || 0))
-
-    // 부동산 가치
-    const propertyValue =
-      calculatePropertyValueForType('villa', Number(saveData.villas || 0)) +
-      calculatePropertyValueForType('officetel', Number(saveData.officetels || 0)) +
-      calculatePropertyValueForType('apartment', Number(saveData.apartments || 0)) +
-      calculatePropertyValueForType('shop', Number(saveData.shops || 0)) +
-      calculatePropertyValueForType('building', Number(saveData.buildings || 0)) +
-      calculatePropertyValueForType('tower', Number(saveData.towers_run || 0))
-
-    return cash + financialValue + propertyValue
-  }
-
-  /**
-   * 저장 데이터에서 플레이타임 계산 (ms 단위)
-   */
-  function calculatePlayTimeMsFromSave(saveData, sessionStartTime) {
-    if (!saveData) return 0
-    const savedTotalPlayTime = Number(saveData.totalPlayTime || 0)
-    const savedSessionStartTime = Number(saveData.sessionStartTime || Date.now())
-    const currentSessionTime = Date.now() - (sessionStartTime || savedSessionStartTime)
-    return savedTotalPlayTime + Math.max(0, currentSessionTime)
-  }
-
-  // 업적 그리드 업데이트 (achievementGrid.js 모듈로 위임)
   function updateAchievementGrid() {
     if (achievementGridInstance) {
       achievementGridInstance.updateAchievementGrid()
     }
   }
 
-  // ======= 리더보드 폴링 제어 (랭킹 탭 전용) =======
-  // ======= 하단 네비게이션 탭 전환 =======
-  const navBtns = document.querySelectorAll('.nav-btn')
-  const tabContents = document.querySelectorAll('.tab-content')
-
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetTab = btn.getAttribute('data-tab')
-
-      // 모든 탭 비활성화
-      tabContents.forEach(tab => tab.classList.remove('active'))
-      navBtns.forEach(navBtn => {
-        navBtn.classList.remove('active')
-        navBtn.setAttribute('aria-selected', 'false')
-      })
-
-      // 선택한 탭 활성화
-      const tabEl = document.getElementById(targetTab)
-      if (tabEl) {
-        tabEl.classList.add('active')
+  // ======= 하단 네비게이션 탭 전환 (tabNavigation.js 모듈) =======
+  const tabNavigation = createTabNavigation({
+    refreshPrestigeTab,
+    syncNicknameFromServer,
+    openNicknameChangeModal: () => nicknameManager?.openNicknameChangeModal(),
+    LeaderboardUI,
+    setupAchievementScrollOptimization: () => {
+      if (achievementGridInstance) {
+        achievementGridInstance.setupAchievementScrollOptimization()
       }
-      btn.classList.add('active')
-      btn.setAttribute('aria-selected', 'true')
-
-      // 햅틱 피드백 (지원되는 경우)
-      if ('vibrate' in navigator) {
-        navigator.vibrate(10)
-      }
-
-      // 경력 탭 진입 시 최신 상태로 새로고침
-      if (targetTab === 'careerTab') {
-        refreshPrestigeTab()
-      }
-
-      // 설정 탭 진입 시 마이그레이션 충돌 체크 및 서버 닉네임 동기화
-      if (targetTab === 'settingsTab') {
-        try {
-          syncNicknameFromServer('') // 서버에서 최신 닉네임 동기화
-
-          const needsChange = localStorage.getItem('clicksurvivor_needsNicknameChange') === 'true'
-          if (needsChange) {
-            // 세션 단위 가드: 같은 세션에서 이미 자동 오픈했으면 스킵
-            const autoOpenKey = 'clicksurvivor_nicknameModalAutoOpened'
-            const alreadyOpened = sessionStorage.getItem(autoOpenKey) === 'true'
-
-            if (!alreadyOpened) {
-              // 닉네임 변경 입력 모달 자동 오픈
-              setTimeout(() => {
-                openNicknameChangeModal()
-                // 세션 플래그 설정 (이 세션에서 한 번만 자동 오픈)
-                try {
-                  sessionStorage.setItem(autoOpenKey, 'true')
-                } catch (e) {
-                  // sessionStorage 실패 시 무시
-                }
-              }, 300) // 탭 전환 애니메이션 후 표시
-            }
-          }
-        } catch (e) {
-          // 무시
-        }
-      }
-
-      // 랭킹 탭 전용 리더보드 폴링 제어
-      if (targetTab === 'rankingTab') {
-        LeaderboardUI.startLeaderboardPolling()
-        // 업적 영역 스크롤 이벤트 계측 및 최적화
-        setupAchievementScrollOptimization()
-      } else {
-        LeaderboardUI.stopLeaderboardPolling()
-      }
-    })
+    },
   })
-
-  // 업적 영역 스크롤 최적화 설정 (achievementGrid.js 모듈로 위임)
-  function setupAchievementScrollOptimization() {
-    if (achievementGridInstance) {
-      achievementGridInstance.setupAchievementScrollOptimization()
-    }
-  }
+  tabNavigation.initTabNavigation()
 
   updateUI() // 초기 UI 업데이트
   updateProductLockStates() // 초기 잠금 상태 업데이트
@@ -2018,24 +1278,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateUpgradeList() // 초기 업그레이드 리스트 생성
 
-  // 닉네임 변경 기능 (유니크 강제 시스템) - 모달 방식
-  const nicknameChangeBtn = document.getElementById('nicknameChangeBtn')
-  const nicknameConflictChangeBtn = document.getElementById('nicknameConflictChangeBtn')
-
-  // ======= 닉네임 관련 함수는 모듈로 이동됨 =======
-  // checkNicknameCooldown(), saveNicknameCooldown(), openNicknameChangeModal(), handleNicknameChangeFromModal()
-  // → seoulsurvival/src/systems/nicknameManager.js의 nicknameManager 사용
-
-  // 버튼 클릭 이벤트 리스너
-  if (nicknameChangeBtn) {
-    nicknameChangeBtn.addEventListener('click', () => nicknameManager.openNicknameChangeModal())
-  }
-
-  if (nicknameConflictChangeBtn) {
-    nicknameConflictChangeBtn.addEventListener('click', () =>
-      nicknameManager.openNicknameChangeModal()
-    )
-  }
+  // 닉네임 변경 기능 (eventSetup.js 모듈로 위임)
+  setupNicknameButtons({ nicknameManager })
 
   // Toast 시스템을 window에 연결 (전역 접근용)
   window.toast = {
@@ -2045,59 +1289,17 @@ document.addEventListener('DOMContentLoaded', () => {
     warning: toastWarning,
   }
 
-  // 치트 코드 (테스트용 - 개발 모드에서만 사용 가능)
-  if (__IS_DEV__) {
-    window.cheat = {
-      addCash: amount => {
-        gameState.cash += amount
-        updateUI()
-      },
-      unlockAllUpgrades: () => {
-        Object.values(UPGRADES).forEach(u => (u.unlocked = true))
-        updateUpgradeList()
-      },
-      unlockFirstUpgrade: () => {
-        const firstId = Object.keys(UPGRADES)[0]
-        UPGRADES[firstId].unlocked = true
-        updateUpgradeList()
-      },
-      setClicks: count => {
-        gameState.totalClicks = count
-        updateUI()
-        checkUpgradeUnlocks()
-      },
-      testUpgrade: () => {
-        const firstId = Object.keys(UPGRADES)[0]
-        UPGRADES[firstId].unlocked = true
-        gameState.cash += 10000000
-        updateUpgradeList()
-        updateUI()
-      },
-      // CP 시스템 테스트 치트
-      addCP: amount => {
-        gameState.careerPoints += amount
-        gameState.totalCareerPoints += amount
-        refreshPrestigeTab(t, NumberFormat.formatNumber)
-        updateUI()
-      },
-      setTowers: count => {
-        gameState.towers_lifetime = count
-        updateUI()
-      },
-      setLifetimeEarnings: amount => {
-        gameState.lifetimeEarnings = amount
-        updateUI()
-      },
-      testPrestige: () => {
-        // 타워 5개, 수익 10조 시뮬레이션
-        gameState.towers_lifetime = 5
-        gameState.lifetimeEarnings = 1e13
-        gameState.careerPoints = 10
-        gameState.totalCareerPoints = 10
-        refreshPrestigeTab(t, NumberFormat.formatNumber)
-        updateUI()
-      },
-      getGameState: () => gameState,
-    }
-  }
+  // ======= 개발 치트 시스템 초기화 =======
+  const devCheatSystem = createDevCheatSystem({
+    gameState,
+    UPGRADES,
+    updateUI,
+    updateUpgradeList,
+    checkUpgradeUnlocks,
+    refreshPrestigeTab,
+    t,
+    NumberFormat,
+    __IS_DEV__,
+  })
+  devCheatSystem.initDevCheats()
 })
