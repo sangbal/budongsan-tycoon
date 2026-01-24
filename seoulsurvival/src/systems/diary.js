@@ -5,9 +5,33 @@
  * - 게임 이벤트를 일기장 형식으로 변환
  * - 다양한 독백 스타일 제공
  * - 시간 스탬프 및 메타데이터 관리
+ *
+ * Phase 1.1: 템플릿 데이터를 data/diaryTemplates.js로 분리
  */
 
 import { t, getLang } from '../i18n/index.js'
+import {
+  achievementTemplates,
+  promotionTemplates,
+  unlockByProduct,
+  unlockDefaultTemplates,
+  noMoneyTemplates,
+  buyByProduct,
+  buyDefaultTemplates,
+  sellByProduct,
+  sellDefaultTemplates,
+  failTemplates,
+  marketEventByProduct,
+  marketEndByProduct,
+  memoByProduct,
+  memoDefaultTemplates,
+  upgradeUnlockByProduct,
+  upgradeBuyByProduct,
+  warnTemplates,
+  defaultTemplates,
+  productDetectionRules,
+  devKeywords,
+} from '../data/diaryTemplates.js'
 
 // ======= DOM 참조 =======
 let elLog = null
@@ -29,6 +53,339 @@ export function initDiary(logElement, timeRefs) {
   sessionStartTimeRef = timeRefs.sessionStartTime
 }
 
+// ======= 유틸리티 함수 =======
+const pad2 = n => String(n).padStart(2, '0')
+const rand = n => Math.floor(Math.random() * n)
+
+// 시스템 이모지/접두 제거
+// eslint-disable-next-line no-misleading-character-class
+const stripPrefix = txt => txt.replace(/^[✅❌💸💰🏆🎉🎁📈📉🔓⚠️💡]+\s*/gu, '').trim()
+const soften = txt => stripPrefix(txt).replace(/\s+/g, ' ').trim()
+
+/**
+ * 템플릿 배열에서 랜덤하게 선택 (연속 중복 방지)
+ * @param {string} key - 저장 키
+ * @param {string[]} arr - 템플릿 배열
+ * @returns {string}
+ */
+function pick(key, arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return ''
+  const storeKey = `__diaryLastPick_${key}`
+  const last = window[storeKey]
+  let idx = rand(arr.length)
+  if (arr.length > 1 && typeof last === 'number' && idx === last) {
+    idx = (idx + 1 + rand(arr.length - 1)) % arr.length
+  }
+  window[storeKey] = idx
+  return arr[idx]
+}
+
+/**
+ * 텍스트에서 제품 종류 감지
+ * @param {string} txt - 감지할 텍스트
+ * @returns {string} 제품 종류
+ */
+function detectProduct(txt) {
+  const t = String(txt || '')
+  for (const [keyword, product] of productDetectionRules) {
+    if (t.includes(keyword)) return product
+  }
+  return ''
+}
+
+/**
+ * 템플릿 문자열에 변수 치환
+ * @param {string} template - 템플릿 문자열
+ * @param {Object} vars - 변수 객체
+ * @returns {string}
+ */
+function applyTemplate(template, vars) {
+  let result = template
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value || '')
+  }
+  return result.trim()
+}
+
+/**
+ * 일기장 메타데이터 업데이트
+ */
+function updateDiaryMeta() {
+  if (!gameStartTimeRef) return
+
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = pad2(now.getMonth() + 1)
+  const d = pad2(now.getDate())
+  const base =
+    typeof gameStartTimeRef.gameStartTime !== 'undefined' && gameStartTimeRef.gameStartTime
+      ? gameStartTimeRef.gameStartTime
+      : sessionStartTimeRef
+  const days = Math.max(1, Math.floor((Date.now() - base) / 86400000) + 1)
+
+  // 헤더에 붙는 컴팩트 표기: yyyy.mm.dd(N일차)
+  const elCompact = document.getElementById('diaryHeaderMeta')
+  if (elCompact) {
+    elCompact.textContent = `${y}.${m}.${d}(${t('ui.dayCount', { days })})`
+  }
+
+  // (구) DOM이 남아있을 때만 업데이트 (호환)
+  const elDate = document.getElementById('diaryMetaDate')
+  const elDay = document.getElementById('diaryMetaDay')
+  if (elDate) elDate.textContent = t('ui.today', { date: `${y}.${m}.${d}` })
+  if (elDay) elDay.textContent = t('ui.dayCount', { days })
+}
+
+/**
+ * 원본 메시지를 일기 형식으로 변환
+ * @param {string} raw - 원본 메시지
+ * @returns {string} 변환된 일기 텍스트
+ */
+function diaryize(raw) {
+  const s = String(raw || '').trim()
+
+  // 업그레이드 잔여 클릭 안내는 일기장에 기록하지 않음
+  const nextUpgradePattern = new RegExp(
+    t('msg.nextUpgradeHint', { remaining: '\\d+', name: '.*' })
+      .replace(/\{remaining\}/g, '\\d+')
+      .replace(/\{name\}/g, '.*'),
+    'i'
+  )
+  if (nextUpgradePattern.test(s) || (/다음\s*업그레이드/.test(s) && /클릭\s*남/.test(s))) {
+    return ''
+  }
+
+  // ======= 업적 =======
+  if (s.startsWith('🏆') && (s.includes('업적 달성:') || s.includes('Achievement Unlocked:'))) {
+    const body = stripPrefix(s).replace(/^(업적 달성|Achievement Unlocked):\s*/i, '')
+    const [name, desc] = body.split(/\s*-\s*/)
+    const template = pick('achievement', achievementTemplates)
+    return applyTemplate(template, {
+      name: name || '업적',
+      desc: desc || '',
+      descMemo: desc ? `메모: ${desc}` : '',
+    })
+  }
+
+  // ======= 승진 =======
+  const promotedPattern =
+    getLang() === 'en'
+      ? /🎉\s*(.+?)\s+promoted!?(\s*\(.*\))?/i
+      : /🎉\s*(.+?)으로\s*승진했습니다!?(\s*\(.*\))?/
+  if (s.startsWith('🎉') && (s.includes('승진했습니다') || /promoted/i.test(s))) {
+    const m = s.match(promotedPattern)
+    const career = m?.[1]?.trim() || '다음 단계'
+    const extra = m?.[2]?.trim()
+    const extraText = extra ? extra.replace(/[()]/g, '').trim() : ''
+    const template = pick('promotion', promotionTemplates)
+    return applyTemplate(template, { career, extra: extraText })
+  }
+
+  // ======= 해금 =======
+  const unlockPattern = getLang() === 'en' ? /^🔓\s*(.+?)\s+unlocked/i : /^🔓\s*(.+?)이\s*해금/
+  if (s.startsWith('🔓')) {
+    const body = soften(s)
+    const m = s.match(unlockPattern)
+    const name = (m?.[1] || '').trim()
+
+    if (name && unlockByProduct[name]) {
+      const template = pick(`unlock_${name}`, unlockByProduct[name])
+      return applyTemplate(template, { body })
+    }
+    const template = pick('unlock', unlockDefaultTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 자금 부족 =======
+  if (s.startsWith('💸 자금이 부족합니다')) {
+    const body = soften(s)
+    const template = pick('noMoney', noMoneyTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 구매 =======
+  const purchasedPattern =
+    getLang() === 'en' ? /^✅\s*.+?\s+purchased/i : /^✅\s*.+?\s+구입했습니다/
+  if (s.startsWith('✅') && (s.includes('구입했습니다') || /purchased/i.test(s))) {
+    const body = soften(s)
+    const m = s.match(/^✅\s*(.+?)\s+\d/)
+    const name = (m?.[1] || '').trim()
+
+    if (name && buyByProduct[name]) {
+      const template = pick(`buy_${name}`, buyByProduct[name])
+      return applyTemplate(template, { body })
+    }
+    const template = pick('buy', buyDefaultTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 판매 =======
+  if (s.startsWith('💰') && s.includes('판매했습니다')) {
+    const body = soften(s)
+    const m = s.match(/^💰\s*(.+?)\s+\d/)
+    const name = (m?.[1] || '').trim()
+
+    if (name && sellByProduct[name]) {
+      const template = pick(`sell_${name}`, sellByProduct[name])
+      return applyTemplate(template, { body })
+    }
+    const template = pick('sell', sellDefaultTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 실패 =======
+  if (s.startsWith('❌')) {
+    const body = soften(s)
+    const template = pick('fail', failTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 시장 이벤트 발생 =======
+  if (s.startsWith('📈') && s.includes('발생')) {
+    const body = soften(s)
+    const name1 = s.match(/^📈\s*(.+?)\s*발생/)?.[1]?.trim()
+    const name2 = s.match(/^📈\s*시장 이벤트 발생:\s*(.+?)\s*\(/)?.[1]?.trim()
+    const eventName = (name2 || name1 || '').trim()
+
+    const product = detectProduct(`${eventName} ${body}`) || '시장'
+    window.__diaryLastMarketProduct = product
+    window.__diaryLastMarketName = eventName || body
+
+    const templates = marketEventByProduct[product] || marketEventByProduct['시장']
+    const template = pick(`market_${product}`, templates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 시장 이벤트 종료 =======
+  if (s.startsWith('📉') && s.includes('종료')) {
+    const product = window.__diaryLastMarketProduct || '시장'
+    const name = window.__diaryLastMarketName || ''
+
+    const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
+    const key = isRealEstate ? '부동산' : product
+    const templates = marketEndByProduct[key] || marketEndByProduct['시장']
+    const template = pick(`marketEnd_${key}`, templates)
+
+    window.__diaryLastMarketProduct = null
+    window.__diaryLastMarketName = null
+
+    return applyTemplate(template, { name })
+  }
+
+  // ======= 팁/메모 =======
+  if (s.startsWith('💡')) {
+    const body = soften(s)
+    const product = window.__diaryLastMarketProduct || ''
+    const name = window.__diaryLastMarketName || ''
+
+    const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
+    const key = isRealEstate ? '부동산' : product
+
+    if (key && memoByProduct[key]) {
+      const template = pick(`memo_${key}`, memoByProduct[key])
+      return applyTemplate(template, { body, name })
+    }
+    const template = pick('memo', memoDefaultTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 업그레이드 해금 =======
+  if (s.startsWith('🎁') && s.includes('해금')) {
+    const body = soften(s)
+    const name = s.match(/해금:\s*(.+)$/)?.[1]?.trim() || ''
+
+    const detectUpgradeProduct = txt => {
+      const t = String(txt || '')
+      if (t.includes('예금')) return '예금'
+      if (t.includes('적금')) return '적금'
+      if (t.includes('미국주식') || t.includes('미장') || t.includes('🇺🇸')) return '미국주식'
+      if (t.includes('코인') || t.includes('₿') || t.includes('암호')) return '코인'
+      if (t.includes('주식')) return '국내주식'
+      if (t.includes('빌딩')) return '빌딩'
+      if (t.includes('상가')) return '상가'
+      if (t.includes('아파트')) return '아파트'
+      if (t.includes('오피스텔')) return '오피스텔'
+      if (t.includes('빌라')) return '빌라'
+      if (t.includes('월세') || t.includes('부동산')) return '부동산'
+      if (
+        t.includes('클릭') ||
+        t.includes('노동') ||
+        t.includes('업무') ||
+        t.includes('CEO') ||
+        t.includes('커리어')
+      )
+        return '노동'
+      return ''
+    }
+
+    const product = detectUpgradeProduct(`${name} ${body}`) || '기본'
+    const templates = upgradeUnlockByProduct[product] || upgradeUnlockByProduct['기본']
+    const template = pick(`upgradeUnlock_${product}`, templates)
+    return applyTemplate(template, { name: name || body })
+  }
+
+  // ======= 업그레이드 구매 =======
+  if (s.startsWith('✅') && s.includes('구매!')) {
+    const body = soften(s)
+    const m = s.match(/^✅\s*(.+?)\s*구매!\s*(.*)$/)
+    const upName = (m?.[1] || '').trim()
+    const upDesc = (m?.[2] || '').trim()
+
+    const detectUpgradeProduct = txt => {
+      const t = String(txt || '')
+      if (t.includes('예금')) return '예금'
+      if (t.includes('적금')) return '적금'
+      if (t.includes('미국주식') || t.includes('미장') || t.includes('🇺🇸')) return '미국주식'
+      if (t.includes('코인') || t.includes('₿') || t.includes('암호')) return '코인'
+      if (t.includes('주식')) return '국내주식'
+      if (t.includes('빌딩')) return '빌딩'
+      if (t.includes('상가')) return '상가'
+      if (t.includes('아파트')) return '아파트'
+      if (t.includes('오피스텔')) return '오피스텔'
+      if (t.includes('빌라')) return '빌라'
+      if (t.includes('월세') || t.includes('부동산')) return '부동산'
+      if (
+        t.includes('클릭') ||
+        t.includes('노동') ||
+        t.includes('업무') ||
+        t.includes('CEO') ||
+        t.includes('커리어')
+      )
+        return '노동'
+      return ''
+    }
+
+    const product = detectUpgradeProduct(`${upName} ${upDesc} ${body}`) || '기본'
+    const core = [upName, upDesc].filter(Boolean).join(' — ') || body
+    const templates = upgradeBuyByProduct[product] || upgradeBuyByProduct['기본']
+    const template = pick(`upgradeBuy_${product}`, templates)
+    return applyTemplate(template, { core, body })
+  }
+
+  // ======= 경고 =======
+  if (s.startsWith('⚠️')) {
+    const body = soften(s)
+    const template = pick('warn', warnTemplates)
+    return applyTemplate(template, { body })
+  }
+
+  // ======= 기본 =======
+  const base = soften(s)
+  const template = pick('default', defaultTemplates)
+  return applyTemplate(template, {
+    base,
+    justWrite: t('diary.justWrite'),
+    todayRecord: t('diary.todayRecord'),
+    anyway: t('diary.anyway'),
+    justRecord: t('diary.justRecord'),
+    memo: t('diary.memo'),
+    remember: t('diary.remember'),
+    recordForLater: t('diary.recordForLater'),
+    goodToWrite: t('diary.goodToWrite'),
+    leaveRecord: t('diary.leaveRecord'),
+  })
+}
+
 /**
  * 일기장에 로그 추가
  * @param {string} text - 추가할 로그 텍스트
@@ -39,1328 +396,15 @@ export function addLog(text) {
     return
   }
 
-  // 개발/디버깅 관련 메시지 필터링
-  const devKeywords = [
-    '🧪',
-    'v2.',
-    'v3.',
-    'Cookie Clicker',
-    '업그레이드 시스템',
-    'DOM 참조',
-    '성능 최적화',
-    '자동 저장 시스템',
-    '업그레이드 클릭',
-    '커리어 진행률',
-    '구현 완료',
-    '수정 완료',
-    '정상화',
-    '작동 중',
-    '활성화',
-    '해결',
-    '버그 수정',
-    '최적화',
-    '개편',
-    '벤치마킹',
-  ]
-
   // 개발 관련 메시지인지 확인
   const isDevMessage = devKeywords.some(keyword => text.includes(keyword))
-
-  // 개발 메시지는 로그에 표시하지 않음
   if (isDevMessage) {
     return
   }
 
   // ======= 일기장 변환 =======
-  const pad2 = n => String(n).padStart(2, '0')
   const now = new Date()
   const timeStamp = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`
-
-  function updateDiaryMeta() {
-    if (!gameStartTimeRef) {
-      return
-    }
-
-    const y = now.getFullYear()
-    const m = pad2(now.getMonth() + 1)
-    const d = pad2(now.getDate())
-    // gameStartTimeRef.gameStartTime이 있으면 그걸 쓰고, 없으면 sessionStartTimeRef 기준
-    const base =
-      typeof gameStartTimeRef.gameStartTime !== 'undefined' && gameStartTimeRef.gameStartTime
-        ? gameStartTimeRef.gameStartTime
-        : sessionStartTimeRef
-    const days = Math.max(1, Math.floor((Date.now() - base) / 86400000) + 1)
-
-    // (신) 헤더에 붙는 컴팩트 표기: yyyy.mm.dd(N일차)
-    const elCompact = document.getElementById('diaryHeaderMeta')
-    if (elCompact) {
-      elCompact.textContent = `${y}.${m}.${d}(${t('ui.dayCount', { days })})`
-    }
-
-    // (구) DOM이 남아있을 때만 업데이트 (호환)
-    const elDate = document.getElementById('diaryMetaDate')
-    const elDay = document.getElementById('diaryMetaDay')
-    if (elDate) elDate.textContent = t('ui.today', { date: `${y}.${m}.${d}` })
-    if (elDay) elDay.textContent = t('ui.dayCount', { days })
-  }
-
-  function diaryize(raw) {
-    const s = String(raw || '').trim()
-
-    // 업그레이드 잔여 클릭 안내는 일기장에 기록하지 않음
-    // 업그레이드 잔여 클릭 안내는 일기장에 기록하지 않음 (다국어 지원)
-    // 예: '🎯 다음 업그레이드 "📚 전문 교육"까지 25클릭 남음!'
-    // 예: '🎯 25 clicks until next upgrade "📚 Professional Education"!'
-    const nextUpgradePattern = new RegExp(
-      t('msg.nextUpgradeHint', { remaining: '\\d+', name: '.*' })
-        .replace(/\{remaining\}/g, '\\d+')
-        .replace(/\{name\}/g, '.*'),
-      'i'
-    )
-    if (nextUpgradePattern.test(s) || (/다음\s*업그레이드/.test(s) && /클릭\s*남/.test(s))) {
-      return ''
-    }
-
-    // 공통: 시스템 이모지/접두 제거
-    // eslint-disable-next-line no-misleading-character-class
-    const stripPrefix = t => t.replace(/^[✅❌💸💰🏆🎉🎁📈📉🔓⚠️💡]+\s*/gu, '').trim()
-    const rand = n => Math.floor(Math.random() * n)
-    const pick = (key, arr) => {
-      if (!Array.isArray(arr) || arr.length === 0) return ''
-      const storeKey = `__diaryLastPick_${key}`
-      const last = window[storeKey]
-      let idx = rand(arr.length)
-      if (arr.length > 1 && typeof last === 'number' && idx === last) {
-        idx = (idx + 1 + rand(arr.length - 1)) % arr.length
-      }
-      window[storeKey] = idx
-      return arr[idx]
-    }
-    const soften = t => stripPrefix(t).replace(/\s+/g, ' ').trim()
-
-    // 업적
-    // 다국어 지원: "🏆 업적 달성:" 또는 "🏆 Achievement Unlocked:"
-    const achievementPrefix =
-      t('msg.achievementUnlocked', { name: '', desc: '' }).split(':')[0] + ':'
-    if (s.startsWith('🏆') && (s.includes('업적 달성:') || s.includes('Achievement Unlocked:'))) {
-      // "🏆 업적 달성: A - B" 또는 "🏆 Achievement Unlocked: A - B"
-      const body = stripPrefix(s).replace(/^(업적 달성|Achievement Unlocked):\s*/i, '')
-      const [name, desc] = body.split(/\s*-\s*/)
-      return pick('achievement', [
-        `오늘은 체크 하나를 더했다. (${name || '업적'})`,
-        `작게나마 성취. ${name || '업적'}라니, 나도 꽤 한다.`,
-        `기록해둔다: ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `"${name || '업적'}" 달성.\n${desc ? `메모: ${desc}` : ''}`.trim(),
-        `별거 아닌 듯한데, 이런 게 쌓여서 사람이 된다. (${name || '업적'})`,
-        `또 하나의 마일스톤. ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `작은 성취도 성취다. ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `하루하루가 쌓인다. 오늘은 ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `기록에 하나 더. ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `뿌듯함이 조금씩. ${name || '업적'} 달성.\n${desc ? desc : ''}`.trim(),
-        `이런 게 인생이지. ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-        `작은 발걸음이 모여 길이 된다. ${name || '업적'}.\n${desc ? desc : ''}`.trim(),
-      ])
-    }
-
-    // 승진
-    // 다국어 지원: "승진했습니다" 또는 "promoted"
-    const promotedPattern =
-      getLang() === 'en'
-        ? /🎉\s*(.+?)\s+promoted!?(\s*\(.*\))?/i
-        : /🎉\s*(.+?)으로\s*승진했습니다!?(\s*\(.*\))?/
-    if (s.startsWith('🎉') && (s.includes('승진했습니다') || /promoted/i.test(s))) {
-      // "🎉 직급으로 승진했습니다! (클릭당 X원)" 또는 "🎉 Career promoted! (X KRW per click)"
-      const m = s.match(promotedPattern)
-      const career = m?.[1]?.trim()
-      const extra = m?.[2]?.trim()
-      const extraText = extra ? extra.replace(/[()]/g, '').trim() : ''
-      return pick('promotion', [
-        `명함이 바뀌었다. ${career || '다음 단계'}.\n${extraText}`.trim(),
-        `오늘은 좀 뿌듯하다. ${career || '승진'}이라니.\n${extraText}`.trim(),
-        `승진했다. 책임도 같이 딸려온다는데… 일단 축하부터.\n${extraText}`.trim(),
-        `그래, 나도 올라갈 줄 안다. ${career || '승진'}.\n${extraText}`.trim(),
-        `커피가 조금 더 쓰게 느껴진다. ${career || '승진'}의 맛.\n${extraText}`.trim(),
-        `한 단계 올라섰다. ${career || '승진'}.\n${extraText}`.trim(),
-        `노력이 보상받는 순간. ${career || '승진'}.\n${extraText}`.trim(),
-        `새로운 시작. ${career || '승진'}.\n${extraText}`.trim(),
-        `더 높은 곳에서 보는 풍경이 다르다. ${career || '승진'}.\n${extraText}`.trim(),
-        `자리도 바뀌고 마음도 바뀐다. ${career || '승진'}.\n${extraText}`.trim(),
-        `이제야 진짜 시작인가. ${career || '승진'}.\n${extraText}`.trim(),
-        `무게감이 느껴진다. ${career || '승진'}의 무게.\n${extraText}`.trim(),
-      ])
-    }
-
-    // 해금
-    // 다국어 지원: "해금" 또는 "unlocked"
-    const unlockPattern = getLang() === 'en' ? /^🔓\s*(.+?)\s+unlocked/i : /^🔓\s*(.+?)이\s*해금/
-    if (s.startsWith('🔓')) {
-      const body = soften(s)
-      const m = s.match(unlockPattern)
-      const name = (m?.[1] || '').trim()
-      const unlockByProduct = {
-        적금: [
-          `자동이체 버튼이 눈에 들어왔다.\n${body}`,
-          `천천히 쌓는 쪽으로 방향을 틀었다.\n${body}`,
-          `오늘은 '루틴'이 열렸다.\n${body}`,
-          `꾸준함의 길이 열렸다.\n${body}`,
-          `작은 투자의 문이 열렸다.\n${body}`,
-          `시간이 내 편이 되는 선택지.\n${body}`,
-          `루틴 투자의 시작.\n${body}`,
-          `매일의 습관이 가능해졌다.\n${body}`,
-          `인내심의 투자가 열렸다.\n${body}`,
-          `작은 것들이 모이는 길.\n${body}`,
-        ],
-        국내주식: [
-          `이제 차트랑 뉴스랑 싸울 차례다.\n${body}`,
-          `심장이 약하면 못 할 선택지… 열렸다.\n${body}`,
-          `변동성의 문이 열렸다.\n${body}`,
-          `국장의 세계로 입문.\n${body}`,
-          `차트의 파도를 탈 수 있다.\n${body}`,
-          `투자자의 길이 열렸다.\n${body}`,
-          `변동성에 도전할 수 있다.\n${body}`,
-          `국장의 심장박동을 느낄 수 있다.\n${body}`,
-          `위험과 기회의 문.\n${body}`,
-          `국장 투자의 시작.\n${body}`,
-        ],
-        미국주식: [
-          `시차를 버티는 돈이 열렸다.\n${body}`,
-          `달러 냄새가 난다.\n${body}`,
-          `밤샘의 선택지… 드디어.\n${body}`,
-          `글로벌 투자의 문이 열렸다.\n${body}`,
-          `세계 시장에 발을 담글 수 있다.\n${body}`,
-          `미장의 파도를 탈 수 있다.\n${body}`,
-          `달러의 무게를 느낄 수 있다.\n${body}`,
-          `시차의 스트레스를 견딜 수 있다.\n${body}`,
-          `환율의 변동을 경험할 수 있다.\n${body}`,
-          `미장 투자의 시작.\n${body}`,
-        ],
-        코인: [
-          `롤러코스터 입장권이 생겼다.\n${body}`,
-          `FOMO가 문을 두드린다.\n${body}`,
-          `폭등/폭락의 세계가 열렸다.\n${body}`,
-          `변동성의 극치를 경험할 수 있다.\n${body}`,
-          `멘탈이 시험받는 투자.\n${body}`,
-          `코인판의 무게를 견딜 수 있다.\n${body}`,
-          `FOMO와 공포 사이의 선택.\n${body}`,
-          `디지털 자산의 세계.\n${body}`,
-          `심장이 먼저 반응하는 투자.\n${body}`,
-          `롤러코스터의 정점에 설 수 있다.\n${body}`,
-        ],
-        빌라: [
-          `첫 '집'이라는 단어가 현실이 됐다.\n${body}`,
-          `작아도 내 편이 하나 생긴 기분.\n${body}`,
-          `부동산 투자의 첫걸음.\n${body}`,
-          `집이라는 단어가 현실이 됐다.\n${body}`,
-          `내 공간을 가질 수 있다.\n${body}`,
-          `작은 집도 집이다.\n${body}`,
-          `부동산의 세계로 입문.\n${body}`,
-          `첫 집의 무게감을 느낄 수 있다.\n${body}`,
-          `내 이름으로 등기할 수 있다.\n${body}`,
-          `부동산 투자의 시작.\n${body}`,
-        ],
-        오피스텔: [
-          `출근 동선이 머리에 그려졌다.\n${body}`,
-          `현실적인 선택지가 열렸다.\n${body}`,
-          `실용적인 투자가 가능해졌다.\n${body}`,
-          `생활의 편의를 살 수 있다.\n${body}`,
-          `도시 생활의 현실을 경험할 수 있다.\n${body}`,
-          `작은 공간, 큰 만족의 선택.\n${body}`,
-          `실용주의의 투자.\n${body}`,
-          `생활의 질을 올릴 수 있다.\n${body}`,
-          `현실적인 부동산 투자.\n${body}`,
-          `도시 생활의 편의를 살 수 있다.\n${body}`,
-        ],
-        아파트: [
-          `꿈이 조금 현실 쪽으로 다가왔다.\n${body}`,
-          `안정의 상징이 열렸다.\n${body}`,
-          `한국인의 꿈을 살 수 있다.\n${body}`,
-          `부동산 투자의 정점.\n${body}`,
-          `아파트의 무게감을 느낄 수 있다.\n${body}`,
-          `꿈이 현실이 되는 순간.\n${body}`,
-          `안정적인 투자가 가능해졌다.\n${body}`,
-          `부동산의 대표주자를 살 수 있다.\n${body}`,
-          `가치가 보장되는 선택.\n${body}`,
-          `한국 사회의 상징을 살 수 있다.\n${body}`,
-        ],
-        상가: [
-          `유동인구라는 단어가 갑자기 무겁다.\n${body}`,
-          `장사 잘되길… 진심으로.\n${body}`,
-          `상권의 힘을 믿을 수 있다.\n${body}`,
-          `유동인구가 내 수익이 될 수 있다.\n${body}`,
-          `상권 투자의 묘미를 느낄 수 있다.\n${body}`,
-          `임대 수익의 달콤함을 경험할 수 있다.\n${body}`,
-          `상가의 가치를 알아볼 수 있다.\n${body}`,
-          `상권의 파도를 탈 수 있다.\n${body}`,
-          `임차인의 성공이 내 성공이 될 수 있다.\n${body}`,
-          `상가 투자의 리스크를 감수할 수 있다.\n${body}`,
-        ],
-        빌딩: [
-          `스카이라인에 욕심이 생겼다.\n${body}`,
-          `이제 진짜 '엔드게임' 냄새.\n${body}`,
-          `부동산 투자의 정점.\n${body}`,
-          `스카이라인의 주인이 될 수 있다.\n${body}`,
-          `도시의 한 조각을 소유할 수 있다.\n${body}`,
-          `빌딩의 무게감을 느낄 수 있다.\n${body}`,
-          `부동산 투자의 완성.\n${body}`,
-          `도시의 심장부를 살 수 있다.\n${body}`,
-          `스카이라인에 내 이름을 올릴 수 있다.\n${body}`,
-          `부동산 투자의 궁극.\n${body}`,
-        ],
-      }
-      if (name && unlockByProduct[name]) {
-        return pick(`unlock_${name}`, unlockByProduct[name])
-      }
-      return pick('unlock', [
-        `문이 하나 열렸다.\n${body}`,
-        `다음 장으로 넘어갈 수 있게 됐다.\n${body}`,
-        `아직 초반인데도, 벌써 선택지가 늘었다.\n${body}`,
-        `드디어. ${body}`,
-        `새로운 가능성이 열렸다.\n${body}`,
-        `선택지가 하나 더 생겼다.\n${body}`,
-        `다음 단계로 나아갈 수 있다.\n${body}`,
-        `기회의 문이 열렸다.\n${body}`,
-        `새로운 길이 보인다.\n${body}`,
-        `진행의 길이 열렸다.\n${body}`,
-      ])
-    }
-
-    // 구매/판매/부족
-    if (s.startsWith('💸 자금이 부족합니다')) {
-      const body = soften(s)
-      return pick('noMoney', [
-        `지갑이 얇아서 아무것도 못 했다.\n${body}`,
-        `현실 체크. 돈이 없다.\n${body}`,
-        `오늘은 참는다. 아직은 무리.\n${body}`,
-        `계산기만 두드리고 끝.\n${body}`,
-        `통장 잔고가 거짓말을 한다.\n${body}`,
-        `돈이 부족하다는 건 늘 아프다.\n${body}`,
-        `다시 모아야 한다. 조금 더.\n${body}`,
-        `욕심을 접어야 할 때.\n${body}`,
-        `현실이 무겁다.\n${body}`,
-        `내일을 기다려야 한다.\n${body}`,
-      ])
-    }
-    // 구매 메시지: "✅ 구입했습니다" 또는 "✅ Purchased"
-    const purchasedPattern =
-      getLang() === 'en' ? /^✅\s*.+?\s+purchased/i : /^✅\s*.+?\s+구입했습니다/
-    if (s.startsWith('✅') && (s.includes('구입했습니다') || /purchased/i.test(s))) {
-      const body = soften(s)
-      const m = s.match(/^✅\s*(.+?)\s+\d/)
-      const name = (m?.[1] || '').trim()
-
-      const buyByProduct = {
-        예금: [
-          `일단은 안전한 데에 묶어두자.\n${body}`,
-          `불안할 땐 예금이 답이다.\n${body}`,
-          `통장에 '쿠션'을 하나 깔았다.\n${body}`,
-          `안전함이 최고의 수익률.\n${body}`,
-          `무엇보다도 평온함.\n${body}`,
-          `돈이 잠들어 있는 게 나쁘지 않다.\n${body}`,
-          `은행이 내 편이 되는 순간.\n${body}`,
-          `위험은 내일로 미뤄두자.\n${body}`,
-          `조용히 쌓이는 게 좋다.\n${body}`,
-          `불안할 때는 이게 최선.\n${body}`,
-          `돈이 안전하게 지켜지는 느낌.\n${body}`,
-          `위험 없는 선택.\n${body}`,
-        ],
-        적금: [
-          `루틴을 샀다. 매일이 쌓이면 언젠가.\n${body}`,
-          `천천히, 꾸준히. 적금은 배신을 덜 한다.\n${body}`,
-          `버티기 모드 ON.\n${body}`,
-          `작은 것들이 모여 큰 것이 된다.\n${body}`,
-          `매일의 습관이 미래를 만든다.\n${body}`,
-          `꾸준함이 무기다.\n${body}`,
-          `서두르지 않고 천천히.\n${body}`,
-          `시간이 내 편이 되는 느낌.\n${body}`,
-          `작은 투자가 큰 결과를 만든다.\n${body}`,
-          `루틴의 힘을 믿는다.\n${body}`,
-          `매일 조금씩, 그게 전부다.\n${body}`,
-          `인내심이 필요한 투자.\n${body}`,
-        ],
-        국내주식: [
-          `차트가 나를 보더니 웃는 것 같았다.\n${body}`,
-          `기대 반, 긴장 반.\n${body}`,
-          `뉴스 알람을 켜야 할 것 같다.\n${body}`,
-          `변동성의 바다에 뛰어든다.\n${body}`,
-          `심장이 뛰는 투자.\n${body}`,
-          `국장의 파도를 타본다.\n${body}`,
-          `위험과 기회가 공존한다.\n${body}`,
-          `차트 한 줄에 모든 게 달렸다.\n${body}`,
-          `투자자의 길을 걷는다.\n${body}`,
-          `시장의 심장박동을 느낀다.\n${body}`,
-          `변동성에 내 심장도 같이 흔들린다.\n${body}`,
-          `국장의 무게를 견뎌본다.\n${body}`,
-        ],
-        미국주식: [
-          `달러 환율부터 떠올랐다.\n${body}`,
-          `밤에 울리는 알림을 각오했다.\n${body}`,
-          `세계로 한 걸음.\n${body}`,
-          `시차를 극복하는 투자.\n${body}`,
-          `미장의 파도를 타본다.\n${body}`,
-          `달러의 무게를 느낀다.\n${body}`,
-          `세계 시장에 발을 담근다.\n${body}`,
-          `밤샘의 대가를 치른다.\n${body}`,
-          `환율이 내 수익을 좌우한다.\n${body}`,
-          `글로벌 투자자의 길.\n${body}`,
-          `시차 때문에 잠을 설친다.\n${body}`,
-          `미장의 리듬에 맞춘다.\n${body}`,
-        ],
-        코인: [
-          `심장 단단히 붙잡고 탔다.\n${body}`,
-          `오늘은 FOMO가 이겼다.\n${body}`,
-          `롤러코스터에 표를 끊었다.\n${body}`,
-          `폭등과 폭락 사이에서 줄타기.\n${body}`,
-          `멘탈이 시험받는 투자.\n${body}`,
-          `변동성의 극치를 경험한다.\n${body}`,
-          `코인판의 무게를 견뎌본다.\n${body}`,
-          `FOMO와 공포 사이에서.\n${body}`,
-          `디지털 자산의 세계.\n${body}`,
-          `심장이 먼저 반응한다.\n${body}`,
-          `롤러코스터의 정점에 서 있다.\n${body}`,
-          `위험을 감수하는 선택.\n${body}`,
-        ],
-        빌라: [
-          `작아도 시작은 시작이다.\n${body}`,
-          `첫 집 느낌… 마음이 조금 놓였다.\n${body}`,
-          `벽지 냄새를 상상했다.\n${body}`,
-          `첫 부동산. 작지만 소중하다.\n${body}`,
-          `집이라는 단어가 현실이 됐다.\n${body}`,
-          `내 공간이 생겼다.\n${body}`,
-          `작은 집도 집이다.\n${body}`,
-          `부동산 투자의 첫걸음.\n${body}`,
-          `작은 시작이 큰 결과를 만든다.\n${body}`,
-          `첫 집의 무게감.\n${body}`,
-          `내 이름으로 등기되는 순간.\n${body}`,
-          `부동산의 세계에 입문했다.\n${body}`,
-        ],
-        오피스텔: [
-          `현실적인 선택을 했다.\n${body}`,
-          `출근길이 짧아지는 상상을 했다.\n${body}`,
-          `관리비 생각은 내일 하자.\n${body}`,
-          `실용적인 투자.\n${body}`,
-          `출근 동선이 머리에 그려진다.\n${body}`,
-          `현실과 이상의 절충.\n${body}`,
-          `생활의 편의를 샀다.\n${body}`,
-          `도시 생활의 현실.\n${body}`,
-          `작은 공간, 큰 만족.\n${body}`,
-          `실용주의의 승리.\n${body}`,
-          `생활의 질이 올라간다.\n${body}`,
-          `현실적인 부동산 투자.\n${body}`,
-        ],
-        아파트: [
-          `꿈이 조금 더 선명해졌다.\n${body}`,
-          `안정의 상징을 손에 쥐었다.\n${body}`,
-          `괜히 뿌듯하다.\n${body}`,
-          `한국인의 꿈을 샀다.\n${body}`,
-          `안정의 상징을 손에 쥐었다.\n${body}`,
-          `부동산 투자의 정점.\n${body}`,
-          `아파트의 무게감.\n${body}`,
-          `꿈이 현실이 되는 순간.\n${body}`,
-          `안정적인 투자.\n${body}`,
-          `부동산의 대표주자.\n${body}`,
-          `가치가 보장되는 선택.\n${body}`,
-          `한국 사회의 상징.\n${body}`,
-        ],
-        상가: [
-          `유동인구가 돈이 되는 세계.\n${body}`,
-          `임차인 운이 따라주길.\n${body}`,
-          `간판 불빛을 상상했다.\n${body}`,
-          `상권의 힘을 믿는다.\n${body}`,
-          `유동인구가 내 수익이다.\n${body}`,
-          `상권 투자의 묘미.\n${body}`,
-          `임대 수익의 달콤함.\n${body}`,
-          `상가의 가치를 알아본다.\n${body}`,
-          `유동인구가 곧 돈이다.\n${body}`,
-          `상권의 파도를 타본다.\n${body}`,
-          `임차인의 성공이 내 성공.\n${body}`,
-          `상가 투자의 리스크.\n${body}`,
-        ],
-        빌딩: [
-          `스카이라인을 한 조각 샀다.\n${body}`,
-          `이건… 진짜 끝판왕 느낌이다.\n${body}`,
-          `도시가 내 편인 것 같았다.\n${body}`,
-          `부동산 투자의 정점.\n${body}`,
-          `스카이라인의 주인.\n${body}`,
-          `도시의 한 조각을 소유한다.\n${body}`,
-          `빌딩의 무게감.\n${body}`,
-          `부동산 투자의 완성.\n${body}`,
-          `도시의 심장부를 샀다.\n${body}`,
-          `스카이라인에 내 이름이.\n${body}`,
-          `부동산 투자의 궁극.\n${body}`,
-          `도시의 한 부분이 내 것이다.\n${body}`,
-        ],
-      }
-
-      if (name && buyByProduct[name]) {
-        return pick(`buy_${name}`, buyByProduct[name])
-      }
-
-      return pick('buy', [
-        `결심하고 질렀다.\n${body}`,
-        `통장 잔고가 줄어들었다. 대신 미래를 샀다.\n${body}`,
-        `이건 소비가 아니라 투자라고… 스스로에게 말했다.\n${body}`,
-        `한 발 더 나아갔다.\n${body}`,
-        `손이 먼저 움직였다.\n${body}`,
-        `투자의 길을 걷는다.\n${body}`,
-        `미래를 위한 선택.\n${body}`,
-        `돈이 돈을 버는 구조.\n${body}`,
-        `자산을 늘리는 순간.\n${body}`,
-        `투자자의 마음가짐.\n${body}`,
-      ])
-    }
-    if (s.startsWith('💰') && s.includes('판매했습니다')) {
-      const body = soften(s)
-      const m = s.match(/^💰\s*(.+?)\s+\d/)
-      const name = (m?.[1] || '').trim()
-      const sellByProduct = {
-        코인: [
-          `손이 떨리기 전에 내렸다.\n${body}`,
-          `욕심을 접었다. 오늘은 이쯤.\n${body}`,
-          `살아남는 게 먼저다.\n${body}`,
-          `FOMO를 이겨냈다.\n${body}`,
-          `멘탈을 지키기 위해 내렸다.\n${body}`,
-          `롤러코스터에서 내렸다.\n${body}`,
-          `변동성에서 벗어났다.\n${body}`,
-          `손절의 아픔을 견뎌낸다.\n${body}`,
-          `코인판에서 살아남았다.\n${body}`,
-          `위험에서 벗어났다.\n${body}`,
-        ],
-        국내주식: [
-          `수익이든 손절이든, 결론은 냈다.\n${body}`,
-          `차트와 잠깐 이별.\n${body}`,
-          `정리하고 숨 돌린다.\n${body}`,
-          `국장의 파도에서 벗어났다.\n${body}`,
-          `차트의 무게에서 해방.\n${body}`,
-          `투자 포지션을 정리했다.\n${body}`,
-          `변동성에서 벗어났다.\n${body}`,
-          `국장의 스트레스에서 해방.\n${body}`,
-          `정리하고 다음 기회를 본다.\n${body}`,
-          `차트와의 관계를 정리했다.\n${body}`,
-        ],
-        미국주식: [
-          `시차도 같이 정리했다.\n${body}`,
-          `달러 생각은 잠시 접는다.\n${body}`,
-          `잠깐 쉬어가기로 했다.\n${body}`,
-          `미장의 밤샘에서 벗어났다.\n${body}`,
-          `시차의 스트레스에서 해방.\n${body}`,
-          `달러의 무게에서 벗어났다.\n${body}`,
-          `미장 투자를 정리했다.\n${body}`,
-          `글로벌 투자에서 잠시 휴식.\n${body}`,
-          `환율 걱정을 접었다.\n${body}`,
-          `미장의 리듬에서 벗어났다.\n${body}`,
-        ],
-        예금: [
-          `안전벨트를 풀었다.\n${body}`,
-          `현금이 필요했다.\n${body}`,
-          `안전함에서 벗어났다.\n${body}`,
-          `예금의 안정성을 포기했다.\n${body}`,
-          `현금화의 선택.\n${body}`,
-          `안전한 곳에서 돈을 꺼냈다.\n${body}`,
-          `예금의 편안함을 잃었다.\n${body}`,
-          `현금이 필요해 정리했다.\n${body}`,
-          `안전한 투자에서 벗어났다.\n${body}`,
-          `예금의 쿠션을 제거했다.\n${body}`,
-        ],
-        적금: [
-          `꾸준함을 잠깐 멈췄다.\n${body}`,
-          `루틴을 깼다. 사정이 있었다.\n${body}`,
-          `적금의 루틴을 중단했다.\n${body}`,
-          `꾸준함을 포기했다.\n${body}`,
-          `루틴의 힘을 잃었다.\n${body}`,
-          `적금의 안정성을 포기.\n${body}`,
-          `매일의 습관을 깼다.\n${body}`,
-          `적금의 꾸준함을 중단.\n${body}`,
-          `루틴 투자에서 벗어났다.\n${body}`,
-          `적금의 시간을 포기했다.\n${body}`,
-        ],
-        빌라: [
-          `정든 것과 이별.\n${body}`,
-          `현실적으로 정리했다.\n${body}`,
-          `첫 집과 작별.\n${body}`,
-          `부동산 투자를 정리했다.\n${body}`,
-          `작은 집을 내려놨다.\n${body}`,
-          `첫 부동산과 이별.\n${body}`,
-          `집의 무게에서 벗어났다.\n${body}`,
-          `부동산의 첫걸음을 정리.\n${body}`,
-          `작은 집을 포기했다.\n${body}`,
-          `첫 집의 추억을 정리.\n${body}`,
-        ],
-        오피스텔: [
-          `동선은 이제 안녕.\n${body}`,
-          `정리하고 다음으로.\n${body}`,
-          `실용적인 투자를 정리.\n${body}`,
-          `출근 동선의 편의를 포기.\n${body}`,
-          `현실적인 선택을 정리.\n${body}`,
-          `오피스텔의 실용성을 포기.\n${body}`,
-          `생활의 편의를 잃었다.\n${body}`,
-          `도시 생활의 현실을 정리.\n${body}`,
-          `작은 공간을 내려놨다.\n${body}`,
-          `현실적인 투자를 정리.\n${body}`,
-        ],
-        아파트: [
-          `꿈을 잠시 내려놓았다.\n${body}`,
-          `정리했다. 마음이 좀 쓰다.\n${body}`,
-          `한국인의 꿈을 포기.\n${body}`,
-          `안정의 상징을 내려놨다.\n${body}`,
-          `부동산 투자를 정리.\n${body}`,
-          `아파트의 무게에서 벗어났다.\n${body}`,
-          `꿈이 현실에서 멀어졌다.\n${body}`,
-          `안정적인 투자를 포기.\n${body}`,
-          `부동산의 대표주자를 정리.\n${body}`,
-          `가치 보장을 포기했다.\n${body}`,
-        ],
-        상가: [
-          `임차인 걱정이 덜었다.\n${body}`,
-          `상권이란 게 참…\n${body}`,
-          `유동인구의 기회를 포기.\n${body}`,
-          `상권 투자를 정리했다.\n${body}`,
-          `임대 수익의 달콤함을 포기.\n${body}`,
-          `상가의 가치를 내려놨다.\n${body}`,
-          `유동인구의 수익을 포기.\n${body}`,
-          `상권의 파도에서 벗어났다.\n${body}`,
-          `임차인의 성공을 포기.\n${body}`,
-          `상가 투자의 리스크를 정리.\n${body}`,
-        ],
-        빌딩: [
-          `도시 한 조각을 내려놨다.\n${body}`,
-          `정리했다. 다시 올라가면 된다.\n${body}`,
-          `부동산 투자의 정점을 포기.\n${body}`,
-          `스카이라인의 주인을 내려놨다.\n${body}`,
-          `도시의 한 조각을 포기.\n${body}`,
-          `빌딩의 무게에서 벗어났다.\n${body}`,
-          `부동산 투자의 완성을 정리.\n${body}`,
-          `도시의 심장부를 포기.\n${body}`,
-          `스카이라인에서 내 이름을 지웠다.\n${body}`,
-          `부동산 투자의 궁극을 정리.\n${body}`,
-        ],
-      }
-      if (name && sellByProduct[name]) {
-        return pick(`sell_${name}`, sellByProduct[name])
-      }
-      return pick('sell', [
-        `정리할 건 정리했다.\n${body}`,
-        `가끔은 줄여야 산다.\n${body}`,
-        `현금이 필요했다. 그래서 팔았다.\n${body}`,
-        `미련은 접어두고 정리.\n${body}`,
-        `투자 포지션을 정리했다.\n${body}`,
-        `현금화의 선택.\n${body}`,
-        `자산을 정리하는 순간.\n${body}`,
-        `투자에서 벗어났다.\n${body}`,
-        `정리하고 다음 기회를 본다.\n${body}`,
-        `미련 없이 정리했다.\n${body}`,
-      ])
-    }
-    if (s.startsWith('❌')) {
-      const body = soften(s)
-      return pick('fail', [
-        `오늘은 뜻대로 안 됐다.\n${body}`,
-        `계획은 늘 계획대로 안 된다.\n${body}`,
-        `한 번 더. 다음엔 될 거다.\n${body}`,
-        `벽에 부딪혔다.\n${body}`,
-        `실패는 또 다른 시작.\n${body}`,
-        `좌절은 잠시뿐.\n${body}`,
-        `다시 일어서야 한다.\n${body}`,
-        `실패도 경험이다.\n${body}`,
-        `다음 기회를 기다린다.\n${body}`,
-        `실패에서 배운다.\n${body}`,
-      ])
-    }
-
-    // 시장 이벤트
-    if (s.startsWith('📈') && s.includes('발생')) {
-      const body = soften(s)
-
-      // 예) "📈 강남 아파트 대박 발생! 30초간 지속"
-      // 예) "📈 시장 이벤트 발생: 강남 아파트 대박 (30초)"
-      const name1 = s.match(/^📈\s*(.+?)\s*발생/)?.[1]?.trim()
-      const name2 = s.match(/^📈\s*시장 이벤트 발생:\s*(.+?)\s*\(/)?.[1]?.trim()
-      const eventName = (name2 || name1 || '').trim()
-
-      const detectProduct = txt => {
-        const t = String(txt || '')
-        const rules = [
-          ['빌딩', '빌딩'],
-          ['상가', '상가'],
-          ['아파트', '아파트'],
-          ['오피스텔', '오피스텔'],
-          ['빌라', '빌라'],
-          ['코인', '코인'],
-          ['암호', '코인'],
-          ['크립토', '코인'],
-          ['₿', '코인'],
-          ['미국', '미국주식'],
-          ['🇺🇸', '미국주식'],
-          ['달러', '미국주식'],
-          ['주식', '국내주식'],
-          ['코스피', '국내주식'],
-          ['코스닥', '국내주식'],
-          ['적금', '적금'],
-          ['예금', '예금'],
-          ['노동', '노동'],
-          ['클릭', '노동'],
-          ['업무', '노동'],
-        ]
-        for (const [k, v] of rules) if (t.includes(k)) return v
-        return ''
-      }
-
-      const product = detectProduct(`${eventName} ${body}`) || '시장'
-      window.__diaryLastMarketProduct = product
-      window.__diaryLastMarketName = eventName || body
-
-      const byProduct = {
-        예금: [
-          `예금 쪽은 흔들려도 티가 덜 난다. 그게 장점이자 단점.\n${body}`,
-          `안정은 조용히 돈을 번다. 오늘도 예금은 예금했다.\n${body}`,
-          `예금은 변하지 않는다. 그게 장점.\n${body}`,
-          `안정적인 투자는 조용하다.\n${body}`,
-          `예금의 평온함이 느껴진다.\n${body}`,
-          `변동성 없는 투자의 편안함.\n${body}`,
-          `예금은 늘 그 자리다.\n${body}`,
-          `안전함의 가치를 느낀다.\n${body}`,
-          `예금의 조용한 수익.\n${body}`,
-          `변동 없는 투자의 평온.\n${body}`,
-        ],
-        적금: [
-          `루틴이 흔들리는 날이 있다. 그래도 적금은 적금.\n${body}`,
-          `꾸준함의 세계에도 이벤트는 온다.\n${body}`,
-          `적금의 루틴이 흔들린다.\n${body}`,
-          `꾸준함에도 변화가 있다.\n${body}`,
-          `적금의 안정성이 시험받는다.\n${body}`,
-          `루틴 투자의 변동.\n${body}`,
-          `매일의 습관이 흔들린다.\n${body}`,
-          `적금의 꾸준함이 시험받는다.\n${body}`,
-          `시간이 만드는 투자의 변화.\n${body}`,
-          `적금의 루틴이 바뀐다.\n${body}`,
-        ],
-        국내주식: [
-          `차트가 또 날 시험한다.\n${body}`,
-          `뉴스 한 줄에 심장이 먼저 반응했다.\n${body}`,
-          `국장답게… 오늘도 변동성.\n${body}`,
-          `국장의 파도가 높아진다.\n${body}`,
-          `차트의 심장박동이 빨라진다.\n${body}`,
-          `국장의 변동성이 극대화된다.\n${body}`,
-          `뉴스 한 줄이 모든 걸 바꾼다.\n${body}`,
-          `국장의 무게가 느껴진다.\n${body}`,
-          `차트의 파도를 타야 한다.\n${body}`,
-          `국장 투자의 리스크가 커진다.\n${body}`,
-        ],
-        미국주식: [
-          `시차가 오늘따라 더 길게 느껴진다.\n${body}`,
-          `달러랑 감정은 분리… 하자.\n${body}`,
-          `미장 이벤트는 밤에 더 크게 들린다.\n${body}`,
-          `미장의 파도가 높아진다.\n${body}`,
-          `시차의 스트레스가 커진다.\n${body}`,
-          `달러의 무게가 느껴진다.\n${body}`,
-          `미장의 리듬이 바뀐다.\n${body}`,
-          `환율의 변동이 심해진다.\n${body}`,
-          `밤샘의 대가가 커진다.\n${body}`,
-          `글로벌 투자의 무게.\n${body}`,
-        ],
-        코인: [
-          `멘탈이 먼저 흔들린다. 코인은 늘 그렇다.\n${body}`,
-          `롤러코스터가 출발했다.\n${body}`,
-          `FOMO랑 손절 사이에서 줄타기.\n${body}`,
-          `코인판의 파도가 거세진다.\n${body}`,
-          `변동성의 극치를 경험한다.\n${body}`,
-          `멘탈이 시험받는 순간.\n${body}`,
-          `FOMO와 공포 사이에서.\n${body}`,
-          `롤러코스터의 정점에 서 있다.\n${body}`,
-          `코인판의 무게가 느껴진다.\n${body}`,
-          `위험을 감수하는 투자의 극치.\n${body}`,
-        ],
-        빌라: [
-          `동네 분위기가 바뀌면 빌라도 숨을 쉰다.\n${body}`,
-          `작은 집도 결국은 시장을 탄다.\n${body}`,
-          `부동산 시장의 파도가 느껴진다.\n${body}`,
-          `작은 집도 시장의 영향을 받는다.\n${body}`,
-          `부동산 투자의 변동성.\n${body}`,
-          `동네 분위기의 변화.\n${body}`,
-          `작은 집의 가치가 흔들린다.\n${body}`,
-          `부동산 시장의 리듬.\n${body}`,
-          `첫 집의 무게감이 느껴진다.\n${body}`,
-          `부동산 투자의 리스크.\n${body}`,
-        ],
-        오피스텔: [
-          `현실의 수요가 움직이는 소리가 난다.\n${body}`,
-          `출근 동선이 바뀌면 월세도 같이 흔들린다.\n${body}`,
-          `실용적인 투자도 시장의 영향을 받는다.\n${body}`,
-          `생활의 편의가 시장에 좌우된다.\n${body}`,
-          `도시 생활의 현실이 바뀐다.\n${body}`,
-          `오피스텔의 가치가 흔들린다.\n${body}`,
-          `현실적인 투자의 변동성.\n${body}`,
-          `생활의 질이 시장에 좌우된다.\n${body}`,
-          `실용주의 투자의 리스크.\n${body}`,
-          `도시 생활의 현실이 느껴진다.\n${body}`,
-        ],
-        아파트: [
-          `아파트는 '상징'이라더니, 이벤트도 상징처럼 크게 온다.\n${body}`,
-          `꿈이 흔들릴 때가 있다.\n${body}`,
-          `한국인의 꿈이 시장에 좌우된다.\n${body}`,
-          `안정의 상징이 흔들린다.\n${body}`,
-          `부동산 투자의 정점이 시험받는다.\n${body}`,
-          `아파트의 무게감이 느껴진다.\n${body}`,
-          `꿈이 현실에서 멀어질 수 있다.\n${body}`,
-          `안정적인 투자도 변동한다.\n${body}`,
-          `부동산의 대표주자가 흔들린다.\n${body}`,
-          `가치 보장이 시장에 좌우된다.\n${body}`,
-        ],
-        상가: [
-          `유동인구라는 말이 오늘은 무겁다.\n${body}`,
-          `장사라는 건 결국 파도 타기.\n${body}`,
-          `상권의 힘이 시장에 좌우된다.\n${body}`,
-          `유동인구의 수익이 변동한다.\n${body}`,
-          `상권 투자의 묘미와 리스크.\n${body}`,
-          `임대 수익의 달콤함과 쓴맛.\n${body}`,
-          `상가의 가치가 흔들린다.\n${body}`,
-          `상권의 파도가 거세진다.\n${body}`,
-          `임차인의 성공이 시장에 좌우된다.\n${body}`,
-          `상가 투자의 리스크가 커진다.\n${body}`,
-        ],
-        빌딩: [
-          `도시가 요동치면 빌딩도 요동친다.\n${body}`,
-          `스카이라인의 공기가 달라졌다.\n${body}`,
-          `부동산 투자의 정점이 시험받는다.\n${body}`,
-          `스카이라인의 주인이 시장에 좌우된다.\n${body}`,
-          `도시의 한 조각이 흔들린다.\n${body}`,
-          `빌딩의 무게감이 느껴진다.\n${body}`,
-          `부동산 투자의 완성이 시장에 좌우된다.\n${body}`,
-          `도시의 심장부가 요동친다.\n${body}`,
-          `스카이라인의 이름이 흔들린다.\n${body}`,
-          `부동산 투자의 궁극이 시험받는다.\n${body}`,
-        ],
-        노동: [
-          `업무 흐름이 바뀌면 내 하루도 바뀐다.\n${body}`,
-          `오늘은 손이 더 바빠질 것 같다.\n${body}`,
-          `일의 리듬이 바뀐다.\n${body}`,
-          `업무의 흐름이 시장에 좌우된다.\n${body}`,
-          `노동의 가치가 변동한다.\n${body}`,
-          `일의 무게감이 느껴진다.\n${body}`,
-          `업무의 스트레스가 커진다.\n${body}`,
-          `노동의 리듬이 시장에 좌우된다.\n${body}`,
-          `일의 가치가 흔들린다.\n${body}`,
-          `업무의 변동성이 느껴진다.\n${body}`,
-        ],
-        시장: [
-          `시장이 시끄럽다.\n${body}`,
-          `뉴스가 난리다.\n${body}`,
-          `분위기가 확 바뀌었다.\n${body}`,
-          `감정은 접고, 상황만 기록.\n${body}`,
-          `시장의 파도가 거세진다.\n${body}`,
-          `뉴스 한 줄이 모든 걸 바꾼다.\n${body}`,
-          `시장의 무게감이 느껴진다.\n${body}`,
-          `변동성의 극치를 경험한다.\n${body}`,
-          `시장의 리듬이 바뀐다.\n${body}`,
-          `투자의 리스크가 커진다.\n${body}`,
-        ],
-      }
-
-      return pick(`market_${product}`, byProduct[product] || byProduct['시장'])
-    }
-    if (s.startsWith('📉') && s.includes('종료')) {
-      const product = window.__diaryLastMarketProduct || '시장'
-      const name = window.__diaryLastMarketName || ''
-      // 종료는 짧게, 여운만
-      const byProduct = {
-        코인: [
-          `심장이 겨우 진정됐다. (${name ? name : '이벤트 종료'})`,
-          `코인 장은 끝날 때까지 끝난 게 아니다. 오늘은 일단 끝.\n${name ? name : ''}`.trim(),
-          `롤러코스터가 멈췄다. 잠시만.\n${name ? name : ''}`.trim(),
-          `FOMO의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `변동성의 폭풍이 지나갔다.\n${name ? name : ''}`.trim(),
-          `멘탈이 겨우 회복됐다.\n${name ? name : ''}`.trim(),
-          `코인판의 소란이 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `위험의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-        ],
-        국내주식: [
-          `차트가 잠깐 조용해졌다.\n${name ? name : ''}`.trim(),
-          `국장 소란 종료. 숨 한 번.\n${name ? name : ''}`.trim(),
-          `뉴스의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `차트의 심장박동이 안정됐다.\n${name ? name : ''}`.trim(),
-          `국장의 변동성이 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `투자자의 심장이 진정됐다.\n${name ? name : ''}`.trim(),
-          `국장의 무게에서 벗어났다.\n${name ? name : ''}`.trim(),
-          `차트의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-        ],
-        미국주식: [
-          `밤이 지나갔다.\n${name ? name : ''}`.trim(),
-          `미장 이벤트 종료. 알림도 잠잠.\n${name ? name : ''}`.trim(),
-          `시차의 스트레스가 사라졌다.\n${name ? name : ''}`.trim(),
-          `달러의 무게에서 벗어났다.\n${name ? name : ''}`.trim(),
-          `미장의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `밤샘의 대가가 끝났다.\n${name ? name : ''}`.trim(),
-          `환율의 변동이 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `글로벌 투자의 무게에서 벗어났다.\n${name ? name : ''}`.trim(),
-        ],
-        부동산: [
-          `동네가 다시 평소 얼굴을 찾았다.\n${name ? name : ''}`.trim(),
-          `부동산 시장이 안정됐다.\n${name ? name : ''}`.trim(),
-          `동네 분위기가 평소로 돌아왔다.\n${name ? name : ''}`.trim(),
-          `부동산 투자의 변동성이 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `집의 무게에서 벗어났다.\n${name ? name : ''}`.trim(),
-          `부동산 시장의 파도가 잠잠해졌다.\n${name ? name : ''}`.trim(),
-          `부동산 투자의 리스크가 줄어들었다.\n${name ? name : ''}`.trim(),
-          `동네가 평소의 모습을 찾았다.\n${name ? name : ''}`.trim(),
-        ],
-        시장: [
-          `소란이 잠잠해졌다.`,
-          `폭풍 지나가고 고요.`,
-          `이제 평소대로.`,
-          `시장의 파도가 잠잠해졌다.`,
-          `뉴스의 소란이 끝났다.`,
-          `변동성이 안정됐다.`,
-          `투자의 리스크가 줄어들었다.`,
-          `시장의 무게에서 벗어났다.`,
-        ],
-      }
-
-      // 부동산 계열은 한 번 더 묶어 처리
-      const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
-      const key = isRealEstate ? '부동산' : product
-      const out = pick(`marketEnd_${key}`, byProduct[key] || byProduct['시장'])
-
-      window.__diaryLastMarketProduct = null
-      window.__diaryLastMarketName = null
-      return out
-    }
-    if (s.startsWith('💡')) {
-      const body = soften(s)
-      const product = window.__diaryLastMarketProduct || ''
-      const name = window.__diaryLastMarketName || ''
-
-      const byProduct = {
-        코인: [
-          `메모(코인): 멘탈 관리가 수익률이다.\n${body}`,
-          `코인 메모.\n${name ? `(${name})\n` : ''}${body}`.trim(),
-          `코인 투자 노트: 변동성을 견뎌야 한다.\n${body}`,
-          `코인 기록: FOMO를 이겨내야 한다.\n${body}`,
-          `코인 메모: 롤러코스터의 정점에서 내려야 한다.\n${body}`,
-          `코인 투자 기록: 위험을 감수하는 선택.\n${body}`,
-        ],
-        국내주식: [
-          `메모(국장): 뉴스 한 줄에 흔들리지 말 것.\n${body}`,
-          `국장 메모.\n${name ? `(${name})\n` : ''}${body}`.trim(),
-          `국장 투자 노트: 차트의 파도를 타야 한다.\n${body}`,
-          `국장 기록: 변동성을 견뎌야 한다.\n${body}`,
-          `국장 메모: 투자자의 심장이 시험받는다.\n${body}`,
-          `국장 투자 기록: 국장의 무게를 견뎌야 한다.\n${body}`,
-        ],
-        미국주식: [
-          `메모(미장): 시차 + 환율 = 체력.\n${body}`,
-          `미장 메모.\n${name ? `(${name})\n` : ''}${body}`.trim(),
-          `미장 투자 노트: 밤샘의 대가를 치러야 한다.\n${body}`,
-          `미장 기록: 달러의 무게를 견뎌야 한다.\n${body}`,
-          `미장 메모: 시차의 스트레스를 견뎌야 한다.\n${body}`,
-          `미장 투자 기록: 글로벌 투자의 무게.\n${body}`,
-        ],
-        예금: [
-          `메모(예금): 조용히 이기는 쪽.\n${body}`,
-          `예금 투자 노트: 안정이 최고의 수익률.\n${body}`,
-          `예금 기록: 변동성 없는 투자의 편안함.\n${body}`,
-          `예금 메모: 안전함의 가치.\n${body}`,
-          `예금 투자 기록: 조용한 수익.\n${body}`,
-        ],
-        적금: [
-          `메모(적금): 루틴이 무기.\n${body}`,
-          `적금 투자 노트: 꾸준함이 무기다.\n${body}`,
-          `적금 기록: 매일의 습관이 미래를 만든다.\n${body}`,
-          `적금 메모: 시간이 내 편이 되는 투자.\n${body}`,
-          `적금 투자 기록: 인내심이 필요한 투자.\n${body}`,
-        ],
-        부동산: [
-          `메모(부동산): 공실은 악몽, 임차인은 복.\n${body}`,
-          `동네 메모.\n${name ? `(${name})\n` : ''}${body}`.trim(),
-          `부동산 투자 노트: 집의 무게감을 견뎌야 한다.\n${body}`,
-          `부동산 기록: 시장의 파도를 타야 한다.\n${body}`,
-          `부동산 메모: 부동산 투자의 리스크.\n${body}`,
-          `부동산 투자 기록: 동네 분위기의 변화.\n${body}`,
-        ],
-        노동: [
-          `메모(노동): 버티는 사람이 이긴다.\n${body}`,
-          `노동 노트: 일의 무게감을 견뎌야 한다.\n${body}`,
-          `노동 기록: 업무의 리듬이 시장에 좌우된다.\n${body}`,
-          `노동 메모: 일의 가치가 변동한다.\n${body}`,
-          `노동 투자 기록: 업무의 스트레스를 견뎌야 한다.\n${body}`,
-        ],
-      }
-
-      const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
-      const key = isRealEstate ? '부동산' : product
-
-      if (key && byProduct[key]) return pick(`memo_${key}`, byProduct[key])
-      return pick('memo', [
-        `메모.\n${body}`,
-        `적어둔다.\n${body}`,
-        `까먹기 전에 기록.\n${body}`,
-        `투자 노트에 기록.\n${body}`,
-        `기억해둘 것.\n${body}`,
-        `나중을 위해 기록.\n${body}`,
-      ])
-    }
-
-    // 업그레이드
-    if (s.startsWith('🎁') && s.includes('해금')) {
-      const body = soften(s)
-      // 예) "🎁 새 업그레이드 해금: 💰 예금 이자율 상승"
-      const name = s.match(/해금:\s*(.+)$/)?.[1]?.trim() || ''
-      const detect = txt => {
-        const t = String(txt || '')
-        if (t.includes('예금')) return '예금'
-        if (t.includes('적금')) return '적금'
-        if (t.includes('미국주식') || t.includes('미장') || t.includes('🇺🇸')) return '미국주식'
-        if (t.includes('코인') || t.includes('₿') || t.includes('암호')) return '코인'
-        if (t.includes('주식')) return '국내주식'
-        if (t.includes('빌딩')) return '빌딩'
-        if (t.includes('상가')) return '상가'
-        if (t.includes('아파트')) return '아파트'
-        if (t.includes('오피스텔')) return '오피스텔'
-        if (t.includes('빌라')) return '빌라'
-        if (t.includes('월세') || t.includes('부동산')) return '부동산'
-        if (
-          t.includes('클릭') ||
-          t.includes('노동') ||
-          t.includes('업무') ||
-          t.includes('CEO') ||
-          t.includes('커리어')
-        )
-          return '노동'
-        return ''
-      }
-      const product = detect(`${name} ${body}`) || '기본'
-
-      const byProduct = {
-        노동: [
-          `일을 '덜 힘들게' 만드는 방법이 생겼다.\n${name ? name : body}`,
-          `업무 스킬이 하나 늘었다.\n${name ? name : body}`,
-          `손끝이 더 빨라질 준비.\n${name ? name : body}`,
-          `일하는 방식이 개선될 것 같다.\n${name ? name : body}`,
-          `업무 효율이 올라갈 것 같다.\n${name ? name : body}`,
-          `노동의 질이 향상될 것 같다.\n${name ? name : body}`,
-          `일하는 능력이 강화됐다.\n${name ? name : body}`,
-          `업무 스킬의 진화.\n${name ? name : body}`,
-        ],
-        예금: [
-          `예금이 더 조용히 벌어다 주겠지.\n${name ? name : body}`,
-          `안정 쪽에 옵션이 하나 추가됐다.\n${name ? name : body}`,
-          `예금의 수익률이 올라갈 것 같다.\n${name ? name : body}`,
-          `안정적인 투자가 더 강해진다.\n${name ? name : body}`,
-          `예금의 가치가 상승할 것 같다.\n${name ? name : body}`,
-          `안전한 투자의 힘이 커진다.\n${name ? name : body}`,
-          `예금의 편안함이 더해진다.\n${name ? name : body}`,
-          `안정적인 투자의 진화.\n${name ? name : body}`,
-        ],
-        적금: [
-          `루틴 강화 카드가 열렸다.\n${name ? name : body}`,
-          `꾸준함을 돕는 장치가 생겼다.\n${name ? name : body}`,
-          `적금의 루틴이 강화됐다.\n${name ? name : body}`,
-          `꾸준함의 힘이 커진다.\n${name ? name : body}`,
-          `매일의 습관이 더 강해진다.\n${name ? name : body}`,
-          `적금의 시간 가치가 올라간다.\n${name ? name : body}`,
-          `루틴 투자의 힘이 커진다.\n${name ? name : body}`,
-          `꾸준함의 진화.\n${name ? name : body}`,
-        ],
-        국내주식: [
-          `차트 싸움에 새 무기가 생겼다.\n${name ? name : body}`,
-          `국장 대응력이 올라갈 것 같다.\n${name ? name : body}`,
-          `국장 투자의 힘이 커진다.\n${name ? name : body}`,
-          `차트의 파도를 더 잘 탈 수 있다.\n${name ? name : body}`,
-          `국장의 변동성에 대응할 수 있다.\n${name ? name : body}`,
-          `투자자의 능력이 강화됐다.\n${name ? name : body}`,
-          `국장 투자의 진화.\n${name ? name : body}`,
-          `차트 싸움의 무기가 강화됐다.\n${name ? name : body}`,
-        ],
-        미국주식: [
-          `시차를 버틸 장비가 하나 생겼다.\n${name ? name : body}`,
-          `달러 쪽 옵션이 열린다.\n${name ? name : body}`,
-          `미장 투자의 힘이 커진다.\n${name ? name : body}`,
-          `시차의 스트레스를 견딜 수 있다.\n${name ? name : body}`,
-          `달러의 무게를 더 잘 견딜 수 있다.\n${name ? name : body}`,
-          `글로벌 투자의 능력이 강화됐다.\n${name ? name : body}`,
-          `미장 투자의 진화.\n${name ? name : body}`,
-          `밤샘의 대가를 더 잘 견딜 수 있다.\n${name ? name : body}`,
-        ],
-        코인: [
-          `코인판에서 버틸 도구가 생겼다.\n${name ? name : body}`,
-          `멘탈을 지키는 업그레이드…였으면.\n${name ? name : body}`,
-          `코인 투자의 힘이 커진다.\n${name ? name : body}`,
-          `변동성을 더 잘 견딜 수 있다.\n${name ? name : body}`,
-          `FOMO를 더 잘 이겨낼 수 있다.\n${name ? name : body}`,
-          `롤러코스터를 더 잘 탈 수 있다.\n${name ? name : body}`,
-          `코인 투자의 진화.\n${name ? name : body}`,
-          `멘탈 관리의 도구가 생겼다.\n${name ? name : body}`,
-        ],
-        빌라: [
-          `빌라 운영이 조금은 편해질지도.\n${name ? name : body}`,
-          `첫 집의 가치가 올라간다.\n${name ? name : body}`,
-          `부동산 투자의 첫걸음이 강화됐다.\n${name ? name : body}`,
-          `작은 집의 수익이 올라간다.\n${name ? name : body}`,
-          `부동산 투자의 기초가 강화됐다.\n${name ? name : body}`,
-          `첫 집의 무게감이 줄어든다.\n${name ? name : body}`,
-          `부동산 투자의 진화.\n${name ? name : body}`,
-          `작은 집의 가치가 상승한다.\n${name ? name : body}`,
-        ],
-        오피스텔: [
-          `오피스텔 쪽이 한 단계 나아간다.\n${name ? name : body}`,
-          `실용적인 투자가 강화됐다.\n${name ? name : body}`,
-          `생활의 편의가 더해진다.\n${name ? name : body}`,
-          `도시 생활의 질이 올라간다.\n${name ? name : body}`,
-          `현실적인 투자의 힘이 커진다.\n${name ? name : body}`,
-          `오피스텔의 가치가 상승한다.\n${name ? name : body}`,
-          `실용주의 투자의 진화.\n${name ? name : body}`,
-          `생활의 편의가 강화됐다.\n${name ? name : body}`,
-        ],
-        아파트: [
-          `아파트는 디테일에서 돈이 난다.\n${name ? name : body}`,
-          `한국인의 꿈이 더 가까워진다.\n${name ? name : body}`,
-          `안정의 상징이 강화됐다.\n${name ? name : body}`,
-          `부동산 투자의 정점이 올라간다.\n${name ? name : body}`,
-          `아파트의 가치가 상승한다.\n${name ? name : body}`,
-          `안정적인 투자의 힘이 커진다.\n${name ? name : body}`,
-          `부동산 투자의 진화.\n${name ? name : body}`,
-          `꿈이 현실에 더 가까워진다.\n${name ? name : body}`,
-        ],
-        상가: [
-          `상가는 세팅이 반이다.\n${name ? name : body}`,
-          `상권 투자의 힘이 커진다.\n${name ? name : body}`,
-          `유동인구의 수익이 올라간다.\n${name ? name : body}`,
-          `임대 수익의 달콤함이 커진다.\n${name ? name : body}`,
-          `상가의 가치가 상승한다.\n${name ? name : body}`,
-          `상권 투자의 진화.\n${name ? name : body}`,
-          `임차인의 성공이 내 성공이 된다.\n${name ? name : body}`,
-          `상권의 힘이 강화됐다.\n${name ? name : body}`,
-        ],
-        빌딩: [
-          `빌딩은 관리가 곧 수익이다.\n${name ? name : body}`,
-          `부동산 투자의 궁극이 강화됐다.\n${name ? name : body}`,
-          `스카이라인의 주인이 강해진다.\n${name ? name : body}`,
-          `도시의 한 조각이 더 가치있어진다.\n${name ? name : body}`,
-          `빌딩의 무게감이 줄어든다.\n${name ? name : body}`,
-          `부동산 투자의 완성이 올라간다.\n${name ? name : body}`,
-          `스카이라인의 가치가 상승한다.\n${name ? name : body}`,
-          `부동산 투자의 진화.\n${name ? name : body}`,
-        ],
-        부동산: [
-          `부동산 운영에 옵션이 하나 추가됐다.\n${name ? name : body}`,
-          `월세를 '조금 더' 만들 방법.\n${name ? name : body}`,
-          `부동산 투자의 힘이 커진다.\n${name ? name : body}`,
-          `집의 가치가 올라간다.\n${name ? name : body}`,
-          `부동산 시장의 파도를 더 잘 탈 수 있다.\n${name ? name : body}`,
-          `부동산 투자의 리스크가 줄어든다.\n${name ? name : body}`,
-          `부동산 투자의 진화.\n${name ? name : body}`,
-          `집의 무게감이 줄어든다.\n${name ? name : body}`,
-        ],
-        기본: [
-          `새로운 방법이 보였다.\n${name ? name : body}`,
-          `선택지가 늘었다.\n${name ? name : body}`,
-          `이제부터가 시작일지도.\n${name ? name : body}`,
-          `기회의 문이 열렸다.\n${name ? name : body}`,
-          `새로운 가능성이 생겼다.\n${name ? name : body}`,
-          `진화의 순간.\n${name ? name : body}`,
-          `능력이 강화됐다.\n${name ? name : body}`,
-          `다음 단계로 나아갈 수 있다.\n${name ? name : body}`,
-        ],
-      }
-
-      return pick(`upgradeUnlock_${product}`, byProduct[product] || byProduct['기본'])
-    }
-    if (s.startsWith('✅') && s.includes('구매!')) {
-      const body = soften(s)
-      // 예) "✅ 💰 예금 이자율 상승 구매! 예금 수익 2배"
-      const m = s.match(/^✅\s*(.+?)\s*구매!\s*(.*)$/)
-      const upName = (m?.[1] || '').trim()
-      const upDesc = (m?.[2] || '').trim()
-
-      const detect = txt => {
-        const t = String(txt || '')
-        if (t.includes('예금')) return '예금'
-        if (t.includes('적금')) return '적금'
-        if (t.includes('미국주식') || t.includes('미장') || t.includes('🇺🇸')) return '미국주식'
-        if (t.includes('코인') || t.includes('₿') || t.includes('암호')) return '코인'
-        if (t.includes('주식')) return '국내주식'
-        if (t.includes('빌딩')) return '빌딩'
-        if (t.includes('상가')) return '상가'
-        if (t.includes('아파트')) return '아파트'
-        if (t.includes('오피스텔')) return '오피스텔'
-        if (t.includes('빌라')) return '빌라'
-        if (t.includes('월세') || t.includes('부동산')) return '부동산'
-        if (
-          t.includes('클릭') ||
-          t.includes('노동') ||
-          t.includes('업무') ||
-          t.includes('CEO') ||
-          t.includes('커리어')
-        )
-          return '노동'
-        return ''
-      }
-
-      const product = detect(`${upName} ${upDesc} ${body}`) || '기본'
-      const core = [upName, upDesc].filter(Boolean).join(' — ') || body
-
-      const byProduct = {
-        노동: [
-          `일하는 방식이 바뀌었다.\n${core}`,
-          `업무 스킬을 장착했다.\n${core}`,
-          `손이 더 빨라질 거다. 아마도.\n${core}`,
-          `일하는 능력이 강화됐다.\n${core}`,
-          `업무 효율이 올라갔다.\n${core}`,
-          `노동의 질이 향상됐다.\n${core}`,
-          `일하는 방식의 진화.\n${core}`,
-          `업무 스킬의 강화.\n${core}`,
-        ],
-        예금: [
-          `예금은 조용히 강해진다.\n${core}`,
-          `안정 쪽을 더 단단히 했다.\n${core}`,
-          `예금의 수익률이 올라갔다.\n${core}`,
-          `안정적인 투자가 강화됐다.\n${core}`,
-          `예금의 가치가 상승했다.\n${core}`,
-          `안전한 투자의 힘이 커졌다.\n${core}`,
-          `예금의 편안함이 더해졌다.\n${core}`,
-          `안정적인 투자의 진화.\n${core}`,
-        ],
-        적금: [
-          `루틴을 업그레이드했다.\n${core}`,
-          `꾸준함에 부스터 하나.\n${core}`,
-          `적금의 루틴이 강화됐다.\n${core}`,
-          `꾸준함의 힘이 커졌다.\n${core}`,
-          `매일의 습관이 더 강해졌다.\n${core}`,
-          `적금의 시간 가치가 올라갔다.\n${core}`,
-          `루틴 투자의 힘이 커졌다.\n${core}`,
-          `꾸준함의 진화.\n${core}`,
-        ],
-        국내주식: [
-          `차트 싸움에 장비를 추가했다.\n${core}`,
-          `국장 대응력 상승.\n${core}`,
-          `국장 투자의 힘이 커졌다.\n${core}`,
-          `차트의 파도를 더 잘 탈 수 있다.\n${core}`,
-          `국장의 변동성에 대응할 수 있다.\n${core}`,
-          `투자자의 능력이 강화됐다.\n${core}`,
-          `국장 투자의 진화.\n${core}`,
-          `차트 싸움의 무기가 강화됐다.\n${core}`,
-        ],
-        미국주식: [
-          `시차를 버틸 장비 장착.\n${core}`,
-          `달러 쪽을 조금 더 믿어보기로.\n${core}`,
-          `미장 투자의 힘이 커졌다.\n${core}`,
-          `시차의 스트레스를 견딜 수 있다.\n${core}`,
-          `달러의 무게를 더 잘 견딜 수 있다.\n${core}`,
-          `글로벌 투자의 능력이 강화됐다.\n${core}`,
-          `미장 투자의 진화.\n${core}`,
-          `밤샘의 대가를 더 잘 견딜 수 있다.\n${core}`,
-        ],
-        코인: [
-          `코인판에서 살아남을 장비.\n${core}`,
-          `멘탈 보호 장치…였으면.\n${core}`,
-          `코인 투자의 힘이 커졌다.\n${core}`,
-          `변동성을 더 잘 견딜 수 있다.\n${core}`,
-          `FOMO를 더 잘 이겨낼 수 있다.\n${core}`,
-          `롤러코스터를 더 잘 탈 수 있다.\n${core}`,
-          `코인 투자의 진화.\n${core}`,
-          `멘탈 관리의 도구가 생겼다.\n${core}`,
-        ],
-        빌라: [
-          `빌라 운영을 손봤다.\n${core}`,
-          `첫 집의 가치가 올라갔다.\n${core}`,
-          `부동산 투자의 첫걸음이 강화됐다.\n${core}`,
-          `작은 집의 수익이 올라갔다.\n${core}`,
-          `부동산 투자의 기초가 강화됐다.\n${core}`,
-          `첫 집의 무게감이 줄어들었다.\n${core}`,
-          `부동산 투자의 진화.\n${core}`,
-          `작은 집의 가치가 상승했다.\n${core}`,
-        ],
-        오피스텔: [
-          `오피스텔 쪽을 업그레이드했다.\n${core}`,
-          `실용적인 투자가 강화됐다.\n${core}`,
-          `생활의 편의가 더해졌다.\n${core}`,
-          `도시 생활의 질이 올라갔다.\n${core}`,
-          `현실적인 투자의 힘이 커졌다.\n${core}`,
-          `오피스텔의 가치가 상승했다.\n${core}`,
-          `실용주의 투자의 진화.\n${core}`,
-          `생활의 편의가 강화됐다.\n${core}`,
-        ],
-        아파트: [
-          `아파트는 디테일.\n${core}`,
-          `한국인의 꿈이 더 가까워졌다.\n${core}`,
-          `안정의 상징이 강화됐다.\n${core}`,
-          `부동산 투자의 정점이 올라갔다.\n${core}`,
-          `아파트의 가치가 상승했다.\n${core}`,
-          `안정적인 투자의 힘이 커졌다.\n${core}`,
-          `부동산 투자의 진화.\n${core}`,
-          `꿈이 현실에 더 가까워졌다.\n${core}`,
-        ],
-        상가: [
-          `상가는 세팅이 반이다.\n${core}`,
-          `상권 투자의 힘이 커졌다.\n${core}`,
-          `유동인구의 수익이 올라갔다.\n${core}`,
-          `임대 수익의 달콤함이 커졌다.\n${core}`,
-          `상가의 가치가 상승했다.\n${core}`,
-          `상권 투자의 진화.\n${core}`,
-          `임차인의 성공이 내 성공이 된다.\n${core}`,
-          `상권의 힘이 강화됐다.\n${core}`,
-        ],
-        빌딩: [
-          `빌딩은 관리가 수익이다.\n${core}`,
-          `부동산 투자의 궁극이 강화됐다.\n${core}`,
-          `스카이라인의 주인이 강해졌다.\n${core}`,
-          `도시의 한 조각이 더 가치있어졌다.\n${core}`,
-          `빌딩의 무게감이 줄어들었다.\n${core}`,
-          `부동산 투자의 완성이 올라갔다.\n${core}`,
-          `스카이라인의 가치가 상승했다.\n${core}`,
-          `부동산 투자의 진화.\n${core}`,
-        ],
-        부동산: [
-          `월세 쪽을 손봤다.\n${core}`,
-          `부동산 운영이 한 단계 올라갔다.\n${core}`,
-          `부동산 투자의 힘이 커졌다.\n${core}`,
-          `집의 가치가 올라갔다.\n${core}`,
-          `부동산 시장의 파도를 더 잘 탈 수 있다.\n${core}`,
-          `부동산 투자의 리스크가 줄어들었다.\n${core}`,
-          `부동산 투자의 진화.\n${core}`,
-          `집의 무게감이 줄어들었다.\n${core}`,
-        ],
-        기본: [
-          `필요한 걸 갖췄다.\n${body}`,
-          `업그레이드 완료. 조금은 편해지겠지.\n${body}`,
-          `나 자신에게 투자.\n${body}`,
-          `능력이 강화됐다.\n${body}`,
-          `진화의 순간.\n${body}`,
-          `기회를 잡았다.\n${body}`,
-          `다음 단계로 나아갔다.\n${body}`,
-          `투자의 힘이 커졌다.\n${body}`,
-        ],
-      }
-
-      return pick(`upgradeBuy_${product}`, byProduct[product] || byProduct['기본'])
-    }
-    if (s.startsWith('⚠️')) {
-      const body = soften(s)
-      return pick('warn', [
-        `찜찜한 기분이 남았다.\n${body}`,
-        `뭔가 삐끗한 느낌.\n${body}`,
-        `일단 기록만 남긴다.\n${body}`,
-        `뭔가 이상한 느낌.\n${body}`,
-        `불안한 기분이 든다.\n${body}`,
-        `주의가 필요할 것 같다.\n${body}`,
-        `뭔가 잘못된 것 같다.\n${body}`,
-        `경고의 신호가 느껴진다.\n${body}`,
-      ])
-    }
-
-    // 기본
-    const base = soften(s)
-    return pick('default', [
-      base,
-      `${t('diary.justWrite')}\n${base}`,
-      `${t('diary.todayRecord')}\n${base}`,
-      `${t('diary.anyway')} ${base}`,
-      `${t('diary.justRecord')}\n${base}`,
-      `${t('diary.memo')}\n${base}`,
-      `${t('diary.remember')}\n${base}`,
-      `${t('diary.recordForLater')}\n${base}`,
-      `${t('diary.goodToWrite')}\n${base}`,
-      `${t('diary.leaveRecord')}\n${base}`,
-    ])
-  }
 
   updateDiaryMeta()
   const diaryText = diaryize(text)
@@ -1368,7 +412,8 @@ export function addLog(text) {
 
   const p = document.createElement('p')
   const escaped = diaryText.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  // (요청) 독백(1줄)과 정보(이후 줄)의 가시성 분리
+
+  // 독백(1줄)과 정보(이후 줄)의 가시성 분리
   const lines = escaped.split('\n')
   const voiceLine = (lines[0] ?? '').trim()
   const infoLines = lines
