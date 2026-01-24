@@ -87,7 +87,7 @@ import { createInAppBrowserHandler } from '../ui/inAppBrowserHandler.js'
 import { createHeaderResponsiveManager } from '../ui/headerResponsiveManager.js'
 import { createSettingsTabManager } from '../ui/settingsTabManager.js'
 import { createAuthUIManager } from '../ui/authUIManager.js'
-import { createDevCheatSystem } from '../systems/devCheatSystem.js'
+// devCheatSystem은 DEV 모드에서만 동적 로드 (main.js에서 처리)
 import {
   setupPurchaseModeButtons,
   setupPurchaseQuantityButtons,
@@ -650,7 +650,6 @@ export {
   createTabNavigation,
   createI18nUIManager,
   createAuthUIManager,
-  createDevCheatSystem,
   createAchievementGrid,
   setupPurchaseModeButtons,
   setupPurchaseQuantityButtons,

@@ -51,7 +51,6 @@ import {
   createTabNavigation,
   createI18nUIManager,
   createAuthUIManager,
-  createDevCheatSystem,
   createAchievementGrid,
   setupPurchaseModeButtons,
   setupPurchaseQuantityButtons,
@@ -569,17 +568,21 @@ document.addEventListener('DOMContentLoaded', () => {
     warning: toastWarning,
   }
 
-  // ======= 개발 치트 시스템 초기화 =======
-  const devCheatSystem = createDevCheatSystem({
-    gameState,
-    UPGRADES,
-    updateUI,
-    updateUpgradeList,
-    checkUpgradeUnlocks,
-    refreshPrestigeTab,
-    t,
-    NumberFormat,
-    __IS_DEV__,
-  })
-  devCheatSystem.initDevCheats()
+  // ======= 개발 치트 시스템 초기화 (DEV 모드에서만 동적 로드) =======
+  if (__IS_DEV__) {
+    import('./systems/devCheatSystem.js').then(({ createDevCheatSystem }) => {
+      const devCheatSystem = createDevCheatSystem({
+        gameState,
+        UPGRADES,
+        updateUI,
+        updateUpgradeList,
+        checkUpgradeUnlocks,
+        refreshPrestigeTab,
+        t,
+        NumberFormat,
+        __IS_DEV__,
+      })
+      devCheatSystem.initDevCheats()
+    })
+  }
 })

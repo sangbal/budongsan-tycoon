@@ -76,6 +76,10 @@ export default defineConfig({
             if (id.includes('state/gameState') || id.includes('economy/')) {
               return 'seoulsurvival-core'
             }
+            // 개발 치트 시스템 (DEV 모드에서만 동적 로드)
+            if (id.includes('systems/devCheatSystem')) {
+              return 'seoulsurvival-dev'
+            }
             // 시스템 모듈 (게임 로직)
             if (id.includes('systems/')) {
               return 'seoulsurvival-systems'
