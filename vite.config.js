@@ -41,8 +41,24 @@ export default defineConfig({
         manualChunks(id) {
           // Vendor chunk 분리: node_modules 라이브러리
           if (id.includes('node_modules')) {
+            // Sentry 모니터링 (선택적 로드)
             if (id.includes('@sentry')) {
               return 'vendor-sentry'
+            }
+            // React 생태계 - kimchi-invasion 전용
+            // seoulsurvival 로드 시 다운로드하지 않음
+            if (
+              id.includes('react') ||
+              id.includes('react-dom') ||
+              id.includes('scheduler') ||
+              id.includes('zustand')
+            ) {
+              return 'vendor-react'
+            }
+            // PixiJS - kimchi-invasion 전용
+            // seoulsurvival 로드 시 다운로드하지 않음
+            if (id.includes('pixi')) {
+              return 'vendor-pixi'
             }
             return 'vendor-common'
           }
