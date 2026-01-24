@@ -33,6 +33,7 @@ let _lastLeaderboardUpdate = 0
  * @param {Function} deps.upsertCloudSave - 클라우드 저장 함수
  * @param {Object} deps.cloudState - 클라우드 상태 객체 (__currentUser, __cloudPendingSave, __lastCloudUploadedSaveTs)
  * @param {boolean} deps.__IS_DEV__ - 개발 모드 플래그
+ * @param {Function} deps.calculateCP - CP 계산 함수 (기존 유저 마이그레이션용)
  *
  * @returns {Object} 저장/로드 함수들
  */
@@ -54,6 +55,7 @@ export function createSaveLoadManager(deps) {
     upsertCloudSave,
     cloudState,
     __IS_DEV__,
+    calculateCP,
   } = deps
 
   // 저장 실패 카운터 및 재시도 설정
@@ -98,6 +100,12 @@ export function createSaveLoadManager(deps) {
       buildings: gameVars.buildings,
       towers_run: gameVars.towers_run,
       towers_lifetime: gameVars.towers_lifetime,
+      // CP 시스템 (경력 포인트)
+      careerPoints: gameVars.careerPoints,
+      totalCareerPoints: gameVars.totalCareerPoints,
+      purchasedUpgrades: gameVars.purchasedUpgrades,
+      permanentSlots: gameVars.permanentSlots,
+      lifetimeEarnings: gameVars.lifetimeEarnings,
       // 부동산 누적 생산량
       villasLifetime: gameVars.villasLifetime,
       officetelsLifetime: gameVars.officetelsLifetime,
@@ -277,6 +285,23 @@ export function createSaveLoadManager(deps) {
       gameVars.buildings = data.buildings || 0
       gameVars.towers_run = data.towers_run || 0
       gameVars.towers_lifetime = data.towers_lifetime || data.towers || 0 // 마이그레이션: 기존 towers를 lifetime으로
+
+      // CP 시스템 (경력 포인트) 복원
+      gameVars.careerPoints = data.careerPoints || 0
+      gameVars.totalCareerPoints = data.totalCareerPoints || 0
+      gameVars.purchasedUpgrades = data.purchasedUpgrades || []
+      gameVars.permanentSlots = data.permanentSlots || []
+      gameVars.lifetimeEarnings = data.lifetimeEarnings || 0
+
+      // 기존 유저 CP 마이그레이션: towers_lifetime > 0인데 CP가 없으면 소급 지급
+      if (gameVars.towers_lifetime > 0 && !data.careerPoints && !data.totalCareerPoints) {
+        const legacyCP = calculateCP(gameVars.towers_lifetime, gameVars.lifetimeEarnings || 0)
+        gameVars.careerPoints = legacyCP
+        gameVars.totalCareerPoints = legacyCP
+        console.log(
+          `🎁 기존 유저 CP 마이그레이션: +${legacyCP} CP (타워: ${gameVars.towers_lifetime})`
+        )
+      }
 
       // 부동산 누적 생산량 복원
       gameVars.villasLifetime = data.villasLifetime || 0

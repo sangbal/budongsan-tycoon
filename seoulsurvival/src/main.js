@@ -35,7 +35,7 @@ import { createCollapsibleManager } from './ui/collapsible.js'
 import { createCloudSyncManager } from './persist/cloudSync.js'
 import { createSaveLoadManager } from './persist/saveLoad.js'
 import { createNicknameManager } from './systems/nicknameManager.js'
-import { getUser, onAuthStateChange, signInGoogle } from '../../shared/auth/core.js'
+import { getUser, onAuthStateChange, signInGoogle, signOut } from '../../shared/auth/core.js'
 import { isSupabaseConfigured } from '../../shared/auth/config.js'
 import {
   updateLeaderboard,
@@ -53,6 +53,7 @@ import {
   setLang,
   getLang,
   getInitialLang,
+  ensureTranslationLoaded,
 } from './i18n/index.js'
 import { GAME_VERSION } from './version.js'
 import * as NumberFormat from './utils/numberFormat.js'
@@ -82,7 +83,14 @@ import {
   getTotalProperties,
   BASE_CLICK_GAIN,
 } from './state/gameState.js'
-import { getStartingCash } from './systems/prestigeBonus.js'
+import {
+  getStartingCash,
+  processPrestige,
+  applyStartingBonuses,
+  getAllPrestigeEffects,
+  calculateCP,
+} from './systems/prestigeBonus.js'
+import { initPrestigeTab, renderPrestigeTab, refreshPrestigeTab } from './ui/prestigeTab.js'
 
 // ===== CSS 번들링 보장 =====
 // Vite 빌드 시 HTML의 <link> 태그가 처리되지 않는 문제 해결
@@ -849,6 +857,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // gameUIInstance가 초기화되기 전에는 아무것도 하지 않음
     // (초기화 순서상 updateUI()는 gameUIInstance 초기화 후에만 호출됨)
+
+    // 경력 탭 네비게이션 버튼 표시/숨김 (타워 1+ 또는 CP 1+ 일 때 표시)
+    const careerNavBtn = document.getElementById('careerNavBtn')
+    if (careerNavBtn) {
+      const shouldShowCareer = gameState.towers_lifetime > 0 || gameState.careerPoints > 0
+      careerNavBtn.style.display = shouldShowCareer ? '' : 'none'
+    }
   }
 
   // ========== 레거시 updateUI() 코드 완전 삭제됨 ==========
@@ -931,6 +946,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Constants
     CAREER_LEVELS,
     MARKET_EVENTS,
+
+    // gameState 직접 참조 (타워 구매 시 towers_lifetime 업데이트용)
+    gameState,
+
+    // 프레스티지 시스템 (타워 구매 후 호출)
+    performAutoPrestige,
   })
 
   // Destructure functions from investmentTab
@@ -1152,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     gameState.cash += income
     gameState.totalClicks += 1 // 클릭 수 증가
     gameState.totalLaborIncome += income // 총 노동 수익 증가
+    gameState.lifetimeEarnings += income // CP 계산용 누적 수익
 
     // 미니 목표 알림: 다음 업그레이드까지 남은 클릭 수 체크
     const lockedUpgrades = Object.entries(UPGRADES)
@@ -1353,10 +1375,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`🔄 자동 프레스티지 실행 (source: ${source})`)
 
     try {
+      // CP 시스템: 프레스티지 처리 (CP 지급 + 업그레이드 리셋)
+      const earnedCP = processPrestige()
+      if (earnedCP > 0) {
+        console.log(`💼 경력 포인트 획득: +${earnedCP} CP (총 ${gameState.careerPoints} CP)`)
+      }
+
       // towers_lifetime은 유지, towers_run은 초기화
       // 자산/보유/진행도 초기화
-      // 프레스티지 보너스: 스타트 자금 적용
-      gameState.cash = 1000 + getStartingCash() // 초기 자본 + 프레스티지 보너스
+      // 기본 시작 자금
+      gameState.cash = 1000
       gameState.totalClicks = 0
       gameState.totalLaborIncome = 0
       gameState.careerLevel = 0
@@ -1378,6 +1406,17 @@ document.addEventListener('DOMContentLoaded', () => {
       gameState.currentMarketEvent = null
       gameState.marketEventEndTime = 0
       gameState.marketMultiplier = 1.0
+
+      // CP 시스템: 시작 보너스 적용 (자금, 예금, 커리어, 빌라 등)
+      const startBonuses = applyStartingBonuses()
+      if (
+        startBonuses.cash > 0 ||
+        startBonuses.deposits > 0 ||
+        startBonuses.career > 0 ||
+        startBonuses.villa > 0
+      ) {
+        console.log('🎁 시작 보너스 적용:', startBonuses)
+      }
 
       // 업적은 유지 (계정 누적)
 
@@ -1483,7 +1522,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = performance.now()
     const deltaTime = Math.min((now - lastTickTime) / 1000, 1) // 최대 1초 제한 (비정상 지연 방지)
     lastTickTime = now
-    gameState.cash += getRps() * deltaTime
+    const tickIncome = getRps() * deltaTime
+    gameState.cash += tickIncome
+    gameState.lifetimeEarnings += tickIncome // CP 계산용 누적 수익
 
     // 누적 생산량 계산 (시너지/프레스티지/마켓 배수 적용)
     gameState.depositsLifetime += getFinancialIncome('deposit', gameState.deposits) * deltaTime
@@ -1514,6 +1555,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gameState.cash += income
       gameState.totalClicks += 1
       gameState.totalLaborIncome += income
+      gameState.lifetimeEarnings += income // CP 계산용 누적 수익
       checkCareerPromotion()
 
       // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
@@ -1536,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const bonusIncome = income * 9
         gameState.cash += bonusIncome
         gameState.totalLaborIncome += bonusIncome
+        gameState.lifetimeEarnings += bonusIncome // CP 계산용 누적 수익
       }
     }
   }, 1000) // 1초마다
@@ -1615,6 +1658,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUI()
   updateProductLockStates()
 
+  // 경력 탭 (CP 상점) 초기화 - 번역 로드 완료 후 실행
+  ensureTranslationLoaded(getLang()).then(() => {
+    initPrestigeTab(t, NumberFormat.formatNumber)
+  })
+
   // 설정 탭 UI 초기화
   const elToggleParticles = document.getElementById('toggleParticles')
   const elToggleFancyGraphics = document.getElementById('toggleFancyGraphics')
@@ -1637,6 +1685,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 업적 그리드 다시 렌더링 (툴팁 번역을 위해)
     updateAchievementGrid()
+
+    // 경력 탭 다시 렌더링 (번역을 위해)
+    refreshPrestigeTab(t, NumberFormat.formatNumber)
 
     // 저장 상태 업데이트 (시간 포맷 번역을 위해)
     updateSaveStatus()
@@ -1945,6 +1996,37 @@ document.addEventListener('DOMContentLoaded', () => {
       set lastSaveTime(v) {
         gameState.lastSaveTime = v
       },
+      // CP 시스템 (경력 포인트)
+      get careerPoints() {
+        return gameState.careerPoints
+      },
+      set careerPoints(v) {
+        gameState.careerPoints = v
+      },
+      get totalCareerPoints() {
+        return gameState.totalCareerPoints
+      },
+      set totalCareerPoints(v) {
+        gameState.totalCareerPoints = v
+      },
+      get purchasedUpgrades() {
+        return gameState.purchasedUpgrades
+      },
+      set purchasedUpgrades(v) {
+        gameState.purchasedUpgrades = v
+      },
+      get permanentSlots() {
+        return gameState.permanentSlots
+      },
+      set permanentSlots(v) {
+        gameState.permanentSlots = v
+      },
+      get lifetimeEarnings() {
+        return gameState.lifetimeEarnings
+      },
+      set lifetimeEarnings(v) {
+        gameState.lifetimeEarnings = v
+      },
     },
     UPGRADES,
     ACHIEVEMENTS,
@@ -1973,6 +2055,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     },
     __IS_DEV__,
+    calculateCP,
   })
 
   // 새로 시작 버튼 이벤트 리스너 (saveLoadManager 초기화 후)
@@ -2004,6 +2087,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gameState.playerNickname = value
     },
     __IS_DEV__,
+    calculateCP,
   })
 
   // 게임 초기화 (saveLoadManager/nicknameManager 준비 완료 후)
@@ -2016,6 +2100,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 인증 리스너 초기화 (닉네임 마이그레이션, 저장 동기화 포함)
   cloudSyncManager.initAuthListener()
+
+  // ======= 인증 버튼 UI 업데이트 =======
+  function updateAuthButtons(user) {
+    const isLoggedIn = !!user
+    const authProviderButtons = document.getElementById('authProviderButtons')
+    const logoutButtonContainer = document.getElementById('logoutButtonContainer')
+    const cloudSaveSection = document.getElementById('cloudSaveSection')
+
+    if (authProviderButtons) authProviderButtons.style.display = isLoggedIn ? 'none' : 'flex'
+    if (logoutButtonContainer) logoutButtonContainer.hidden = !isLoggedIn
+    if (cloudSaveSection) cloudSaveSection.style.display = isLoggedIn ? 'block' : 'none'
+  }
+
+  // 초기 인증 상태 확인 및 버튼 업데이트
+  getUser().then(user => {
+    updateAuthButtons(user)
+  })
+
+  // 인증 상태 변경 시 버튼 업데이트
+  onAuthStateChange(user => {
+    updateAuthButtons(user)
+  })
+
+  // 로그인 버튼 이벤트 리스너
+  const googleLoginBtn = document.querySelector('[data-auth-provider="google"]')
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+      const result = await signInGoogle()
+      if (!result.ok) {
+        toastError(t('error.loginFailed'))
+      }
+    })
+  }
+
+  // 로그아웃 버튼 이벤트 리스너
+  const logoutBtn = document.getElementById('logoutBtn')
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      const result = await signOut()
+      if (result.ok) {
+        toastSuccess(t('settings.logout') + ' ✅')
+        setTimeout(() => location.reload(), 500)
+      } else {
+        toastError('로그아웃 실패')
+      }
+    })
+  }
 
   // 탭 숨김/닫기 시 자동 플러시 리스너 초기화
   cloudSyncManager.initVisibilityListeners()
@@ -2226,6 +2357,11 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.vibrate(10)
       }
 
+      // 경력 탭 진입 시 최신 상태로 새로고침
+      if (targetTab === 'careerTab') {
+        refreshPrestigeTab()
+      }
+
       // 설정 탭 진입 시 마이그레이션 충돌 체크 및 서버 닉네임 동기화
       if (targetTab === 'settingsTab') {
         try {
@@ -2349,6 +2485,31 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUpgradeList()
         updateUI()
       },
+      // CP 시스템 테스트 치트
+      addCP: amount => {
+        gameState.careerPoints += amount
+        gameState.totalCareerPoints += amount
+        refreshPrestigeTab(t, NumberFormat.formatNumber)
+        updateUI()
+      },
+      setTowers: count => {
+        gameState.towers_lifetime = count
+        updateUI()
+      },
+      setLifetimeEarnings: amount => {
+        gameState.lifetimeEarnings = amount
+        updateUI()
+      },
+      testPrestige: () => {
+        // 타워 5개, 수익 10조 시뮬레이션
+        gameState.towers_lifetime = 5
+        gameState.lifetimeEarnings = 1e13
+        gameState.careerPoints = 10
+        gameState.totalCareerPoints = 10
+        refreshPrestigeTab(t, NumberFormat.formatNumber)
+        updateUI()
+      },
+      getGameState: () => gameState,
     }
   }
 })

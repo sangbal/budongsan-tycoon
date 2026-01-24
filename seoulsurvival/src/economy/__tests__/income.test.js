@@ -15,6 +15,7 @@ vi.mock('../../systems/synergy.js', () => ({
 
 vi.mock('../../systems/prestigeBonus.js', () => ({
   getPrestigeMultiplier: vi.fn(() => 1),
+  getCPBonusMultiplier: vi.fn(() => 1),
 }))
 
 // 모킹 후 함수 import

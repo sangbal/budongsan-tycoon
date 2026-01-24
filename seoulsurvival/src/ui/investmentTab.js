@@ -8,6 +8,7 @@ import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import * as Diary from '../systems/diary.js'
 import * as Animations from './animations.js'
+import * as Modal from './modal.js'
 
 // 개발 모드 체크 (디버깅 로그 제어용)
 const __IS_DEV__ = !!import.meta?.env?.DEV
@@ -62,6 +63,12 @@ export function createInvestmentTab(deps) {
     // Constants
     CAREER_LEVELS,
     MARKET_EVENTS,
+
+    // gameState 직접 참조 (타워 구매 시 towers_lifetime 업데이트용)
+    gameState,
+
+    // 프레스티지 시스템 (타워 구매 후 호출)
+    performAutoPrestige,
   } = deps
 
   /**
@@ -535,6 +542,29 @@ export function createInvestmentTab(deps) {
   }
 
   /**
+   * 타워 구매 후 프레스티지 트리거
+   * 확인 모달을 표시하여 플레이어에게 선택권 부여
+   */
+  function triggerPrestigeAfterTowerPurchase() {
+    Modal.openConfirmModal(
+      t('modal.prestige.tower.title'),
+      t('modal.prestige.tower.message'),
+      async () => {
+        // 확인 시 프레스티지 실행
+        if (typeof performAutoPrestige === 'function') {
+          await performAutoPrestige('tower_purchase')
+          Diary.addLog(t('msg.prestigeComplete'))
+        }
+      },
+      {
+        icon: '🗼',
+        primaryLabel: t('button.yes'),
+        secondaryLabel: t('button.no'),
+      }
+    )
+  }
+
+  /**
    * 이벤트 리스너 초기화
    */
   function initInvestmentEventListeners(elements) {
@@ -723,8 +753,13 @@ export function createInvestmentTab(deps) {
         const result = handleTransaction('property', 'tower', deps.getTower())
         if (result.success) {
           deps.setTower(result.newCount)
-          deps.gameState.towers_lifetime++ // 영구 타워 카운터 증가
+          gameState.towers_lifetime++ // 영구 타워 카운터 증가
           showPurchaseSuccess(elBuyTower)
+
+          // 타워 구매 후 프레스티지 확인 모달 표시 (구매 피드백 후 잠시 대기)
+          setTimeout(() => {
+            triggerPrestigeAfterTowerPurchase()
+          }, 500)
         }
         updateUI()
       })

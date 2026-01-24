@@ -9,5 +9,8 @@
     "WebFetch",
     "WebSearch",
     "AskUserQuestion"
-  ]
+  ],
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
 }

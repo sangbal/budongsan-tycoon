@@ -80,7 +80,7 @@
         <div class="chip stat-tooltip" id="financialChip" title=""><span class="chip-icon" aria-hidden="true">💰</span><span class="chip-label" data-i18n="header.financial.label">금융</span><b id="financial">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
         <div class="chip stat-tooltip" id="propertyChip" title=""><span class="chip-icon" aria-hidden="true">🏢</span><span class="chip-label" data-i18n="header.properties.label">부동산</span><b id="properties">0</b><span class="muted" data-i18n="ui.unit.property">채</span></div>
         <div class="chip stat-tooltip" id="rpsChip" title=""><span class="chip-icon" aria-hidden="true">📈</span><span class="chip-label" data-i18n="header.rps.label">초당</span><b id="rps">0</b></div>
-        <div class="chip" id="towerBadge" style="display: none; background: linear-gradient(135deg, rgba(94, 234, 212, 0.15), rgba(94, 234, 212, 0.05)); border: 1px solid rgba(94, 234, 212, 0.3); box-shadow: 0 0 12px rgba(94, 234, 212, 0.2);"><span style="font-size: 16px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🗼</span><b id="towerCountHeader">0</b></div>
+        <div class="chip" id="towerBadge" style="display: none; background: linear-gradient(135deg, rgba(94, 234, 212, 0.15), rgba(94, 234, 212, 0.05)); border: 1px solid rgba(94, 234, 212, 0.3); box-shadow: 0 0 12px rgba(94, 234, 212, 0.2);"><span style="font-size: 16px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🗼</span><b id="towerCountHeader">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
       </div>
     </header>
 
@@ -131,8 +131,10 @@
           <!-- 업그레이드 리스트 - Cookie Clicker 스타일 -->
           <div class="stats-section collapsible" data-section-id="upgrades">
             <h3 class="stats-toggle" aria-expanded="true" role="button" tabindex="0">
-              <span data-i18n="ui.upgrades">업그레이드</span>
-              <span class="upgrade-count" id="upgradeCount">(0)</span>
+              <span class="stats-toggle-left">
+                <span data-i18n="ui.upgrades">업그레이드</span>
+                <span class="upgrade-count" id="upgradeCount">(0)</span>
+              </span>
               <span class="toggle-icon" aria-hidden="true">▼</span>
             </h3>
             <div class="stats-content">
@@ -682,6 +684,19 @@
       </section>
     </div>
 
+    <!-- 경력 탭 (CP 상점) -->
+    <div id="careerTab" class="tab-content">
+      <section class="card">
+        <h2><span class="tab-icon" aria-hidden="true">💼</span> <span data-i18n="tab.career">경력</span></h2>
+        <div id="prestigeTabContent">
+          <!-- prestigeTab.js에서 동적으로 생성 -->
+          <div class="cp-loading" style="text-align: center; padding: 20px; color: var(--muted);">
+            타워를 획득하면 경력 포인트(CP)를 얻을 수 있습니다.
+          </div>
+        </div>
+      </section>
+    </div>
+
     <!-- 설정 탭 -->
     <div id="settingsTab" class="tab-content">
       <section class="card">
@@ -960,6 +975,19 @@
       </button>
       <button
         class="nav-btn"
+        data-tab="careerTab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="careerTab"
+        aria-label="경력 화면으로 이동"
+        id="careerNavBtn"
+        style="display: none;"
+      >
+        <div>💼</div>
+        <span data-i18n="tab.career">경력</span>
+      </button>
+      <button
+        class="nav-btn"
         data-tab="settingsTab"
         role="tab"
         aria-selected="false"
@@ -987,7 +1015,7 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.0.0"></script>
+  <script type="module" src="./src/main.js"></script>
   <script type="module" src="../shared/authBoot.js"></script>
 </body>
 </html>

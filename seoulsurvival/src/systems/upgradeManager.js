@@ -119,8 +119,19 @@ export function createUpgradeManager(deps) {
         upgradesSection.classList.add('collapsed')
         const toggle = upgradesSection.querySelector('.stats-toggle')
         if (toggle) toggle.setAttribute('aria-expanded', 'false')
+        const toggleIcon = upgradesSection.querySelector('.toggle-icon')
+        if (toggleIcon) toggleIcon.textContent = '▶'
       }
       return
+    }
+
+    // 업그레이드가 있으면 자동으로 펼치기
+    if (upgradesSection && upgradesSection.classList.contains('collapsed')) {
+      upgradesSection.classList.remove('collapsed')
+      const toggle = upgradesSection.querySelector('.stats-toggle')
+      if (toggle) toggle.setAttribute('aria-expanded', 'true')
+      const toggleIcon = upgradesSection.querySelector('.toggle-icon')
+      if (toggleIcon) toggleIcon.textContent = '▼'
     }
 
     if (noUpgradesMsg) {

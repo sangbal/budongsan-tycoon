@@ -13,7 +13,7 @@ import {
   applyPropertySynergyMultiplier,
   applyFinancialSynergyMultiplier,
 } from '../systems/synergy.js'
-import { getPrestigeMultiplier } from '../systems/prestigeBonus.js'
+import { getPrestigeMultiplier, getCPBonusMultiplier } from '../systems/prestigeBonus.js'
 
 /**
  * 금융상품의 현재 수익 계산 (시장 이벤트 배수 + 시너지 배수 + 프레스티지 배수 포함)
@@ -78,9 +78,10 @@ export function getRps(state, getMarketEventMultiplier) {
     getPropertyIncome('shop', state.shops, getMarketEventMultiplier) +
     getPropertyIncome('building', state.buildings, getMarketEventMultiplier)
 
-  // 배수 적용 순서: 1) 부동산에 rentMultiplier 적용, 2) 전체에 marketMultiplier 적용
+  // 배수 적용 순서: 1) 부동산에 rentMultiplier 적용, 2) 전체에 marketMultiplier 적용, 3) CP 보유 보너스 적용
   const totalIncome = financialIncome + propertyRent * state.rentMultiplier
-  return totalIncome * state.marketMultiplier
+  const cpBonus = getCPBonusMultiplier() // CP 보유 보너스 (+2%/CP)
+  return totalIncome * state.marketMultiplier * cpBonus
 }
 
 /**
@@ -109,7 +110,7 @@ export function getTotalIncomeForContribution(state, getMarketEventMultiplier) {
 }
 
 /**
- * 클릭당 수익 계산 (직급 배수 + 업그레이드 배수 + 프레스티지 배수)
+ * 클릭당 수익 계산 (직급 배수 + 업그레이드 배수 + 프레스티지 배수 + CP 보너스)
  * @param {number} careerLevel - 현재 직급 레벨
  * @param {number} clickMultiplier - 클릭 배수
  * @returns {number} 클릭당 수익
@@ -117,7 +118,10 @@ export function getTotalIncomeForContribution(state, getMarketEventMultiplier) {
 export function getClickIncome(careerLevel, clickMultiplier) {
   const currentCareer = CAREER_LEVELS[careerLevel]
   const prestigeMult = getPrestigeMultiplier('click_power')
-  return Math.floor(BASE_CLICK_GAIN * currentCareer.multiplier * clickMultiplier * prestigeMult)
+  const cpBonus = getCPBonusMultiplier() // CP 보유 보너스 (+2%/CP)
+  return Math.floor(
+    BASE_CLICK_GAIN * currentCareer.multiplier * clickMultiplier * prestigeMult * cpBonus
+  )
 }
 
 /**

@@ -242,7 +242,7 @@ export default {
   'stats.laborIncome': 'Labor Income',
   'stats.playTime': 'This Run Play Time',
   'stats.hourlyRate': 'Hourly Rate',
-  'stats.efficiencyRanking': 'Efficiency Ranking (Per Unit Per Second)',
+  'stats.efficiencyRanking': 'ROI Ranking (Return on Investment)',
   'stats.incomeStructure': 'Income Structure',
   'stats.assetRatio': 'Asset Ratio',
   'stats.financialProducts': 'Financial Products',

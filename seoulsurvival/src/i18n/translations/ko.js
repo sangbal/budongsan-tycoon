@@ -243,7 +243,7 @@ export default {
   'stats.laborIncome': '노동 수익',
   'stats.playTime': '이번 런 플레이 시간',
   'stats.hourlyRate': '시간당 수익',
-  'stats.efficiencyRanking': '효율 순위 (개당 초당 수익)',
+  'stats.efficiencyRanking': 'ROI 순위 (투자 대비 수익률)',
   'stats.incomeStructure': '수익 구조',
   'stats.assetRatio': '자산 비율',
   'stats.financialProducts': '금융상품',

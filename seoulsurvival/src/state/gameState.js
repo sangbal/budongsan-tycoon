@@ -85,6 +85,13 @@ export const gameState = {
   towers_run: 0, // 서울타워 (현재 런에서 획득)
   towers_lifetime: 0, // 서울타워 (계정 누적, 프레스티지 유지)
 
+  // 경력 포인트(CP) 시스템 - 프레스티지 통화
+  careerPoints: 0, // 현재 보유 CP
+  totalCareerPoints: 0, // 누적 획득 CP (통계용)
+  purchasedUpgrades: [], // 구매한 프레스티지 업그레이드 ID 배열
+  permanentSlots: [], // 영구 슬롯에 저장된 업그레이드 ID (최대 2개)
+  lifetimeEarnings: 0, // 누적 수익 (CP 계산용)
+
   // 부동산 누적 생산량
   villasLifetime: 0,
   officetelsLifetime: 0,

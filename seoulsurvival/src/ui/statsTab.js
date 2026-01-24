@@ -239,87 +239,163 @@ function drawDonutChart(deps) {
   ctx.fill()
 }
 
-// ======= 효율 분석 (개당 초당 수익 순위) =======
+// ======= 효율 분석 (ROI: 투자 대비 수익률) =======
 function calculateEfficiencies(deps) {
-  const { state, getProductName, FINANCIAL_INCOME, BASE_RENT, rentMultiplier } = deps
+  const {
+    state,
+    getProductName,
+    FINANCIAL_INCOME,
+    BASE_RENT,
+    rentMultiplier,
+    getFinancialCost,
+    getPropertyCost,
+  } = deps
   const assets = []
 
-  // 금융상품
+  // 금융상품 - ROI = (초당 수익 / 개당 평균 구매가) × 100
   if (state.deposits > 0) {
+    const totalInvestment = calculateFinancialValueForType(
+      'deposit',
+      state.deposits,
+      getFinancialCost
+    )
+    const avgCost = totalInvestment / state.deposits
+    const incomePerSec = FINANCIAL_INCOME.deposit
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('deposit'),
-      efficiency: FINANCIAL_INCOME.deposit,
+      roi,
       count: state.deposits,
     })
   }
   if (state.savings > 0) {
+    const totalInvestment = calculateFinancialValueForType(
+      'savings',
+      state.savings,
+      getFinancialCost
+    )
+    const avgCost = totalInvestment / state.savings
+    const incomePerSec = FINANCIAL_INCOME.savings
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('savings'),
-      efficiency: FINANCIAL_INCOME.savings,
+      roi,
       count: state.savings,
     })
   }
   if (state.bonds > 0) {
+    const totalInvestment = calculateFinancialValueForType('bond', state.bonds, getFinancialCost)
+    const avgCost = totalInvestment / state.bonds
+    const incomePerSec = FINANCIAL_INCOME.bond
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('bond'),
-      efficiency: FINANCIAL_INCOME.bond,
+      roi,
       count: state.bonds,
     })
   }
   if (state.usStocks > 0) {
+    const totalInvestment = calculateFinancialValueForType(
+      'usStock',
+      state.usStocks,
+      getFinancialCost
+    )
+    const avgCost = totalInvestment / state.usStocks
+    const incomePerSec = FINANCIAL_INCOME.usStock
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('usStock'),
-      efficiency: FINANCIAL_INCOME.usStock,
+      roi,
       count: state.usStocks,
     })
   }
   if (state.cryptos > 0) {
+    const totalInvestment = calculateFinancialValueForType(
+      'crypto',
+      state.cryptos,
+      getFinancialCost
+    )
+    const avgCost = totalInvestment / state.cryptos
+    const incomePerSec = FINANCIAL_INCOME.crypto
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('crypto'),
-      efficiency: FINANCIAL_INCOME.crypto,
+      roi,
       count: state.cryptos,
     })
   }
 
-  // 부동산
+  // 부동산 - ROI = (초당 수익 / 개당 평균 구매가) × 100
   if (state.villas > 0) {
+    const totalInvestment = calculatePropertyValueForType('villa', state.villas, getPropertyCost)
+    const avgCost = totalInvestment / state.villas
+    const incomePerSec = BASE_RENT.villa * rentMultiplier
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('villa'),
-      efficiency: BASE_RENT.villa * rentMultiplier,
+      roi,
       count: state.villas,
     })
   }
   if (state.officetels > 0) {
+    const totalInvestment = calculatePropertyValueForType(
+      'officetel',
+      state.officetels,
+      getPropertyCost
+    )
+    const avgCost = totalInvestment / state.officetels
+    const incomePerSec = BASE_RENT.officetel * rentMultiplier
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('officetel'),
-      efficiency: BASE_RENT.officetel * rentMultiplier,
+      roi,
       count: state.officetels,
     })
   }
   if (state.apartments > 0) {
+    const totalInvestment = calculatePropertyValueForType(
+      'apartment',
+      state.apartments,
+      getPropertyCost
+    )
+    const avgCost = totalInvestment / state.apartments
+    const incomePerSec = BASE_RENT.apartment * rentMultiplier
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('apartment'),
-      efficiency: BASE_RENT.apartment * rentMultiplier,
+      roi,
       count: state.apartments,
     })
   }
   if (state.shops > 0) {
+    const totalInvestment = calculatePropertyValueForType('shop', state.shops, getPropertyCost)
+    const avgCost = totalInvestment / state.shops
+    const incomePerSec = BASE_RENT.shop * rentMultiplier
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('shop'),
-      efficiency: BASE_RENT.shop * rentMultiplier,
+      roi,
       count: state.shops,
     })
   }
   if (state.buildings > 0) {
+    const totalInvestment = calculatePropertyValueForType(
+      'building',
+      state.buildings,
+      getPropertyCost
+    )
+    const avgCost = totalInvestment / state.buildings
+    const incomePerSec = BASE_RENT.building * rentMultiplier
+    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
     assets.push({
       name: getProductName('building'),
-      efficiency: BASE_RENT.building * rentMultiplier,
+      roi,
       count: state.buildings,
     })
   }
 
-  // 효율 순으로 정렬
-  assets.sort((a, b) => b.efficiency - a.efficiency)
+  // ROI 순으로 정렬 (높은 순)
+  assets.sort((a, b) => b.roi - a.roi)
 
   // 상위 3개 반환
   const perSecUnit = t('stats.unit.perSec')
@@ -327,7 +403,7 @@ function calculateEfficiencies(deps) {
     .slice(0, 3)
     .map(
       a =>
-        `${a.name} (${NumberFormat.formatNumberForLang(Math.floor(a.efficiency))}${t('ui.currency')}${perSecUnit}, ${a.count}${t('ui.unit.count')} ${t('ui.owned')})`
+        `${a.name} (ROI ${a.roi.toFixed(4)}%${perSecUnit}, ${a.count}${t('ui.unit.count')} ${t('ui.owned')})`
     )
 }
 

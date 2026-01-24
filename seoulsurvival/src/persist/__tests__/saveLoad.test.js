@@ -128,6 +128,7 @@ describe('createSaveLoadManager', () => {
         __lastCloudUploadedSaveTs: 0,
       },
       __IS_DEV__: false,
+      calculateCP: vi.fn(() => 0), // CP 계산 함수 모킹
     }
   })
 
