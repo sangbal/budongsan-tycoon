@@ -6,14 +6,16 @@ import {
   getPropertySellPrice,
 } from './economy/pricing.js'
 import {
-  getFinancialIncome as calculateFinancialIncome,
-  getPropertyIncome as calculatePropertyIncome,
-  getRps as calculateRps,
-  getTotalIncomeForContribution as calculateTotalIncomeForContribution,
-  getClickIncome as calculateClickIncome,
-  getCurrentCareer as getCareerByLevel,
-  getNextCareer as getNextCareerByLevel,
-} from './economy/income.js'
+  setMarketEventMultiplier,
+  getClickIncome,
+  getCurrentCareer,
+  getNextCareer,
+  getCareerName,
+  getRps,
+  getTotalIncomeForContribution,
+  getFinancialIncome,
+  getPropertyIncome,
+} from './economy/incomeCalculator.js'
 import { createAssetCalculator } from './economy/assetCalculator.js'
 import { createMarketSystem } from './systems/market.js'
 import { createAchievementsSystem } from './systems/achievements.js'
@@ -21,6 +23,7 @@ import { createUpgradeUnlockSystem } from './systems/upgrades.js'
 import { createUpgradeManager } from './systems/upgradeManager.js'
 import { createWorkSystem } from './systems/workSystem.js'
 import { createPrestigeSystem } from './systems/prestigeSystem.js'
+import { createCareerSystem } from './systems/careerSystem.js'
 import { getDomRefs } from './ui/domRefs.js'
 import { safeClass, safeHTML, safeText } from './ui/domUtils.js'
 import {
@@ -218,12 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     particles: true,
     fancyGraphics: true,
     shortNumbers: false,
-  }
-
-  // 직급 이름 가져오기 함수
-  function getCareerName(level) {
-    if (level < 0 || level >= CAREER_LEVELS.length) return ''
-    return t(CAREER_LEVELS[level].nameKey)
   }
 
   // ACHIEVEMENTS 배열 (팩토리 함수로 생성)
@@ -461,125 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ======= 수익 계산 래퍼 함수 =======
-  function getClickIncome() {
-    return calculateClickIncome(gameState.careerLevel, gameState.clickMultiplier)
-  }
-
-  function getCurrentCareer() {
-    return getCareerByLevel(gameState.careerLevel)
-  }
-
-  function getNextCareer() {
-    return getNextCareerByLevel(gameState.careerLevel)
-  }
-
-  function getRps() {
-    const state = {
-      deposits: gameState.deposits,
-      savings: gameState.savings,
-      bonds: gameState.bonds,
-      usStocks: gameState.usStocks,
-      cryptos: gameState.cryptos,
-      villas: gameState.villas,
-      officetels: gameState.officetels,
-      apartments: gameState.apartments,
-      shops: gameState.shops,
-      buildings: gameState.buildings,
-      rentMultiplier: gameState.rentMultiplier,
-      marketMultiplier: gameState.marketMultiplier,
-    }
-    return calculateRps(state, getMarketEventMultiplier)
-  }
-
-  function getTotalIncomeForContribution() {
-    const state = {
-      deposits: gameState.deposits,
-      savings: gameState.savings,
-      bonds: gameState.bonds,
-      usStocks: gameState.usStocks,
-      cryptos: gameState.cryptos,
-      villas: gameState.villas,
-      officetels: gameState.officetels,
-      apartments: gameState.apartments,
-      shops: gameState.shops,
-      buildings: gameState.buildings,
-      rentMultiplier: gameState.rentMultiplier,
-      marketMultiplier: gameState.marketMultiplier,
-    }
-    return calculateTotalIncomeForContribution(state, getMarketEventMultiplier)
-  }
-
-  function getFinancialIncome(type, count) {
-    return calculateFinancialIncome(type, count, getMarketEventMultiplier)
-  }
-
-  function getPropertyIncome(type, count) {
-    return calculatePropertyIncome(type, count, getMarketEventMultiplier)
-  }
-
-  // 자동 승진 체크 함수 (클릭 수 기준)
-  function checkCareerPromotion() {
-    const nextCareer = getNextCareer()
-    if (nextCareer && gameState.totalClicks >= nextCareer.requiredClicks) {
-      const oldCareerLevel = gameState.careerLevel
-      gameState.careerLevel += 1
-      const newCareer = getCurrentCareer()
-      const clickIncome = getClickIncome()
-      Diary.addLog(
-        t('msg.promoted', {
-          career: getCareerName(gameState.careerLevel),
-          income: NumberFormat.formatKoreanNumber(clickIncome),
-        })
-      )
-
-      // 승진 시 전환 애니메이션
-      if (elWorkArea) {
-        // 페이드 아웃 효과
-        elWorkArea.style.transition = 'opacity 0.3s ease-out'
-        elWorkArea.style.opacity = '0.5'
-
-        setTimeout(() => {
-          // 배경 이미지 변경
-          if (newCareer.bgImage) {
-            elWorkArea.style.transition = 'background-image 0.8s ease-in-out, opacity 0.5s ease-in'
-            elWorkArea.style.backgroundImage = `url('${newCareer.bgImage}')`
-          } else {
-            elWorkArea.style.transition = 'background-image 0.8s ease-in-out, opacity 0.5s ease-in'
-            elWorkArea.style.backgroundImage =
-              'radial-gradient(1200px 400px at 50% -50%, rgba(94,234,212,.1), transparent 60%)'
-          }
-
-          // 페이드 인 효과
-          elWorkArea.style.opacity = '1'
-        }, 300)
-      }
-
-      // 직급 카드 애니메이션 효과
-      const careerCard = document.querySelector('.career-card')
-      if (careerCard) {
-        careerCard.style.animation = 'none'
-        setTimeout(() => {
-          careerCard.style.animation = 'careerPromotion 0.6s ease-out'
-        }, 10)
-      }
-
-      // 스크린 리더 알림
-      const currentCareerEl = document.getElementById('currentCareer')
-      if (currentCareerEl) {
-        currentCareerEl.setAttribute(
-          'aria-label',
-          t('msg.promoted', {
-            career: getCareerName(gameState.careerLevel),
-            income: NumberFormat.formatKoreanNumber(clickIncome),
-          })
-        )
-      }
-
-      return true
-    }
-    return false
-  }
+  // ======= 커리어 시스템 초기화 (Phase 14) =======
+  const careerSystem = createCareerSystem({ elWorkArea })
+  const checkCareerPromotion = careerSystem.checkCareerPromotion
 
   // 버튼 상태 업데이트 함수 (buttonStates.js 모듈로 위임)
   function updateButtonStates() {
@@ -730,6 +611,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateButton,
     initInvestmentEventListeners,
   } = investmentTab
+
+  // incomeCalculator에 시장 이벤트 배수 함수 주입 (Phase 13)
+  setMarketEventMultiplier(getMarketEventMultiplier)
 
   // ======= buttonStateManager 초기화 =======
   buttonStateManager = createButtonStateManager({
@@ -1186,7 +1070,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupToggleSwitches({ settings, saveSettings, updateUI })
 
   function updateStatsTab() {
-    // statsTab.js 모듈의 updateStatsTab에 필요한 의존성 전달
+    // Phase 15: statsTab.js가 gameState, FINANCIAL_INCOME, BASE_RENT를 직접 import
+    // 외부 함수만 의존성으로 전달
     updateStatsTabImpl({
       safeText,
       getRps,
@@ -1198,38 +1083,8 @@ document.addEventListener('DOMContentLoaded', () => {
       getPropertyCost,
       getProductName,
       isProductUnlocked,
-      state: {
-        cash: gameState.cash,
-        deposits: gameState.deposits,
-        savings: gameState.savings,
-        bonds: gameState.bonds,
-        usStocks: gameState.usStocks,
-        cryptos: gameState.cryptos,
-        depositsLifetime: gameState.depositsLifetime,
-        savingsLifetime: gameState.savingsLifetime,
-        bondsLifetime: gameState.bondsLifetime,
-        usStocksLifetime: gameState.usStocksLifetime,
-        cryptosLifetime: gameState.cryptosLifetime,
-        villas: gameState.villas,
-        officetels: gameState.officetels,
-        apartments: gameState.apartments,
-        shops: gameState.shops,
-        buildings: gameState.buildings,
-        villasLifetime: gameState.villasLifetime,
-        officetelsLifetime: gameState.officetelsLifetime,
-        apartmentsLifetime: gameState.apartmentsLifetime,
-        shopsLifetime: gameState.shopsLifetime,
-        buildingsLifetime: gameState.buildingsLifetime,
-        totalLaborIncome: gameState.totalLaborIncome,
-        totalClicks: gameState.totalClicks,
-        sessionStartTime: gameState.sessionStartTime,
-        totalPlayTime: gameState.totalPlayTime,
-      },
       settings,
       ACHIEVEMENTS,
-      FINANCIAL_INCOME,
-      BASE_RENT,
-      rentMultiplier: gameState.rentMultiplier,
       now: () => Date.now(),
     })
 

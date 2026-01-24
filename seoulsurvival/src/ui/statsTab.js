@@ -2,9 +2,12 @@
  * 통계 탭 렌더러 - 확장 버전
  * - main.js의 통계 관련 함수들을 모두 통합
  * - 성장 추적, 도넛 차트, 효율 분석, 업적 그리드 포함
+ *
+ * Phase 15: gameState 직접 import로 main.js 래퍼 간소화
  */
 import { t, getLang } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
+import { gameState, FINANCIAL_INCOME, BASE_RENT } from '../state/gameState.js'
 
 // ======= 모듈 내부 상태 (성장 추적용) =======
 let hourlyEarningsHistory = [] // 최근 1시간 수익 기록
@@ -60,7 +63,8 @@ export function setAchievementScrollActive(active) {
 
 // ======= 성장 추적 함수 =======
 function updateGrowthTracking(deps) {
-  const { state, settings, safeText } = deps
+  const { settings, safeText } = deps
+  const state = gameState // Phase 15: gameState 직접 사용
   const now = Date.now()
   const currentEarnings =
     state.depositsLifetime +
@@ -138,7 +142,8 @@ function updateGrowthTracking(deps) {
 
 // ======= 도넛 차트 그리기 =======
 function drawDonutChart(deps) {
-  const { state, calculateFinancialValue, calculatePropertyValue, calculateTotalAssetValue } = deps
+  const { calculateFinancialValue, calculatePropertyValue, calculateTotalAssetValue } = deps
+  const state = gameState // Phase 15: gameState 직접 사용
 
   const canvas = document.getElementById('assetDonutChart')
   if (!canvas) return
@@ -241,15 +246,9 @@ function drawDonutChart(deps) {
 
 // ======= 효율 분석 (ROI: 투자 대비 수익률) =======
 function calculateEfficiencies(deps) {
-  const {
-    state,
-    getProductName,
-    FINANCIAL_INCOME,
-    BASE_RENT,
-    rentMultiplier,
-    getFinancialCost,
-    getPropertyCost,
-  } = deps
+  const { getProductName, getFinancialCost, getPropertyCost } = deps
+  const state = gameState // Phase 15: gameState 직접 사용
+  const rentMultiplier = gameState.rentMultiplier // Phase 15: gameState에서 직접 접근
   const assets = []
 
   // 금융상품 - ROI = (초당 수익 / 개당 평균 구매가) × 100
@@ -730,6 +729,8 @@ function calculatePropertyValueForType(type, count, getPropertyCost) {
  * 통계 탭 전체 업데이트 (확장 버전)
  * - 성장 추적, 도넛 차트, 상세 통계, 효율 분석, 업적 그리드 포함
  *
+ * Phase 15: gameState, FINANCIAL_INCOME, BASE_RENT는 직접 import
+ *
  * @param {{
  *  safeText:(el:Element|null, text:string)=>void,
  *  getRps:()=>number,
@@ -741,18 +742,14 @@ function calculatePropertyValueForType(type, count, getPropertyCost) {
  *  getPropertyCost:(type:string, index:number)=>number,
  *  getProductName:(type:string)=>string,
  *  isProductUnlocked:(type:string)=>boolean,
- *  state:object,
  *  settings:object,
  *  ACHIEVEMENTS:object,
- *  FINANCIAL_INCOME:object,
- *  BASE_RENT:object,
- *  rentMultiplier:number,
  *  now?:()=>number,
  * }} deps
  */
 export function updateStatsTab(deps) {
-  const { safeText, getRps, getClickIncome, state, settings, getFinancialCost, getPropertyCost } =
-    deps
+  const { safeText, getRps, getClickIncome, settings, getFinancialCost, getPropertyCost } = deps
+  const state = gameState // Phase 15: gameState 직접 사용
   const now = deps.now || Date.now
 
   try {

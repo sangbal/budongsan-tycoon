@@ -53,9 +53,17 @@ export const PROBABILITY = {
 export const ANIMATION = {
   /** 직급 승진 페이드 아웃 지속 시간 (ms) */
   PROMOTION_FADEOUT_MS: 300,
+  CAREER_FADE_OUT: 300, // alias
 
   /** 직급 승진 배경 전환 지속 시간 (ms) */
   PROMOTION_TRANSITION_MS: 800,
+  CAREER_BG_TRANSITION: 800, // alias
+
+  /** 직급 승진 페이드 인 지속 시간 (ms) */
+  CAREER_FADE_IN: 500,
+
+  /** 직급 카드 애니메이션 지속 시간 (ms) */
+  CAREER_CARD: 600,
 
   /** 직급 카드 애니메이션 지연 (ms) */
   CAREER_CARD_ANIMATION_DELAY_MS: 10,
