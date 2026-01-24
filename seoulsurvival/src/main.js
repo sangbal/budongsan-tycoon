@@ -14,10 +14,13 @@ import {
   getCurrentCareer as getCareerByLevel,
   getNextCareer as getNextCareerByLevel,
 } from './economy/income.js'
+import { createAssetCalculator } from './economy/assetCalculator.js'
 import { createMarketSystem } from './systems/market.js'
 import { createAchievementsSystem } from './systems/achievements.js'
 import { createUpgradeUnlockSystem } from './systems/upgrades.js'
 import { createUpgradeManager } from './systems/upgradeManager.js'
+import { createWorkSystem } from './systems/workSystem.js'
+import { createPrestigeSystem } from './systems/prestigeSystem.js'
 import { getDomRefs } from './ui/domRefs.js'
 import { safeClass, safeHTML, safeText } from './ui/domUtils.js'
 import {
@@ -192,6 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let nicknameManager = null
   let cloudSyncManager = null
   let gameUIInstance = null // gameUI.js 모듈 인스턴스
+  let workSystem = null // workSystem.js 모듈 인스턴스
+  let prestigeSystem = null // prestigeSystem.js 모듈 인스턴스
 
   // updateSaveStatus 함수 (saveLoadManager 초기화 후 호출 가능)
   function updateSaveStatus() {
@@ -1112,6 +1117,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const collapsibleManager = createCollapsibleManager()
   collapsibleManager.initAll(100) // 지연 초기화 (DOMContentLoaded 이후)
 
+  // ======= 워크 시스템 초기화 (workSystem.js 모듈) =======
+  workSystem = createWorkSystem({
+    state: gameState,
+    UPGRADES,
+    CAREER_LEVELS,
+    settings,
+    getClickIncome,
+    checkCareerPromotion,
+    updateUpgradeProgress,
+    updateUI,
+    elWork,
+  })
+
   // ======= 구매 수량 선택 시스템 =======
   const setupModeBtn = (btn, mode, other) => {
     btn?.addEventListener('click', () => {
@@ -1136,86 +1154,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupQtyBtn(elQty10, 10, [elQty1, elQty5])
 
   // ======= 액션 =======
-  function handleWorkAction(clientX, clientY) {
-    let income = getClickIncome()
-
-    // 업그레이드 효과 적용 (새 UPGRADES 시스템)
-    if (
-      UPGRADES['performance_bonus'] &&
-      UPGRADES['performance_bonus'].purchased &&
-      Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
-    ) {
-      income *= 10 // 2% 확률로 10배 수익
-      Diary.addLog(t('msg.bonusPaid'))
-    }
-
-    // 떨어지는 쿠키 애니메이션 생성 (설정에서 활성화된 경우만)
-    if (settings.particles) {
-      Animations.createFallingCookie(clientX ?? 0, clientY ?? 0)
-    }
-
-    gameState.cash += income
-    gameState.totalClicks += 1 // 클릭 수 증가
-    gameState.totalLaborIncome += income // 총 노동 수익 증가
-    gameState.lifetimeEarnings += income // CP 계산용 누적 수익
-
-    // 미니 목표 알림: 다음 업그레이드까지 남은 클릭 수 체크
-    const lockedUpgrades = Object.entries(UPGRADES)
-      .filter(([id, u]) => u.category === 'labor' && !u.unlocked && !u.purchased)
-      .map(([id, u]) => {
-        const conditionStr = u.unlockCondition.toString()
-        const match = conditionStr.match(/totalClicks\s*>=\s*(\d+)/)
-        if (match) {
-          return { id, requiredClicks: parseInt(match[1]), upgrade: u }
-        }
-        // gameState.careerLevel 체크인 경우
-        const careerMatch = conditionStr.match(/careerLevel\s*>=\s*(\d+)/)
-        if (careerMatch) {
-          return {
-            id,
-            requiredClicks: CAREER_LEVELS[parseInt(careerMatch[1])]?.requiredClicks || Infinity,
-            upgrade: u,
-          }
-        }
-        return null
-      })
-      .filter(x => x !== null)
-      .sort((a, b) => a.requiredClicks - b.requiredClicks)
-
-    if (lockedUpgrades.length > 0) {
-      const nextUpgrade = lockedUpgrades[0]
-      const remaining = nextUpgrade.requiredClicks - gameState.totalClicks
-
-      // 50클릭, 25클릭, 10클릭, 5클릭 남았을 때 알림
-      if (remaining === 50 || remaining === 25 || remaining === 10 || remaining === 5) {
-        Diary.addLog(
-          t('msg.nextUpgradeHint', { name: t(`upgrade.${nextUpgrade.id}.name`), remaining })
-        )
-      }
-    }
-
-    // 자동 승진 체크
-    const wasPromoted = checkCareerPromotion()
-    if (wasPromoted) updateUI()
-
-    // 업그레이드 진행률 업데이트 (UI에 표시된 경우)
-    updateUpgradeProgress()
-
-    // 클릭 애니메이션 효과
-    elWork.classList.add('click-effect')
-    setTimeout(() => elWork.classList.remove('click-effect'), TIMING.CLICK_EFFECT_DURATION_MS)
-
-    // 수익 증가 텍스트 애니메이션
-    Animations.showIncomeAnimation(income)
-
-    updateUI()
-  }
+  // workSystem.js로 이동됨 - 아래에서 초기화
 
   // pointerdown으로 변경: 터치 즉시 반응하여 빠른 연타 인식률 개선
   elWork.addEventListener('pointerdown', e => {
     // 마우스 우클릭/중간버튼 무시
     if (e.pointerType === 'mouse' && e.button !== 0) return
-    handleWorkAction(e.clientX, e.clientY)
+    if (workSystem) {
+      workSystem.handleWorkAction(e.clientX, e.clientY)
+    }
   })
 
   // ======= 공유하기 기능 =======
@@ -1354,102 +1301,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 자동 프레스티지 실행 함수 (컨텍스트 독립: 엔딩/설정 경로 모두 안전)
+  // 자동 프레스티지 실행 함수 - prestigeSystem.js로 이동됨
   async function performAutoPrestige(source = 'unknown') {
-    console.log(`🔄 자동 프레스티지 실행 (source: ${source})`)
-
-    try {
-      // CP 시스템: 프레스티지 처리 (CP 지급 + 업그레이드 리셋)
-      const earnedCP = processPrestige()
-      if (earnedCP > 0) {
-        console.log(`💼 경력 포인트 획득: +${earnedCP} CP (총 ${gameState.careerPoints} CP)`)
-      }
-
-      // towers_lifetime은 유지, towers_run은 초기화
-      // 자산/보유/진행도 초기화
-      // 기본 시작 자금
-      gameState.cash = 1000
-      gameState.totalClicks = 0
-      gameState.totalLaborIncome = 0
-      gameState.careerLevel = 0
-      gameState.clickMultiplier = 1
-      gameState.rentMultiplier = 1
-      gameState.autoClickEnabled = false
-      gameState.managerLevel = 0
-
-      // 모든 보유 수량 일괄 초기화 (상품 정의 기반)
-      resetRunHoldings()
-
-      // 업그레이드 초기화
-      for (const upgrade of Object.values(UPGRADES)) {
-        upgrade.unlocked = false
-        upgrade.purchased = false
-      }
-
-      // 시장 이벤트 초기화
-      gameState.currentMarketEvent = null
-      gameState.marketEventEndTime = 0
-      gameState.marketMultiplier = 1.0
-
-      // CP 시스템: 시작 보너스 적용 (자금, 예금, 커리어, 빌라 등)
-      const startBonuses = applyStartingBonuses()
-      if (
-        startBonuses.cash > 0 ||
-        startBonuses.deposits > 0 ||
-        startBonuses.career > 0 ||
-        startBonuses.villa > 0
-      ) {
-        console.log('🎁 시작 보너스 적용:', startBonuses)
-      }
-
-      // 업적은 유지 (계정 누적)
-
-      // 세션 시간 초기화
-      gameState.sessionStartTime = Date.now()
-
-      // AI 업무 처리 및 노동 UI 상태 동기화
-      updateAutoWorkUI()
-
-      // UI 업데이트 (안전하게)
-      try {
-        updateUI()
-      } catch (uiError) {
-        console.error('❌ UI 업데이트 중 오류:', uiError)
-        // UI 업데이트 실패해도 게임 상태는 초기화됨
-      }
-
-      // 저장 (안전하게)
-      try {
-        saveLoadManager.saveGame()
-      } catch (saveError) {
-        console.error('❌ 게임 저장 중 오류:', saveError)
-        // 저장 실패해도 게임 상태는 초기화됨
-      }
-
-      // 리더보드 즉시 업데이트 (프레스티지는 중요 이벤트)
-      if (gameState.playerNickname) {
-        try {
-          await LeaderboardUI.updateLeaderboardEntry(true) // forceImmediate: 프레스티지는 즉시 업데이트
-        } catch (error) {
-          console.error('리더보드 업데이트 실패:', error)
-        }
-      }
-
-      try {
-        Diary.addLog(t('msg.prestigeComplete'))
-      } catch (diaryError) {
-        console.error('일기장 로그 실패:', diaryError)
-        // 일기장 오류는 치명적이지 않으므로 무시
-      }
-      if (__IS_DEV__) {
-        console.log('✅ 프레스티지 완료 (누적 데이터 유지)')
-      }
-    } catch (error) {
-      console.error('❌ 프레스티지 실행 중 치명적 오류:', error)
-      console.error('스택:', error.stack)
-      // 치명적 오류만 사용자에게 알림
-      throw error // 상위 try-catch에서 처리
+    if (prestigeSystem) {
+      return await prestigeSystem.performPrestige(source)
     }
+    console.error('❌ prestigeSystem이 초기화되지 않았습니다.')
   }
 
   // ======= 업그레이드 효과 적용 함수 =======
@@ -1745,273 +1602,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 저장/로드 시스템 =======
   saveLoadManager = createSaveLoadManager({
     SAVE_KEY,
-    gameVars: {
-      get cash() {
-        return gameState.cash
-      },
-      set cash(v) {
-        gameState.cash = v
-      },
-      get totalClicks() {
-        return gameState.totalClicks
-      },
-      set totalClicks(v) {
-        gameState.totalClicks = v
-      },
-      get totalLaborIncome() {
-        return gameState.totalLaborIncome
-      },
-      set totalLaborIncome(v) {
-        gameState.totalLaborIncome = v
-      },
-      get careerLevel() {
-        return gameState.careerLevel
-      },
-      set careerLevel(v) {
-        gameState.careerLevel = v
-      },
-      get clickMultiplier() {
-        return gameState.clickMultiplier
-      },
-      set clickMultiplier(v) {
-        gameState.clickMultiplier = v
-      },
-      get rentMultiplier() {
-        return gameState.rentMultiplier
-      },
-      set rentMultiplier(v) {
-        gameState.rentMultiplier = v
-      },
-      get autoClickEnabled() {
-        return gameState.autoClickEnabled
-      },
-      set autoClickEnabled(v) {
-        gameState.autoClickEnabled = v
-      },
-      get managerLevel() {
-        return gameState.managerLevel
-      },
-      set managerLevel(v) {
-        gameState.managerLevel = v
-      },
-      get rentCost() {
-        return gameState.rentCost
-      },
-      set rentCost(v) {
-        gameState.rentCost = v
-      },
-      get mgrCost() {
-        return gameState.mgrCost
-      },
-      set mgrCost(v) {
-        gameState.mgrCost = v
-      },
-      get deposits() {
-        return gameState.deposits
-      },
-      set deposits(v) {
-        gameState.deposits = v
-      },
-      get savings() {
-        return gameState.savings
-      },
-      set savings(v) {
-        gameState.savings = v
-      },
-      get bonds() {
-        return gameState.bonds
-      },
-      set bonds(v) {
-        gameState.bonds = v
-      },
-      get usStocks() {
-        return gameState.usStocks
-      },
-      set usStocks(v) {
-        gameState.usStocks = v
-      },
-      get cryptos() {
-        return gameState.cryptos
-      },
-      set cryptos(v) {
-        gameState.cryptos = v
-      },
-      get depositsLifetime() {
-        return gameState.depositsLifetime
-      },
-      set depositsLifetime(v) {
-        gameState.depositsLifetime = v
-      },
-      get savingsLifetime() {
-        return gameState.savingsLifetime
-      },
-      set savingsLifetime(v) {
-        gameState.savingsLifetime = v
-      },
-      get bondsLifetime() {
-        return gameState.bondsLifetime
-      },
-      set bondsLifetime(v) {
-        gameState.bondsLifetime = v
-      },
-      get usStocksLifetime() {
-        return gameState.usStocksLifetime
-      },
-      set usStocksLifetime(v) {
-        gameState.usStocksLifetime = v
-      },
-      get cryptosLifetime() {
-        return gameState.cryptosLifetime
-      },
-      set cryptosLifetime(v) {
-        gameState.cryptosLifetime = v
-      },
-      get villas() {
-        return gameState.villas
-      },
-      set villas(v) {
-        gameState.villas = v
-      },
-      get officetels() {
-        return gameState.officetels
-      },
-      set officetels(v) {
-        gameState.officetels = v
-      },
-      get apartments() {
-        return gameState.apartments
-      },
-      set apartments(v) {
-        gameState.apartments = v
-      },
-      get shops() {
-        return gameState.shops
-      },
-      set shops(v) {
-        gameState.shops = v
-      },
-      get buildings() {
-        return gameState.buildings
-      },
-      set buildings(v) {
-        gameState.buildings = v
-      },
-      get towers_run() {
-        return gameState.towers_run
-      },
-      set towers_run(v) {
-        gameState.towers_run = v
-      },
-      get towers_lifetime() {
-        return gameState.towers_lifetime
-      },
-      set towers_lifetime(v) {
-        gameState.towers_lifetime = v
-      },
-      get villasLifetime() {
-        return gameState.villasLifetime
-      },
-      set villasLifetime(v) {
-        gameState.villasLifetime = v
-      },
-      get officetelsLifetime() {
-        return gameState.officetelsLifetime
-      },
-      set officetelsLifetime(v) {
-        gameState.officetelsLifetime = v
-      },
-      get apartmentsLifetime() {
-        return gameState.apartmentsLifetime
-      },
-      set apartmentsLifetime(v) {
-        gameState.apartmentsLifetime = v
-      },
-      get shopsLifetime() {
-        return gameState.shopsLifetime
-      },
-      set shopsLifetime(v) {
-        gameState.shopsLifetime = v
-      },
-      get buildingsLifetime() {
-        return gameState.buildingsLifetime
-      },
-      set buildingsLifetime(v) {
-        gameState.buildingsLifetime = v
-      },
-      get marketMultiplier() {
-        return gameState.marketMultiplier
-      },
-      set marketMultiplier(v) {
-        gameState.marketMultiplier = v
-      },
-      get marketEventEndTime() {
-        return gameState.marketEventEndTime
-      },
-      set marketEventEndTime(v) {
-        gameState.marketEventEndTime = v
-      },
-      get gameStartTime() {
-        return gameState.gameStartTime
-      },
-      set gameStartTime(v) {
-        gameState.gameStartTime = v
-      },
-      get totalPlayTime() {
-        return gameState.totalPlayTime
-      },
-      set totalPlayTime(v) {
-        gameState.totalPlayTime = v
-      },
-      get sessionStartTime() {
-        return gameState.sessionStartTime
-      },
-      set sessionStartTime(v) {
-        gameState.sessionStartTime = v
-      },
-      get playerNickname() {
-        return gameState.playerNickname
-      },
-      set playerNickname(v) {
-        gameState.playerNickname = v
-      },
-      get lastSaveTime() {
-        return gameState.lastSaveTime
-      },
-      set lastSaveTime(v) {
-        gameState.lastSaveTime = v
-      },
-      // CP 시스템 (경력 포인트)
-      get careerPoints() {
-        return gameState.careerPoints
-      },
-      set careerPoints(v) {
-        gameState.careerPoints = v
-      },
-      get totalCareerPoints() {
-        return gameState.totalCareerPoints
-      },
-      set totalCareerPoints(v) {
-        gameState.totalCareerPoints = v
-      },
-      get purchasedUpgrades() {
-        return gameState.purchasedUpgrades
-      },
-      set purchasedUpgrades(v) {
-        gameState.purchasedUpgrades = v
-      },
-      get permanentSlots() {
-        return gameState.permanentSlots
-      },
-      set permanentSlots(v) {
-        gameState.permanentSlots = v
-      },
-      get lifetimeEarnings() {
-        return gameState.lifetimeEarnings
-      },
-      set lifetimeEarnings(v) {
-        gameState.lifetimeEarnings = v
-      },
-    },
+    gameVars: gameState, // gameState 객체를 직접 참조
     UPGRADES,
     ACHIEVEMENTS,
     reapplyIncomeTableAffectingUpgradeEffects,
@@ -2050,6 +1641,19 @@ document.addEventListener('DOMContentLoaded', () => {
   if (elResetBtnSettings) {
     elResetBtnSettings.addEventListener('click', () => saveLoadManager.resetGame())
   }
+
+  // ======= 프레스티지 시스템 초기화 (prestigeSystem.js 모듈) =======
+  // saveLoadManager가 초기화된 후에 생성
+  prestigeSystem = createPrestigeSystem({
+    state: gameState,
+    UPGRADES,
+    saveLoadManager,
+    LeaderboardUI,
+    Diary,
+    t,
+    updateUI,
+    updateAutoWorkUI,
+  })
 
   // ======= 닉네임 관리 시스템 =======
   nicknameManager = createNicknameManager({
