@@ -44,6 +44,9 @@ export function createGameLoopManager(deps) {
   // 정확한 deltaTime 계산을 위한 타임스탬프
   let lastTickTime = performance.now()
 
+  // UI 업데이트 스로틀링 (비활성 탭에서 성능 최적화)
+  let pendingUIUpdate = false
+
   /**
    * 수익 틱 루프 시작
    * @param {number} tickMs - 틱 간격 (ms)
@@ -80,7 +83,21 @@ export function createGameLoopManager(deps) {
       gameState.shopsLifetime += getPropertyIncome('shop', gameState.shops) * deltaTime
       gameState.buildingsLifetime += getPropertyIncome('building', gameState.buildings) * deltaTime
 
-      updateUI()
+      // 비활성 탭에서는 UI 업데이트 스킵 (성능 최적화)
+      // 데이터는 계속 계산되므로 탭 복귀 시 최신 상태 표시
+      if (document.hidden) {
+        pendingUIUpdate = true
+        return
+      }
+
+      // rAF로 UI 업데이트 배치 (프레임 드롭 방지)
+      if (!pendingUIUpdate) {
+        pendingUIUpdate = true
+        requestAnimationFrame(() => {
+          updateUI()
+          pendingUIUpdate = false
+        })
+      }
     }, tickMs)
   }
 
@@ -160,9 +177,23 @@ export function createGameLoopManager(deps) {
   }
 
   /**
+   * 탭 활성화 시 즉시 UI 업데이트
+   */
+  function setupVisibilityHandler() {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && pendingUIUpdate) {
+        // 탭 복귀 시 즉시 UI 업데이트
+        updateUI()
+        pendingUIUpdate = false
+      }
+    })
+  }
+
+  /**
    * 모든 루프 시작
    */
   function startAllLoops() {
+    setupVisibilityHandler()
     startTickLoop(50) // 50ms 틱
     startAutoSave()
     startAutoClick()

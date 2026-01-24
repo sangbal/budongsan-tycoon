@@ -68,10 +68,16 @@ export function updateGrowthTracking(deps) {
     state.buildingsLifetime +
     state.totalLaborIncome
 
-  // 1시간 이내 기록 유지
+  // 1시간 이내 기록 유지 (최대 60개)
   hourlyEarningsHistory = hourlyEarningsHistory.filter(entry => now - entry.time < 3600000)
-  // 24시간 이내 기록 유지
+  if (hourlyEarningsHistory.length > 60) {
+    hourlyEarningsHistory = hourlyEarningsHistory.slice(-60)
+  }
+  // 24시간 이내 기록 유지 (최대 1440개)
   dailyEarningsHistory = dailyEarningsHistory.filter(entry => now - entry.time < 86400000)
+  if (dailyEarningsHistory.length > 1440) {
+    dailyEarningsHistory = dailyEarningsHistory.slice(-1440)
+  }
 
   // 1분마다 스냅샷 저장
   if (now - lastSnapshotTime >= 60000) {

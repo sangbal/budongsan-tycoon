@@ -433,4 +433,10 @@ export function addLog(text) {
   }
 
   elLog.prepend(p)
+
+  // 메모리 최적화: 최대 100개 로그 유지
+  const MAX_LOG_ENTRIES = 100
+  while (elLog.children.length > MAX_LOG_ENTRIES) {
+    elLog.lastElementChild?.remove()
+  }
 }
