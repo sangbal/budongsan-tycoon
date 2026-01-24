@@ -384,8 +384,11 @@ export function canPurchaseUpgrade(upgradeId) {
     return { canPurchase: false, reason: 'invalid_upgrade' }
   }
 
+  // 방어적 초기화
+  const purchased = gameState.purchasedUpgrades || []
+
   // 이미 구매했는지 확인
-  if (gameState.purchasedUpgrades.includes(upgradeId)) {
+  if (purchased.includes(upgradeId)) {
     return { canPurchase: false, reason: 'already_purchased' }
   }
 
@@ -396,7 +399,7 @@ export function canPurchaseUpgrade(upgradeId) {
 
   // 선행 조건 충족 확인
   for (const reqId of upgrade.requires) {
-    if (!gameState.purchasedUpgrades.includes(reqId)) {
+    if (!purchased.includes(reqId)) {
       return { canPurchase: false, reason: 'requires_not_met', missing: reqId }
     }
   }
@@ -415,6 +418,11 @@ export function purchaseUpgrade(upgradeId) {
 
   const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
   gameState.careerPoints -= upgrade.cost
+
+  // 방어적 초기화
+  if (!gameState.purchasedUpgrades) {
+    gameState.purchasedUpgrades = []
+  }
   gameState.purchasedUpgrades.push(upgradeId)
 
   return true
@@ -428,7 +436,7 @@ export function purchaseUpgrade(upgradeId) {
 export function getUpgradeEffect(effectType) {
   let result = null
 
-  for (const upgradeId of gameState.purchasedUpgrades) {
+  for (const upgradeId of gameState.purchasedUpgrades || []) {
     const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
     if (upgrade && upgrade.effect.type === effectType) {
       const val = upgrade.effect.value
@@ -483,7 +491,7 @@ export function getAllPrestigeEffects() {
     market_event_preview: false,
   }
 
-  for (const upgradeId of gameState.purchasedUpgrades) {
+  for (const upgradeId of gameState.purchasedUpgrades || []) {
     const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
     if (!upgrade) continue
 
@@ -570,7 +578,7 @@ export function saveToPermSlot(upgradeId, slotIndex) {
   const maxSlots = effects.permanent_slot
 
   if (slotIndex >= maxSlots) return false
-  if (!gameState.purchasedUpgrades.includes(upgradeId)) return false
+  if (!(gameState.purchasedUpgrades || []).includes(upgradeId)) return false
 
   // 영구 슬롯은 F 카테고리 업그레이드 자체를 저장할 수 없음
   const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
@@ -608,19 +616,20 @@ export function resetPurchasedUpgrades() {
   const effects = getAllPrestigeEffects()
   const maxSlots = effects.permanent_slot
   const preserved = []
+  const purchased = gameState.purchasedUpgrades || []
 
   // 영구 슬롯에 저장된 업그레이드 보존
   if (gameState.permanentSlots) {
     for (let i = 0; i < maxSlots; i++) {
       const id = gameState.permanentSlots[i]
-      if (id && gameState.purchasedUpgrades.includes(id)) {
+      if (id && purchased.includes(id)) {
         preserved.push(id)
       }
     }
   }
 
   // F 카테고리 (영구 슬롯 해금)는 항상 유지
-  for (const upgradeId of gameState.purchasedUpgrades) {
+  for (const upgradeId of purchased) {
     const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
     if (upgrade?.category === 'F' && !preserved.includes(upgradeId)) {
       preserved.push(upgradeId)
