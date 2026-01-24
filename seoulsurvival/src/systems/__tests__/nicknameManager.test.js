@@ -151,6 +151,126 @@ describe('createNicknameManager', () => {
       // 파싱 실패해도 에러 없이 진행
       expect(() => manager.ensureNicknameModal()).not.toThrow()
     })
+
+    it('sessionStorage 클라우드 복구 차단 설정', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      expect(mockStorage['test_cloud_block']).toBe('1')
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 유효성 검사 실패 시 에러 모달', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      // 콜백 함수 가져오기
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+
+      // 빈 닉네임으로 콜백 호출
+      await callback('')
+
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 비로그인 성공', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+      mockDeps.validateNickname.mockReturnValue({ ok: true })
+      mockDeps.getUser.mockResolvedValue(null)
+
+      await callback('새닉')
+
+      expect(mockDeps.setPlayerNickname).toHaveBeenCalledWith('새닉')
+      expect(mockDeps.saveGame).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 로그인 클레임 성공', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+      mockDeps.validateNickname.mockReturnValue({ ok: true })
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: true })
+
+      await callback('새닉')
+
+      expect(mockDeps.claimNickname).toHaveBeenCalledWith('새닉', 'user123')
+      expect(mockDeps.setPlayerNickname).toHaveBeenCalledWith('새닉')
+      expect(mockDeps.LeaderboardUI.updateLeaderboardEntry).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 클레임 실패 (taken)', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+      mockDeps.validateNickname.mockReturnValue({ ok: true })
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: false, error: 'taken' })
+
+      await callback('중복닉')
+
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 클레임 실패 (기타)', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+      mockDeps.validateNickname.mockReturnValue({ ok: true })
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: false, error: 'other' })
+
+      await callback('실패닉')
+
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('모달 콜백 - 네트워크 에러', async () => {
+      vi.useFakeTimers()
+
+      manager.ensureNicknameModal()
+      vi.advanceTimersByTime(600)
+
+      const callback = mockDeps.Modal.openInputModal.mock.calls[0][2]
+      mockDeps.validateNickname.mockReturnValue({ ok: true })
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockRejectedValue(new Error('Network'))
+
+      await callback('에러닉')
+
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
   })
 
   describe('openNicknameChangeModal', () => {
@@ -259,6 +379,110 @@ describe('createNicknameManager', () => {
       await manager.handleNicknameChangeFromModal('에러닉')
 
       expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+    })
+
+    it('클라우드 저장 실패해도 진행', async () => {
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: true })
+      mockDeps.upsertCloudSave.mockRejectedValue(new Error('Cloud error'))
+      mockStorage['test_save'] = JSON.stringify({ cash: 1000 })
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      await manager.handleNicknameChangeFromModal('새닉')
+
+      expect(mockDeps.setPlayerNickname).toHaveBeenCalledWith('새닉')
+      expect(consoleSpy).toHaveBeenCalled()
+
+      consoleSpy.mockRestore()
+    })
+
+    it('리더보드 업데이트 실패해도 진행', async () => {
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: true })
+      mockDeps.LeaderboardUI.updateLeaderboardEntry.mockRejectedValue(
+        new Error('Leaderboard error')
+      )
+      mockStorage['test_save'] = JSON.stringify({ cash: 1000 })
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      await manager.handleNicknameChangeFromModal('새닉')
+
+      expect(mockDeps.setPlayerNickname).toHaveBeenCalledWith('새닉')
+      expect(mockDeps.Diary.addLog).toHaveBeenCalled()
+
+      consoleSpy.mockRestore()
+    })
+
+    it('tooShort 유효성 에러 처리', async () => {
+      mockDeps.validateNickname.mockReturnValue({ ok: false, reasonKey: 'tooShort' })
+
+      await manager.handleNicknameChangeFromModal('a')
+
+      expect(mockDeps.t).toHaveBeenCalledWith('settings.nickname.change.tooShort')
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+    })
+
+    it('invalid 유효성 에러 처리', async () => {
+      mockDeps.validateNickname.mockReturnValue({ ok: false, reasonKey: 'invalid' })
+
+      await manager.handleNicknameChangeFromModal('!@#')
+
+      expect(mockDeps.t).toHaveBeenCalledWith('settings.nickname.change.invalid')
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+    })
+
+    it('banned 유효성 에러 처리', async () => {
+      mockDeps.validateNickname.mockReturnValue({ ok: false, reasonKey: 'banned' })
+
+      await manager.handleNicknameChangeFromModal('금지어')
+
+      expect(mockDeps.t).toHaveBeenCalledWith('settings.nickname.change.banned')
+      expect(mockDeps.Modal.openInfoModal).toHaveBeenCalled()
+    })
+
+    it('알 수 없는 유효성 에러는 invalid로 처리', async () => {
+      mockDeps.validateNickname.mockReturnValue({ ok: false, reasonKey: 'unknown' })
+
+      await manager.handleNicknameChangeFromModal('뭔가')
+
+      expect(mockDeps.t).toHaveBeenCalledWith('settings.nickname.change.invalid')
+    })
+
+    it('DEV 모드에서 로그 출력', async () => {
+      mockDeps.__IS_DEV__ = true
+      mockDeps.getUser.mockResolvedValue(null)
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+      // 새 manager 생성 (DEV 모드 적용)
+      const devManager = createNicknameManager(mockDeps)
+      await devManager.handleNicknameChangeFromModal('새닉')
+
+      expect(consoleSpy).toHaveBeenCalled()
+
+      consoleSpy.mockRestore()
+    })
+
+    it('닉네임 변경 시 쿨타임 저장', async () => {
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: true })
+      mockStorage['test_save'] = JSON.stringify({ cash: 1000 })
+
+      await manager.handleNicknameChangeFromModal('새닉')
+
+      expect(mockStorage['clicksurvivor_lastNicknameChangeAt']).toBeDefined()
+    })
+
+    it('localStorage 항목 제거', async () => {
+      mockDeps.getUser.mockResolvedValue({ id: 'user123' })
+      mockDeps.claimNickname.mockResolvedValue({ success: true })
+      mockStorage['test_save'] = JSON.stringify({ cash: 1000 })
+      mockStorage['clicksurvivor_needsNicknameChange'] = 'true'
+
+      await manager.handleNicknameChangeFromModal('새닉')
+
+      expect(mockStorage['clicksurvivor_needsNicknameChange']).toBeUndefined()
     })
   })
 
