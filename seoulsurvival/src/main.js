@@ -98,6 +98,7 @@ import '../styles/header.css'
 
 // ===== 밸런스 설정 import =====
 import { MARKET_EVENTS, BASE_COSTS } from './balance/index.js'
+import { TIMING, MARKET_EVENT_TIMING, PROBABILITY, ANIMATION } from './balance/timing.js'
 
 // 개발 모드에서는 콘솔을 유지하고, 프로덕션에서는 게임 로그만 무력화합니다.
 // - Vite 빌드/개발서버: import.meta.env.DEV 사용
@@ -1142,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (
       UPGRADES['performance_bonus'] &&
       UPGRADES['performance_bonus'].purchased &&
-      Math.random() < 0.02
+      Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
     ) {
       income *= 10 // 2% 확률로 10배 수익
       Diary.addLog(t('msg.bonusPaid'))
@@ -1202,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 클릭 애니메이션 효과
     elWork.classList.add('click-effect')
-    setTimeout(() => elWork.classList.remove('click-effect'), 300)
+    setTimeout(() => elWork.classList.remove('click-effect'), TIMING.CLICK_EFFECT_DURATION_MS)
 
     // 수익 증가 텍스트 애니메이션
     Animations.showIncomeAnimation(income)
@@ -1527,9 +1528,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= 자동 저장 시스템 =======
   setInterval(() => {
     if (saveLoadManager) {
-      saveLoadManager.saveGame() // 5초마다 자동 저장
+      saveLoadManager.saveGame()
     }
-  }, 5000)
+  }, TIMING.AUTO_SAVE_INTERVAL_MS)
 
   // ======= 오토클릭 시스템 =======
   setInterval(() => {
@@ -1555,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (
         UPGRADES['performance_bonus'] &&
         UPGRADES['performance_bonus'].purchased &&
-        Math.random() < 0.02
+        Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
       ) {
         // 기본 income(1배)은 이미 지급됨 → 총 10배가 되도록 추가 9배 지급
         const bonusIncome = income * 9
@@ -1575,8 +1576,8 @@ document.addEventListener('DOMContentLoaded', () => {
         startMarketEvent()
       }
     },
-    Math.random() * 180000 + 120000
-  ) // 2-5분 랜덤
+    Math.random() * MARKET_EVENT_TIMING.RANDOM_RANGE_MS + MARKET_EVENT_TIMING.MIN_INTERVAL_MS
+  )
 
   // 설정 불러오기
   loadSettings()
