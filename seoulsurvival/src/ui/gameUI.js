@@ -9,6 +9,7 @@ import { BASE_COSTS } from '../balance/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import { safeText } from './domUtils.js'
 import { t, getLang } from '../i18n/index.js'
+import { getDomRefs } from './domRefs.js'
 
 /**
  * createGameUI - Factory 패턴으로 UI 업데이트 시스템 생성
@@ -83,8 +84,11 @@ export function createGameUI(deps) {
     updateUpgradeAffordability,
     updateProductLockStates,
     updateStatsTab,
+  } = deps
 
-    // DOM elements
+  // DOM 요소 직접 참조 (Phase 17: getDomRefs()를 모듈이 직접 import)
+  const DOM = getDomRefs()
+  const {
     elCurrentCareer,
     elClickIncomeButton,
     elWorkArea,
@@ -124,7 +128,7 @@ export function createGameUI(deps) {
     elTowerCountDisplay,
     elTowerCountBadge,
     elTowerCurrentPrice,
-  } = deps
+  } = DOM
 
   /**
    * updateUI - 게임 UI 전체 업데이트

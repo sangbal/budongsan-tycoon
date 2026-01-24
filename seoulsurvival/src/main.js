@@ -229,76 +229,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // ======= DOM (캐시된 참조 사용) =======
   const DOM = getDomRefs()
 
-  // DOM 요소 단축 참조 (기존 코드 호환성 유지)
+  // Phase 17: DOM 요소 단축 참조 축소 (main.js에서 직접 사용하는 요소만)
+  // gameUI, buttonStates 등 모듈은 getDomRefs() 직접 import
   const {
-    elCash,
-    elFinancial,
-    elProperties,
-    elRps,
+    // 핵심 UI 요소
     elWork,
     elWorkArea,
     elAutoWorkIndicator,
     elLog,
+    // 소셜 기능
     elShareBtn,
     elFavoriteBtn,
-    elClickIncomeButton,
-    elClickIncomeLabel,
-    elClickMultiplier,
-    elRentMultiplier,
-    elDepositCount,
-    elIncomePerDeposit,
-    elBuyDeposit,
-    elSavingsCount,
-    elIncomePerSavings,
-    elBuySavings,
-    elBondCount,
-    elIncomePerBond,
-    elBuyBond,
-    elUsStockCount,
-    elIncomePerUsStock,
-    elBuyUsStock,
-    elCryptoCount,
-    elIncomePerCrypto,
-    elBuyCrypto,
+    // 구매 모드/수량 버튼
     elBuyMode,
     elSellMode,
     elQty1,
     elQty5,
     elQty10,
-    elSaveStatus,
+    // 리셋 버튼
     elResetBtn,
-    elDepositCurrentPrice,
-    elSavingsCurrentPrice,
-    elBondCurrentPrice,
-    elVillaCurrentPrice,
-    elOfficetelCurrentPrice,
-    elAptCurrentPrice,
-    elShopCurrentPrice,
-    elBuildingCurrentPrice,
-    elVillaCount,
-    elRentPerVilla,
+    // 투자 탭 이벤트 리스너용
+    elBuyDeposit,
+    elBuySavings,
+    elBuyBond,
+    elBuyUsStock,
+    elBuyCrypto,
     elBuyVilla,
-    elOfficetelCount,
-    elRentPerOfficetel,
     elBuyOfficetel,
-    elAptCount,
-    elRentPerApt,
     elBuyApt,
-    elShopCount,
-    elRentPerShop,
     elBuyShop,
-    elBuildingCount,
-    elRentPerBuilding,
     elBuyBuilding,
-    elTowerCountDisplay,
-    elTowerCountBadge,
-    elTowerCurrentPrice,
     elBuyTower,
-    elCurrentCareer,
-    elCareerCost,
-    elCareerProgress,
-    elCareerProgressText,
-    elCareerRemaining,
   } = DOM
 
   // ======= 애니메이션 시스템 초기화 =======
@@ -616,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setMarketEventMultiplier(getMarketEventMultiplier)
 
   // ======= buttonStateManager 초기화 =======
+  // Phase 17: DOM 요소는 모듈이 getDomRefs() 직접 import
   buttonStateManager = createButtonStateManager({
     // State getters
     getCash: () => gameState.cash,
@@ -635,21 +597,10 @@ document.addEventListener('DOMContentLoaded', () => {
     getFinancialCost,
     getPropertyCost,
     isProductUnlocked,
-    // DOM elements
-    elBuyDeposit,
-    elBuySavings,
-    elBuyBond,
-    elBuyUsStock,
-    elBuyCrypto,
-    elBuyVilla,
-    elBuyOfficetel,
-    elBuyApt,
-    elBuyShop,
-    elBuyBuilding,
-    elBuyTower,
   })
 
   // ======= gameUI 모듈 초기화 =======
+  // Phase 17: DOM 요소는 모듈이 getDomRefs() 직접 import
   gameUIInstance = createGameUI({
     // State getters
     getCash: () => gameState.cash,
@@ -725,47 +676,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUpgradeAffordability,
     updateProductLockStates,
     updateStatsTab,
-
-    // DOM elements
-    elCurrentCareer,
-    elClickIncomeButton,
-    elWorkArea,
-    elCareerProgress,
-    elCareerProgressText,
-    elCareerRemaining,
-    elCash,
-    elFinancial,
-    elProperties,
-    elRps,
-    elClickMultiplier,
-    elRentMultiplier,
-    elDepositCount,
-    elIncomePerDeposit,
-    elDepositCurrentPrice,
-    elSavingsCount,
-    elIncomePerSavings,
-    elSavingsCurrentPrice,
-    elBondCount,
-    elIncomePerBond,
-    elBondCurrentPrice,
-    elVillaCount,
-    elRentPerVilla,
-    elVillaCurrentPrice,
-    elOfficetelCount,
-    elRentPerOfficetel,
-    elOfficetelCurrentPrice,
-    elAptCount,
-    elRentPerApt,
-    elAptCurrentPrice,
-    elShopCount,
-    elRentPerShop,
-    elShopCurrentPrice,
-    elBuildingCount,
-    elRentPerBuilding,
-    elBuildingCurrentPrice,
-    elTowerCountDisplay,
-    elTowerCountBadge,
-    elTowerCurrentPrice,
   })
 
   // ======= 통계/투자 섹션 접기/펼치기 기능 (collapsible.js 모듈로 위임) =======

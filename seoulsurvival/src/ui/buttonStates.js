@@ -6,6 +6,7 @@
 
 import { t } from '../i18n/index.js'
 import { BASE_COSTS } from '../balance/index.js'
+import { getDomRefs } from './domRefs.js'
 
 /**
  * createButtonStateManager
@@ -34,7 +35,11 @@ export function createButtonStateManager(deps) {
     getFinancialCost,
     getPropertyCost,
     isProductUnlocked,
-    // DOM elements
+  } = deps
+
+  // DOM 요소 직접 참조 (Phase 17: getDomRefs()를 모듈이 직접 import)
+  const DOM = getDomRefs()
+  const {
     elBuyDeposit,
     elBuySavings,
     elBuyBond,
@@ -46,7 +51,7 @@ export function createButtonStateManager(deps) {
     elBuyShop,
     elBuyBuilding,
     elBuyTower,
-  } = deps
+  } = DOM
 
   /**
    * 버튼 상태 업데이트 함수 (Cookie Clicker 스타일)
