@@ -14,6 +14,26 @@ import * as NumberFormat from '../utils/numberFormat.js'
 // ======= DOM 참조 =======
 let elWork = null
 
+// ======= 위치 캐시 (성능 최적화) =======
+let rectCache = { workRect: null, containerRect: null, timestamp: 0 }
+const RECT_CACHE_TTL = 1000 // 1초 유효
+
+/**
+ * 캐시된 위치 정보 반환 (getBoundingClientRect 호출 최소화)
+ * @returns {Object} { workRect, containerRect }
+ */
+function getCachedRects() {
+  if (!elWork) return { workRect: null, containerRect: null }
+
+  const now = Date.now()
+  if (!rectCache.workRect || now - rectCache.timestamp > RECT_CACHE_TTL) {
+    rectCache.workRect = elWork.getBoundingClientRect()
+    rectCache.containerRect = elWork.parentElement?.getBoundingClientRect() || null
+    rectCache.timestamp = now
+  }
+  return rectCache
+}
+
 /**
  * 애니메이션 시스템 초기화
  * DOM 요소 참조를 설정합니다.
@@ -21,6 +41,15 @@ let elWork = null
  */
 export function initAnimations(workElement) {
   elWork = workElement
+
+  // 리사이즈 시 캐시 무효화
+  window.addEventListener(
+    'resize',
+    () => {
+      rectCache.workRect = null
+    },
+    { passive: true }
+  )
 }
 
 /**
@@ -88,9 +117,9 @@ export function showIncomeAnimation(amount) {
   const formattedAmount = NumberFormat.formatKoreanNumber(amount)
   animation.textContent = t('ui.incomeFormat', { amount: formattedAmount })
 
-  // 노동 버튼 위치 기준으로 애니메이션 위치 설정
-  const workRect = elWork.getBoundingClientRect()
-  const containerRect = elWork.parentElement.getBoundingClientRect()
+  // 노동 버튼 위치 기준으로 애니메이션 위치 설정 (캐시 사용)
+  const { workRect, containerRect } = getCachedRects()
+  if (!workRect || !containerRect) return
 
   // 노동 버튼 위쪽에 랜덤하게 표시
   animation.style.position = 'absolute'

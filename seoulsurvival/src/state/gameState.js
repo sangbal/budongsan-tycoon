@@ -416,3 +416,9 @@ export function getTotalProperties() {
 
 // Re-export constants for convenience
 export { BASE_CLICK_GAIN }
+
+// ======= 개발 모드 디버그 헬퍼 =======
+// gameState를 전역으로 노출 (테스트용)
+// 프로덕션 빌드에서는 Vite tree-shaking이 import.meta.env.DEV 체크를 최적화함
+window.gameState = gameState
+console.log('[DEV] gameState가 window.gameState로 노출됨')

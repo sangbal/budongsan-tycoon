@@ -10,6 +10,8 @@
 import { processPrestige, applyStartingBonuses } from './prestigeBonus.js'
 import { resetRunState } from '../state/gameState.js'
 
+const __IS_DEV__ = !!import.meta?.env?.DEV
+
 /**
  * 프레스티지 시스템 생성
  * @param {Object} deps - 의존성

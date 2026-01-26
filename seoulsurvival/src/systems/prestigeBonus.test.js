@@ -37,8 +37,8 @@ describe('Prestige Bonus System v2.0', () => {
   })
 
   describe('PRESTIGE_UPGRADES 상수', () => {
-    it('총 20개의 업그레이드가 정의되어야 함', () => {
-      expect(PRESTIGE_UPGRADES).toHaveLength(20)
+    it('총 26개의 업그레이드가 정의되어야 함 (기존 20개 + 인맥 3개 + 자동화 3개)', () => {
+      expect(PRESTIGE_UPGRADES).toHaveLength(26)
     })
 
     it('모든 업그레이드는 필수 속성을 가져야 함', () => {
@@ -56,8 +56,8 @@ describe('Prestige Bonus System v2.0', () => {
       }
     })
 
-    it('카테고리는 A~G 범위여야 함', () => {
-      const validCategories = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    it('카테고리는 유효한 범위여야 함', () => {
+      const validCategories = ['QUICK_START', 'LABOR', 'BOOST', 'FINANCIAL', 'PROPERTY', 'META']
       for (const upgrade of PRESTIGE_UPGRADES) {
         expect(validCategories).toContain(upgrade.category)
       }
@@ -71,8 +71,8 @@ describe('Prestige Bonus System v2.0', () => {
   })
 
   describe('CATEGORIES 상수', () => {
-    it('7개의 카테고리가 정의되어야 함', () => {
-      expect(Object.keys(CATEGORIES)).toHaveLength(7)
+    it('6개의 카테고리가 정의되어야 함', () => {
+      expect(Object.keys(CATEGORIES)).toHaveLength(6)
     })
 
     it('각 카테고리는 필수 속성을 가져야 함', () => {
@@ -226,13 +226,12 @@ describe('Prestige Bonus System v2.0', () => {
   describe('getUpgradesByCategory', () => {
     it('카테고리별 업그레이드 분류', () => {
       const byCategory = getUpgradesByCategory()
-      expect(byCategory.A).toHaveLength(4)
-      expect(byCategory.B).toHaveLength(3)
-      expect(byCategory.C).toHaveLength(3)
-      expect(byCategory.D).toHaveLength(3)
-      expect(byCategory.E).toHaveLength(3)
-      expect(byCategory.F).toHaveLength(2)
-      expect(byCategory.G).toHaveLength(2)
+      expect(byCategory.QUICK_START).toHaveLength(6)
+      expect(byCategory.LABOR).toHaveLength(6)
+      expect(byCategory.BOOST).toHaveLength(4)
+      expect(byCategory.FINANCIAL).toHaveLength(3)
+      expect(byCategory.PROPERTY).toHaveLength(3)
+      expect(byCategory.META).toHaveLength(4)
     })
   })
 
@@ -337,7 +336,7 @@ describe('Prestige Bonus System v2.0', () => {
 
       expect(html).toContain('prestige-bonus-list')
       expect(html).toContain('👨‍🏫') // A1_mentor icon
-      expect(html).toContain('category-A')
+      expect(html).toContain('category-BOOST')
     })
   })
 

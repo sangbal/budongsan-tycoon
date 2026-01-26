@@ -5,13 +5,13 @@
  * - 카테고리별 업그레이드 그리드 표시
  * - CP 잔액 및 구매 버튼
  * - 영구 슬롯 관리
- * - 빌드 경로 시각화
  */
 
 import { gameState } from '../state/gameState.js'
 import {
   PRESTIGE_UPGRADES,
   CATEGORIES,
+  CATEGORY_ORDER,
   canPurchaseUpgrade,
   purchaseUpgrade,
   getUpgradesByCategory,
@@ -20,6 +20,9 @@ import {
   removeFromPermSlot,
   getTotalCPForBonus,
 } from '../systems/prestigeBonus.js'
+
+// 아코디언 상태 저장 키
+const ACCORDION_STATE_KEY = 'clicksurvivor_cpAccordionState'
 
 let tFunc = key => key
 let formatNumberFunc = n => n.toLocaleString()
@@ -94,14 +97,6 @@ export function renderPrestigeTab() {
     <div class="cp-categories">
       ${renderAllCategories()}
     </div>
-
-    <!-- 빌드 가이드 (접힌 상태) -->
-    <details class="cp-build-guide">
-      <summary>${tFunc('cp.buildGuide', {}, '빌드 가이드')}</summary>
-      <div class="cp-build-list">
-        ${renderBuildGuide()}
-      </div>
-    </details>
   `
 }
 
@@ -147,25 +142,63 @@ function renderPermanentSlots(maxSlots) {
 }
 
 /**
- * 모든 카테고리 렌더링
+ * 아코디언 상태 불러오기
+ */
+function loadAccordionState() {
+  try {
+    const saved = localStorage.getItem(ACCORDION_STATE_KEY)
+    return saved ? JSON.parse(saved) : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * 아코디언 상태 저장
+ */
+function saveAccordionState(state) {
+  try {
+    localStorage.setItem(ACCORDION_STATE_KEY, JSON.stringify(state))
+  } catch {
+    // 무시
+  }
+}
+
+/**
+ * 모든 카테고리 렌더링 (아코디언 + 1열 리스트)
  */
 function renderAllCategories() {
   const byCategory = getUpgradesByCategory()
+  const accordionState = loadAccordionState()
   let html = ''
+  let isFirst = true
 
-  for (const [cat, upgrades] of Object.entries(byCategory)) {
-    const catInfo = CATEGORIES[cat]
+  for (const catKey of CATEGORY_ORDER) {
+    const catInfo = CATEGORIES[catKey]
+    const upgrades = byCategory[catKey] || []
+    if (upgrades.length === 0) continue
+
+    // CP 비용 기준 오름차순 정렬
+    const sortedUpgrades = [...upgrades].sort((a, b) => a.cost - b.cost)
+
+    // 저장된 상태가 있으면 사용, 없으면 첫 번째만 펼침
+    const isCollapsed = accordionState[catKey] !== undefined ? accordionState[catKey] : !isFirst
+    const collapsedClass = isCollapsed ? 'collapsed' : ''
+
     html += `
-      <div class="cp-category" data-category="${cat}">
-        <h3>
+      <div class="cp-category ${collapsedClass}" data-category="${catKey}">
+        <h3 class="cp-category-header" data-category="${catKey}">
+          <span class="toggle-icon">▼</span>
           <span class="cat-icon">${catInfo.icon}</span>
           ${tFunc(catInfo.nameKey)}
+          <span class="cat-count">(${sortedUpgrades.length})</span>
         </h3>
-        <div class="upg-list">
-          ${upgrades.map(u => renderUpgradeCard(u)).join('')}
+        <div class="cp-grid">
+          ${sortedUpgrades.map(u => renderUpgradeCard(u)).join('')}
         </div>
       </div>
     `
+    isFirst = false
   }
 
   return html
@@ -178,7 +211,8 @@ function renderUpgradeCard(upgrade) {
   const purchased = gameState.purchasedUpgrades?.includes(upgrade.id) || false
   const { canPurchase, reason } = canPurchaseUpgrade(upgrade.id)
   const effects = getAllPrestigeEffects()
-  const canSaveToSlot = purchased && effects.permanent_slot > 0 && upgrade.category !== 'F'
+  // F1/F2는 영구 슬롯 업그레이드이므로 슬롯에 저장 불가
+  const canSaveToSlot = purchased && effects.permanent_slot > 0 && !upgrade.id.startsWith('F')
   const isInSlot = gameState.permanentSlots?.includes(upgrade.id) || false
 
   let statusClass = ''
@@ -216,7 +250,6 @@ function renderUpgradeCard(upgrade) {
       <div class="meta">
         <span class="title">${upgrade.icon} ${tFunc(upgrade.nameKey)}</span>
         <span class="desc">${tFunc(upgrade.descKey)}</span>
-        <span class="desc cp-cost">${tFunc('cp.cost', {}, '비용')}: <b>${upgrade.cost} CP</b></span>
         ${
           upgrade.requires.length > 0
             ? `
@@ -265,52 +298,6 @@ function renderRequirements(requires) {
 }
 
 /**
- * 빌드 가이드 렌더링
- */
-function renderBuildGuide() {
-  const builds = [
-    {
-      name: 'cp.build.financial',
-      path: ['A1_mentor', 'A2_network', 'B1_broker', 'B2_fund_manager', 'B3_hedge_fund'],
-      desc: 'cp.build.financial.desc',
-    },
-    {
-      name: 'cp.build.property',
-      path: ['A1_mentor', 'A3_recognition', 'C1_realtor', 'C2_builder', 'C3_redeveloper'],
-      desc: 'cp.build.property.desc',
-    },
-    {
-      name: 'cp.build.active',
-      path: ['A1_mentor', 'D1_workaholic', 'D2_automation', 'D3_ceo_mentality', 'G1_prediction'],
-      desc: 'cp.build.active.desc',
-    },
-    {
-      name: 'cp.build.speedrun',
-      path: ['A3_recognition', 'E1_parents', 'E2_connections', 'E3_silver_spoon', 'A4_reputation'],
-      desc: 'cp.build.speedrun.desc',
-    },
-  ]
-
-  return builds
-    .map(b => {
-      const icons = b.path
-        .map(id => {
-          const u = PRESTIGE_UPGRADES.find(up => up.id === id)
-          return u?.icon || '?'
-        })
-        .join(' → ')
-      return `
-      <div class="cp-build-item">
-        <strong>${tFunc(b.name)}</strong>
-        <div class="build-path">${icons}</div>
-        <p class="build-desc">${tFunc(b.desc)}</p>
-      </div>
-    `
-    })
-    .join('')
-}
-
-/**
  * 이벤트 리스너 설정
  */
 function setupEventListeners() {
@@ -318,6 +305,22 @@ function setupEventListeners() {
   if (!container) return
 
   container.addEventListener('click', e => {
+    // 아코디언 헤더 클릭 (카테고리 펼침/접힘)
+    const categoryHeader = e.target.closest('.cp-category-header')
+    if (categoryHeader) {
+      const catKey = categoryHeader.dataset.category
+      const categoryEl = categoryHeader.closest('.cp-category')
+      if (categoryEl) {
+        categoryEl.classList.toggle('collapsed')
+
+        // 상태 저장
+        const accordionState = loadAccordionState()
+        accordionState[catKey] = categoryEl.classList.contains('collapsed')
+        saveAccordionState(accordionState)
+      }
+      return
+    }
+
     // 구매 버튼 클릭 (.cp-item 내부의 .btn)
     const purchaseBtn = e.target.closest('.cp-item .btn')
     if (purchaseBtn && !purchaseBtn.disabled) {

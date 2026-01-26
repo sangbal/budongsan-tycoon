@@ -9,6 +9,8 @@
  */
 
 import { t } from '../i18n/index.js'
+import { calculateCP, getTotalCPForBonus } from '../systems/prestigeBonus.js'
+import { gameState } from '../state/gameState.js'
 
 // ======= DOM 참조 =======
 let elModalRoot = null
@@ -263,13 +265,30 @@ export function openInputModal(title, message, onConfirm, options = {}) {
 
 /**
  * 엔딩 모달 표시 (서울타워 구매 시)
+ * CP 획득량과 2회차 혜택을 안내하여 재도전 동기 부여
  * @param {number} towerCount - 누적 타워 개수
  * @param {Function} onConfirm - 확인 버튼 클릭 시 실행할 콜백 (프레스티지 실행)
  */
 export function showEndingModal(towerCount, onConfirm) {
-  const message = t('ending.message', { count: towerCount })
+  // CP 획득 예정량 계산
+  const earnedCP = calculateCP(towerCount, gameState.lifetimeEarnings || 0)
+  const currentTotalCP = getTotalCPForBonus()
+  const newTotalCP = currentTotalCP + earnedCP
+  const cpBonus = Math.round(newTotalCP * 2) // 1 CP = +2%
+
+  const message = t('ending.message', {
+    count: towerCount,
+    earnedCP: earnedCP,
+    cpBonus: cpBonus,
+  })
 
   openInfoModal(t('ending.title'), message, '🗼')
+
+  // 모달 메시지 영역에 줄바꿈 적용 (pre-wrap)
+  if (elModalMessage) {
+    elModalMessage.style.whiteSpace = 'pre-wrap'
+    elModalMessage.style.textAlign = 'left'
+  }
 
   // 모달 확인 버튼 클릭 시 자동 프레스티지 실행 (타이머 없음, 버튼 클릭만)
   if (elModalPrimary) {

@@ -543,25 +543,24 @@ export function createInvestmentTab(deps) {
 
   /**
    * 타워 구매 후 프레스티지 트리거
-   * 확인 모달을 표시하여 플레이어에게 선택권 부여
+   * 엔딩 연출(타워 이펙트 + 엔딩 모달)을 표시
    */
   function triggerPrestigeAfterTowerPurchase() {
-    Modal.openConfirmModal(
-      t('modal.prestige.tower.title'),
-      t('modal.prestige.tower.message'),
-      async () => {
+    // 1. 타워 이모지 떨어지는 효과 실행
+    if (getSettings().particles) {
+      Animations.createTowerFallEffect()
+    }
+
+    // 2. 약간의 딜레이 후 엔딩 모달 표시 (이펙트가 충분히 보이도록)
+    setTimeout(() => {
+      Modal.showEndingModal(gameState.towers_lifetime, async () => {
         // 확인 시 프레스티지 실행
         if (typeof performAutoPrestige === 'function') {
           await performAutoPrestige('tower_purchase')
           Diary.addLog(t('msg.prestigeComplete'))
         }
-      },
-      {
-        icon: '🗼',
-        primaryLabel: t('button.yes'),
-        secondaryLabel: t('button.no'),
-      }
-    )
+      })
+    }, 500)
   }
 
   /**

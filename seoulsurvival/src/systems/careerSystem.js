@@ -16,6 +16,7 @@ import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import * as Diary from './diary.js'
 import { ANIMATION } from '../balance/timing.js'
+import { getEffectivePromotionRequirement } from './prestigeBonus.js'
 
 // 프리로드된 이미지 URL 캐시
 const preloadedImages = new Set()
@@ -74,11 +75,17 @@ export function createCareerSystem(deps) {
 
   /**
    * 승진 체크 및 처리
+   * CP 클릭 가치 보너스와 인맥 업그레이드 감소가 적용됨
    * @returns {boolean} 승진 여부
    */
   function checkCareerPromotion() {
     const nextCareer = getNextCareer()
-    if (nextCareer && gameState.totalClicks >= nextCareer.requiredClicks) {
+    if (!nextCareer) return false
+
+    // CP 보너스와 인맥 감소가 적용된 유효 요구량 계산
+    const effectiveRequirement = getEffectivePromotionRequirement(nextCareer.requiredClicks)
+
+    if (gameState.totalClicks >= effectiveRequirement) {
       gameState.careerLevel += 1
       const newCareer = getCurrentCareer()
       const clickIncome = getClickIncome()

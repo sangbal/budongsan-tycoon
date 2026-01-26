@@ -3,6 +3,8 @@
  * 수익 틱, 자동 저장, 오토클릭, 시장 이벤트 타이머를 중앙 관리
  */
 
+import { getPrestigeAutoClickSpeed } from './prestigeBonus.js'
+
 /**
  * 게임 루프 매니저 생성
  * @param {Object} deps - 의존성 객체
@@ -47,6 +49,10 @@ export function createGameLoopManager(deps) {
   // UI 업데이트 스로틀링 (비활성 탭에서 성능 최적화)
   let pendingUIUpdate = false
 
+  // 슬로우 틱 카운터 (업적/업그레이드 체크 빈도 감소)
+  let slowTickCounter = 0
+  const SLOW_TICK_INTERVAL = 10 // 50ms × 10 = 500ms
+
   /**
    * 수익 틱 루프 시작
    * @param {number} tickMs - 틱 간격 (ms)
@@ -55,12 +61,19 @@ export function createGameLoopManager(deps) {
     if (tickInterval) return // 이미 실행 중
 
     lastTickTime = performance.now()
+    slowTickCounter = 0
 
     tickInterval = setInterval(() => {
-      checkMarketEvent() // 시장 이벤트 체크
-      checkAchievements() // 업적 체크
-      checkUpgradeUnlocks() // 업그레이드 해금 체크
+      // 슬로우 틱 (500ms) - 무거운 체크 로직
+      slowTickCounter++
+      if (slowTickCounter >= SLOW_TICK_INTERVAL) {
+        slowTickCounter = 0
+        checkMarketEvent() // 시장 이벤트 체크
+        checkAchievements() // 업적 체크
+        checkUpgradeUnlocks() // 업그레이드 해금 체크
+      }
 
+      // 패스트 틱 (50ms) - 수익 계산
       // 실제 경과 시간 계산 (탭 백그라운드/CPU 부하 시 정확도 보장)
       const now = performance.now()
       const deltaTime = Math.min((now - lastTickTime) / 1000, 1) // 최대 1초 제한 (비정상 지연 방지)
@@ -115,44 +128,84 @@ export function createGameLoopManager(deps) {
   }
 
   /**
+   * 단일 자동 클릭 처리 (공통 로직)
+   * @param {boolean} showAnimation - 애니메이션 표시 여부
+   */
+  function processAutoClick(showAnimation = true) {
+    const income = getClickIncome()
+    gameState.cash += income
+    gameState.totalClicks += 1
+    gameState.totalLaborIncome += income
+    gameState.lifetimeEarnings += income // CP 계산용 누적 수익
+    checkCareerPromotion()
+
+    // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
+    if (showAnimation && elWork) {
+      elWork.classList.remove('auto-click-pulse')
+      // double rAF 패턴으로 강제 리플로우 없이 애니메이션 재생
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (elWork) elWork.classList.add('auto-click-pulse')
+        })
+      })
+    }
+    // 수익 증가 애니메이션(초록색 돈 텍스트)도 함께 표시
+    if (showAnimation) {
+      Animations.showIncomeAnimation(income)
+    }
+
+    // 성과급은 오토클릭에도 적용
+    if (
+      UPGRADES['performance_bonus'] &&
+      UPGRADES['performance_bonus'].purchased &&
+      Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
+    ) {
+      // 기본 income(1배)은 이미 지급됨 → 총 10배가 되도록 추가 9배 지급
+      const bonusIncome = income * 9
+      gameState.cash += bonusIncome
+      gameState.totalLaborIncome += bonusIncome
+      gameState.lifetimeEarnings += bonusIncome // CP 계산용 누적 수익
+    }
+  }
+
+  /**
    * 오토클릭 루프 시작
+   * - 기존 AI 시스템 (auto_work_system 업그레이드): 1회/초
+   * - 프레스티지 자동화 (I1~I3 업그레이드): 1~4회/초
+   * 두 시스템은 중첩 가능
    */
   function startAutoClick() {
     if (autoClickInterval) return // 이미 실행 중
 
+    // 250ms 간격으로 체크 (4회/초 프레스티지 자동 클릭 지원)
+    let tickCounter = 0
+
     autoClickInterval = setInterval(() => {
-      if (gameState.autoClickEnabled) {
-        const income = getClickIncome()
-        gameState.cash += income
-        gameState.totalClicks += 1
-        gameState.totalLaborIncome += income
-        gameState.lifetimeEarnings += income // CP 계산용 누적 수익
-        checkCareerPromotion()
+      tickCounter++
+      const prestigeSpeed = getPrestigeAutoClickSpeed() // 0, 1, 2, 4
 
-        // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
-        if (elWork) {
-          elWork.classList.remove('auto-click-pulse')
-          // 리플로우 강제 후 다시 추가하여 매 틱마다 애니메이션 재생
-          void elWork.offsetHeight
-          elWork.classList.add('auto-click-pulse')
-        }
-        // 수익 증가 애니메이션(초록색 돈 텍스트)도 함께 표시
-        Animations.showIncomeAnimation(income)
-
-        // 성과급은 오토클릭에도 적용
-        if (
-          UPGRADES['performance_bonus'] &&
-          UPGRADES['performance_bonus'].purchased &&
-          Math.random() < PROBABILITY.PERFORMANCE_BONUS_CHANCE
-        ) {
-          // 기본 income(1배)은 이미 지급됨 → 총 10배가 되도록 추가 9배 지급
-          const bonusIncome = income * 9
-          gameState.cash += bonusIncome
-          gameState.totalLaborIncome += bonusIncome
-          gameState.lifetimeEarnings += bonusIncome // CP 계산용 누적 수익
+      // 프레스티지 자동 클릭 처리
+      if (prestigeSpeed > 0) {
+        // 속도별 처리:
+        // - 4회/초: 매 틱(250ms)마다 1회
+        // - 2회/초: 2틱마다 1회 (tickCounter % 2 === 0)
+        // - 1회/초: 4틱마다 1회 (tickCounter % 4 === 0)
+        const interval = 4 / prestigeSpeed // 4, 2, 1
+        if (tickCounter % interval === 0) {
+          processAutoClick(true)
         }
       }
-    }, 1000) // 1초마다
+
+      // 기존 AI 시스템 (1회/초, 4틱마다)
+      if (tickCounter % 4 === 0 && gameState.autoClickEnabled) {
+        processAutoClick(true)
+      }
+
+      // 카운터 리셋 (오버플로우 방지)
+      if (tickCounter >= 1000) {
+        tickCounter = 0
+      }
+    }, 250) // 250ms마다 (4회/초)
   }
 
   /**

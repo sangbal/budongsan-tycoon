@@ -741,7 +741,15 @@ export default {
   'cp.networkDesc': '전체 수익',
   'cp.firstTowerBonus': '첫 타워 보너스',
 
-  // CP 카테고리
+  // CP 카테고리 (새 병합 구조)
+  'cp.cat.quickStart': '출발선',
+  'cp.cat.labor': '직장생활',
+  'cp.cat.boost': '자기계발',
+  'cp.cat.financial': '재테크',
+  'cp.cat.property': '내 집 마련',
+  'cp.cat.meta': '전생의 기억',
+
+  // CP 카테고리 (레거시 호환)
   'cp.category.A': '기본 부스트',
   'cp.category.B': '금융 경로',
   'cp.category.C': '부동산 경로',
@@ -749,18 +757,20 @@ export default {
   'cp.category.E': '시작 가속',
   'cp.category.F': '영구 슬롯',
   'cp.category.G': '게임플레이 변경',
+  'cp.category.H': '인맥 경로',
+  'cp.category.I': '프레스티지 자동화',
 
   // CP 힌트
   'cp.hint': '🗼 서울타워 구매 시 CP를 획득합니다. CP는 다음 런에 영구 보너스로 적용됩니다.',
 
-  // CP 업그레이드 - A: 기본 부스트
-  'cp.A1.name': '신입 멘토링',
+  // CP 업그레이드 - A: 자기계발
+  'cp.A1.name': '👨‍🏫 신입 멘토링',
   'cp.A1.desc': '클릭 수익 +20%',
-  'cp.A2.name': '사회 초년생 네트워크',
-  'cp.A2.desc': '자동 수익 +25%',
-  'cp.A3.name': '경력 인정',
+  'cp.A2.name': '📱 링크드인 활동',
+  'cp.A2.desc': '인맥이 돈이다 (+25%)',
+  'cp.A3.name': '🏆 경력 인정',
   'cp.A3.desc': '시작 자금 +1,000만원',
-  'cp.A4.name': '업계 평판',
+  'cp.A4.name': '⭐ 업계 평판',
   'cp.A4.desc': '모든 가격 -10%',
 
   // CP 업그레이드 - B: 금융 경로
@@ -779,13 +789,13 @@ export default {
   'cp.C3.name': '재개발 전문가',
   'cp.C3.desc': '부동산→금융 시너지 +15%',
 
-  // CP 업그레이드 - D: 클릭/노동 경로
-  'cp.D1.name': '워커홀릭 DNA',
-  'cp.D1.desc': '클릭 수익 +50%',
-  'cp.D2.name': '업무 자동화 마스터',
-  'cp.D2.desc': '자동클릭 속도 2배',
-  'cp.D3.name': 'CEO 멘탈리티',
-  'cp.D3.desc': '클릭 시 5% 확률 보너스',
+  // CP 업그레이드 - D: 직장생활 (클릭/노동)
+  'cp.D1.name': '💪 야근의 달인',
+  'cp.D1.desc': '야근? 당연한 거지 (+50%)',
+  'cp.D2.name': '📊 엑셀 고수',
+  'cp.D2.desc': '매크로로 일처리 (속도 2배)',
+  'cp.D3.name': '🎯 성과주의자',
+  'cp.D3.desc': '가끔 대박 (5% 보너스)',
 
   // CP 업그레이드 - E: 시작 가속
   'cp.E1.name': '부모님 지원',
@@ -795,35 +805,39 @@ export default {
   'cp.E3.name': '금수저 출생',
   'cp.E3.desc': '시작 시 빌라 1개 + 사원',
 
-  // CP 업그레이드 - F: 영구 슬롯
-  'cp.F1.name': '핵심 역량 보존 I',
-  'cp.F1.desc': '업그레이드 1개 영구 유지',
-  'cp.F2.name': '핵심 역량 보존 II',
-  'cp.F2.desc': '2번째 슬롯 해금',
+  // CP 업그레이드 - F: 전생의 기억 (영구 슬롯)
+  'cp.F1.name': '💎 잊지 못할 기술',
+  'cp.F1.desc': '몸이 기억하는 재능',
+  'cp.F2.name': '💎 천부적 재능',
+  'cp.F2.desc': '타고난 능력 추가',
 
-  // CP 업그레이드 - G: 게임플레이 변경
-  'cp.G1.name': '시장 예측 능력',
-  'cp.G1.desc': '시장 이벤트 +50%',
-  'cp.G2.name': '정보 비대칭 활용',
-  'cp.G2.desc': '다음 이벤트 미리보기',
+  // CP 업그레이드 - G: 전생의 기억 (게임플레이)
+  'cp.G1.name': '🔮 촉이 좋아',
+  'cp.G1.desc': '뭔가 느낌이 와 (+50%)',
+  'cp.G2.name': '📰 귀가 얇음',
+  'cp.G2.desc': '소문 빨리 듣기',
+
+  // CP 업그레이드 - H: 직장생활 (인맥)
+  'cp.H1.name': '🍺 회식 한 잔',
+  'cp.H1.desc': '팀장님과 친해지기 (-20%)',
+  'cp.H2.name': '🏌️ 골프 접대',
+  'cp.H2.desc': '임원과 라운딩 (-15%)',
+  'cp.H3.name': '🏰 사돈의 팔촌',
+  'cp.H3.desc': '높으신 분과 연줄 (-15%)',
+
+  // CP 업그레이드 - I: 출발선 (자동화)
+  'cp.I1.name': '☕ 커피값은 벌자',
+  'cp.I1.desc': '출근하면 돈이 들어온다 (1회/초)',
+  'cp.I2.name': '⚡ 투잡 뛰기',
+  'cp.I2.desc': '본업+부업 (2회/초)',
+  'cp.I3.name': '🔥 워라밸 포기',
+  'cp.I3.desc': 'N잡러의 삶 (4회/초)',
 
   // CP UI
   'cp.permSlots': '영구 슬롯',
   'cp.permSlots.hint': '리셋 시에도 유지되는 업그레이드',
   'cp.emptySlot': '빈 슬롯',
   'cp.removeSlot': '제거',
-  'cp.buildGuide': '빌드 가이드',
-
-  // CP 빌드 경로
-  'cp.build.financial': '금융 특화',
-  'cp.build.financial.desc': '중반 강함, 후반 완만한 성장',
-  'cp.build.property': '부동산 특화',
-  'cp.build.property.desc': '초반 느림, 후반 폭발 성장',
-  'cp.build.active': '액티브 클릭',
-  'cp.build.active.desc': '클릭 플레이 최고 효율',
-  'cp.build.speedrun': '스피드런',
-  'cp.build.speedrun.desc': '최단 타워 획득 빌드',
-
   // CP 탭
   'tab.career': '경력',
 
@@ -888,7 +902,13 @@ export default {
     '🗼 서울타워 완성 🗼\n\n' +
     '알바에서 시작해 CEO까지.\n' +
     '예금에서 시작해 서울타워까지.\n\n' +
-    '서울 한복판에 당신의 이름이 새겨졌다.\n\n' +
+    '서울 한복판에 당신의 이름이 새겨졌다.\n' +
     '서울타워 🗼 획득 (누적 {count}개)\n\n' +
-    '이제 새로운 시작을 합니다.',
+    '━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '💼 경력 포인트(CP) +{earnedCP} 획득!\n\n' +
+    '✨ 새로운 시작에서 가능한 것들:\n' +
+    '• 인맥 보너스로 수익 +{cpBonus}%\n' +
+    '• CP 업그레이드로 빠른 성장\n' +
+    '• 영구 슬롯으로 업그레이드 유지\n\n' +
+    '더 강해진 당신으로 다시 도전하세요!',
 }

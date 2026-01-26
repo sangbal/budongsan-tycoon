@@ -294,6 +294,12 @@
     grid-template-columns: 1fr;
   }
 
+  /* CP Grid: 모바일 패딩 조정 */
+  .cp-grid {
+    gap: 6px;
+    padding: 10px 12px 12px;
+  }
+
   /* Leaderboard refresh */
   .leaderboard-refresh-note {
     flex-direction: column;

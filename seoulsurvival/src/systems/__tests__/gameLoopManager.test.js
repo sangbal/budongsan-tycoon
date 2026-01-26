@@ -172,9 +172,12 @@ describe('createGameLoopManager', () => {
       expect(tickCallback).toBeDefined()
 
       const initialCash = mockDeps.gameState.cash
-      tickCallback()
+      // 슬로우 틱(10틱마다) 체크 로직 실행을 위해 10번 호출
+      for (let i = 0; i < 10; i++) {
+        tickCallback()
+      }
 
-      // checkMarketEvent 호출 확인
+      // checkMarketEvent 호출 확인 (슬로우 틱에서 실행됨)
       expect(mockDeps.checkMarketEvent).toHaveBeenCalled()
       expect(mockDeps.checkAchievements).toHaveBeenCalled()
       expect(mockDeps.checkUpgradeUnlocks).toHaveBeenCalled()
@@ -225,6 +228,10 @@ describe('createGameLoopManager', () => {
 
       const callback = intervalCallbacks.get(1)?.callback
       const initialCash = mockDeps.gameState.cash
+      // 250ms 간격으로 4번 호출해야 1초가 되어 기존 오토클릭 작동
+      callback()
+      callback()
+      callback()
       callback()
 
       expect(mockDeps.gameState.cash).toBe(initialCash)
@@ -236,6 +243,10 @@ describe('createGameLoopManager', () => {
 
       const callback = intervalCallbacks.get(1)?.callback
       const initialCash = mockDeps.gameState.cash
+      // 250ms 간격으로 4번 호출해야 1초가 되어 기존 오토클릭 작동 (tickCounter % 4 === 0)
+      callback()
+      callback()
+      callback()
       callback()
 
       expect(mockDeps.gameState.cash).toBeGreaterThan(initialCash)
@@ -255,6 +266,10 @@ describe('createGameLoopManager', () => {
 
       const callback = intervalCallbacks.get(1)?.callback
       const initialCash = mockDeps.gameState.cash
+      // 250ms 간격으로 4번 호출해야 1초가 되어 기존 오토클릭 작동
+      callback()
+      callback()
+      callback()
       callback()
 
       // 기본 5 + 보너스 45 = 50

@@ -73,199 +73,62 @@ export function getTotalCPForBonus() {
 }
 
 /**
- * 프레스티지 업그레이드 정의 (20종)
+ * 프레스티지 업그레이드 정의 (26종)
  *
- * 카테고리:
- * - A: 기본 부스트 (4종) - 범용적
- * - B: 금융 경로 (3종) - 금융상품 특화
- * - C: 부동산 경로 (3종) - 부동산 특화
- * - D: 클릭/노동 경로 (3종) - 액티브 플레이
- * - E: 시작 가속 (3종) - 빠른 초반
- * - F: 영구 슬롯 (2종) - 메타 진행
- * - G: 게임플레이 변경 (2종) - 후반 편의
+ * 새 카테고리 (6개, MECE 병합):
+ * - QUICK_START: I(프레스티지 자동화) + E(시작 가속) → 자동화/가속 (6종)
+ * - LABOR: D(클릭/노동) + H(인맥) → 클릭/승진 진행 (6종)
+ * - BOOST: A(기본 부스트) → 범용 (4종)
+ * - FINANCIAL: B(금융) → 금융 특화 (3종)
+ * - PROPERTY: C(부동산) → 부동산 특화 (3종)
+ * - META: F(영구 슬롯) + G(게임플레이) → 메타 시스템 (4종)
  */
 export const PRESTIGE_UPGRADES = [
-  // ===== Category A: 기본 부스트 (4종) =====
+  // ===== Category QUICK_START: 빠른 시작 (6종) - 구 I + E =====
+  // 프레스티지 자동화 (I 계열)
   {
-    id: 'A1_mentor',
-    category: 'A',
-    nameKey: 'cp.A1.name',
-    descKey: 'cp.A1.desc',
+    id: 'I1_auto_start',
+    category: 'QUICK_START',
+    nameKey: 'cp.I1.name',
+    descKey: 'cp.I1.desc',
     cost: 1,
-    icon: '👨‍🏫',
-    requires: [], // 선행 조건 없음
-    effect: {
-      type: 'click_multiplier',
-      value: 1.2, // 클릭 수익 +20%
-    },
-  },
-  {
-    id: 'A2_network',
-    category: 'A',
-    nameKey: 'cp.A2.name',
-    descKey: 'cp.A2.desc',
-    cost: 2,
-    icon: '🌐',
-    requires: ['A1_mentor'],
-    effect: {
-      type: 'auto_income_multiplier',
-      value: 1.25, // 자동 수익 +25%
-    },
-  },
-  {
-    id: 'A3_recognition',
-    category: 'A',
-    nameKey: 'cp.A3.name',
-    descKey: 'cp.A3.desc',
-    cost: 3,
-    icon: '🏆',
-    requires: ['A2_network'],
-    effect: {
-      type: 'starting_cash',
-      value: 10_000_000, // 시작 자금 +1000만원
-    },
-  },
-  {
-    id: 'A4_reputation',
-    category: 'A',
-    nameKey: 'cp.A4.name',
-    descKey: 'cp.A4.desc',
-    cost: 5,
-    icon: '⭐',
-    requires: ['A3_recognition'],
-    effect: {
-      type: 'price_discount',
-      value: 0.1, // 모든 가격 -10%
-    },
-  },
-
-  // ===== Category B: 금융 경로 (3종) =====
-  {
-    id: 'B1_broker',
-    category: 'B',
-    nameKey: 'cp.B1.name',
-    descKey: 'cp.B1.desc',
-    cost: 3,
-    icon: '📊',
+    icon: '☕',
     requires: [],
     effect: {
-      type: 'financial_income_multiplier',
-      value: 1.3, // 금융 수익 +30%
+      type: 'prestige_auto_click',
+      value: 1, // 1회/초
     },
   },
   {
-    id: 'B2_fund_manager',
-    category: 'B',
-    nameKey: 'cp.B2.name',
-    descKey: 'cp.B2.desc',
+    id: 'I2_auto_speed',
+    category: 'QUICK_START',
+    nameKey: 'cp.I2.name',
+    descKey: 'cp.I2.desc',
     cost: 5,
-    icon: '💼',
-    requires: ['B1_broker'],
+    icon: '⚡',
+    requires: ['I1_auto_start'],
     effect: {
-      type: 'financial_price_discount',
-      value: 0.25, // 금융 해금 가격 -25%
+      type: 'prestige_auto_click',
+      value: 2, // 2회/초
     },
   },
   {
-    id: 'B3_hedge_fund',
-    category: 'B',
-    nameKey: 'cp.B3.name',
-    descKey: 'cp.B3.desc',
-    cost: 8,
-    icon: '🦈',
-    requires: ['B2_fund_manager'],
+    id: 'I3_auto_turbo',
+    category: 'QUICK_START',
+    nameKey: 'cp.I3.name',
+    descKey: 'cp.I3.desc',
+    cost: 12,
+    icon: '🔥',
+    requires: ['I2_auto_speed'],
     effect: {
-      type: 'financial_to_property_synergy',
-      value: 1.15, // 금융→부동산 시너지 +15%
+      type: 'prestige_auto_click',
+      value: 4, // 4회/초
     },
   },
-
-  // ===== Category C: 부동산 경로 (3종) =====
-  {
-    id: 'C1_realtor',
-    category: 'C',
-    nameKey: 'cp.C1.name',
-    descKey: 'cp.C1.desc',
-    cost: 3,
-    icon: '🏠',
-    requires: [],
-    effect: {
-      type: 'property_income_multiplier',
-      value: 1.3, // 부동산 수익 +30%
-    },
-  },
-  {
-    id: 'C2_builder',
-    category: 'C',
-    nameKey: 'cp.C2.name',
-    descKey: 'cp.C2.desc',
-    cost: 5,
-    icon: '🏗️',
-    requires: ['C1_realtor'],
-    effect: {
-      type: 'property_price_discount',
-      value: 0.25, // 부동산 해금 가격 -25%
-    },
-  },
-  {
-    id: 'C3_redeveloper',
-    category: 'C',
-    nameKey: 'cp.C3.name',
-    descKey: 'cp.C3.desc',
-    cost: 8,
-    icon: '🌆',
-    requires: ['C2_builder'],
-    effect: {
-      type: 'property_to_financial_synergy',
-      value: 1.15, // 부동산→금융 시너지 +15%
-    },
-  },
-
-  // ===== Category D: 클릭/노동 경로 (3종) =====
-  {
-    id: 'D1_workaholic',
-    category: 'D',
-    nameKey: 'cp.D1.name',
-    descKey: 'cp.D1.desc',
-    cost: 3,
-    icon: '💪',
-    requires: [],
-    effect: {
-      type: 'click_income_multiplier',
-      value: 1.5, // 클릭 수익 +50%
-    },
-  },
-  {
-    id: 'D2_automation',
-    category: 'D',
-    nameKey: 'cp.D2.name',
-    descKey: 'cp.D2.desc',
-    cost: 5,
-    icon: '🤖',
-    requires: ['D1_workaholic'],
-    effect: {
-      type: 'auto_click_speed',
-      value: 2, // 자동클릭 속도 2배
-    },
-  },
-  {
-    id: 'D3_ceo_mentality',
-    category: 'D',
-    nameKey: 'cp.D3.name',
-    descKey: 'cp.D3.desc',
-    cost: 8,
-    icon: '👔',
-    requires: ['D2_automation'],
-    effect: {
-      type: 'click_bonus_chance',
-      value: 0.05, // 클릭 시 5% 확률 보너스
-    },
-  },
-
-  // ===== Category E: 시작 가속 (3종) =====
+  // 시작 가속 (E 계열)
   {
     id: 'E1_parents',
-    category: 'E',
+    category: 'QUICK_START',
     nameKey: 'cp.E1.name',
     descKey: 'cp.E1.desc',
     cost: 2,
@@ -278,7 +141,7 @@ export const PRESTIGE_UPGRADES = [
   },
   {
     id: 'E2_connections',
-    category: 'E',
+    category: 'QUICK_START',
     nameKey: 'cp.E2.name',
     descKey: 'cp.E2.desc',
     cost: 5,
@@ -291,7 +154,7 @@ export const PRESTIGE_UPGRADES = [
   },
   {
     id: 'E3_silver_spoon',
-    category: 'E',
+    category: 'QUICK_START',
     nameKey: 'cp.E3.name',
     descKey: 'cp.E3.desc',
     cost: 10,
@@ -303,14 +166,233 @@ export const PRESTIGE_UPGRADES = [
     },
   },
 
-  // ===== Category F: 영구 슬롯 (2종) =====
+  // ===== Category LABOR: 노동 & 승진 (6종) - 구 D + H =====
+  // 클릭/노동 (D 계열)
+  {
+    id: 'D1_workaholic',
+    category: 'LABOR',
+    nameKey: 'cp.D1.name',
+    descKey: 'cp.D1.desc',
+    cost: 3,
+    icon: '💪',
+    requires: [],
+    effect: {
+      type: 'click_income_multiplier',
+      value: 1.5, // 클릭 수익 +50%
+    },
+  },
+  {
+    id: 'D2_automation',
+    category: 'LABOR',
+    nameKey: 'cp.D2.name',
+    descKey: 'cp.D2.desc',
+    cost: 5,
+    icon: '📊',
+    requires: ['D1_workaholic'],
+    effect: {
+      type: 'auto_click_speed',
+      value: 2, // 자동클릭 속도 2배
+    },
+  },
+  {
+    id: 'D3_ceo_mentality',
+    category: 'LABOR',
+    nameKey: 'cp.D3.name',
+    descKey: 'cp.D3.desc',
+    cost: 8,
+    icon: '🎯',
+    requires: ['D2_automation'],
+    effect: {
+      type: 'click_bonus_chance',
+      value: 0.05, // 클릭 시 5% 확률 보너스
+    },
+  },
+  // 인맥 (H 계열)
+  {
+    id: 'H1_network_basic',
+    category: 'LABOR',
+    nameKey: 'cp.H1.name',
+    descKey: 'cp.H1.desc',
+    cost: 1,
+    icon: '🍺',
+    requires: [],
+    effect: {
+      type: 'promotion_requirement_reduction',
+      value: 0.2, // 승진 요구량 -20%
+    },
+  },
+  {
+    id: 'H2_network_power',
+    category: 'LABOR',
+    nameKey: 'cp.H2.name',
+    descKey: 'cp.H2.desc',
+    cost: 5,
+    icon: '🏌️',
+    requires: ['H1_network_basic'],
+    effect: {
+      type: 'promotion_requirement_reduction',
+      value: 0.15, // 승진 요구량 추가 -15%
+    },
+  },
+  {
+    id: 'H3_vip_connections',
+    category: 'LABOR',
+    nameKey: 'cp.H3.name',
+    descKey: 'cp.H3.desc',
+    cost: 12,
+    icon: '🏰',
+    requires: ['H2_network_power'],
+    effect: {
+      type: 'promotion_requirement_reduction',
+      value: 0.15, // 승진 요구량 추가 -15%
+    },
+  },
+
+  // ===== Category BOOST: 범용 강화 (4종) - 구 A =====
+  {
+    id: 'A1_mentor',
+    category: 'BOOST',
+    nameKey: 'cp.A1.name',
+    descKey: 'cp.A1.desc',
+    cost: 1,
+    icon: '👨‍🏫',
+    requires: [], // 선행 조건 없음
+    effect: {
+      type: 'click_multiplier',
+      value: 1.2, // 클릭 수익 +20%
+    },
+  },
+  {
+    id: 'A2_network',
+    category: 'BOOST',
+    nameKey: 'cp.A2.name',
+    descKey: 'cp.A2.desc',
+    cost: 2,
+    icon: '📱',
+    requires: ['A1_mentor'],
+    effect: {
+      type: 'auto_income_multiplier',
+      value: 1.25, // 자동 수익 +25%
+    },
+  },
+  {
+    id: 'A3_recognition',
+    category: 'BOOST',
+    nameKey: 'cp.A3.name',
+    descKey: 'cp.A3.desc',
+    cost: 3,
+    icon: '🏆',
+    requires: ['A2_network'],
+    effect: {
+      type: 'starting_cash',
+      value: 10_000_000, // 시작 자금 +1000만원
+    },
+  },
+  {
+    id: 'A4_reputation',
+    category: 'BOOST',
+    nameKey: 'cp.A4.name',
+    descKey: 'cp.A4.desc',
+    cost: 5,
+    icon: '⭐',
+    requires: ['A3_recognition'],
+    effect: {
+      type: 'price_discount',
+      value: 0.1, // 모든 가격 -10%
+    },
+  },
+
+  // ===== Category FINANCIAL: 금융 투자 (3종) - 구 B =====
+  {
+    id: 'B1_broker',
+    category: 'FINANCIAL',
+    nameKey: 'cp.B1.name',
+    descKey: 'cp.B1.desc',
+    cost: 3,
+    icon: '📊',
+    requires: [],
+    effect: {
+      type: 'financial_income_multiplier',
+      value: 1.3, // 금융 수익 +30%
+    },
+  },
+  {
+    id: 'B2_fund_manager',
+    category: 'FINANCIAL',
+    nameKey: 'cp.B2.name',
+    descKey: 'cp.B2.desc',
+    cost: 5,
+    icon: '💼',
+    requires: ['B1_broker'],
+    effect: {
+      type: 'financial_price_discount',
+      value: 0.25, // 금융 해금 가격 -25%
+    },
+  },
+  {
+    id: 'B3_hedge_fund',
+    category: 'FINANCIAL',
+    nameKey: 'cp.B3.name',
+    descKey: 'cp.B3.desc',
+    cost: 8,
+    icon: '🦈',
+    requires: ['B2_fund_manager'],
+    effect: {
+      type: 'financial_to_property_synergy',
+      value: 1.15, // 금융→부동산 시너지 +15%
+    },
+  },
+
+  // ===== Category PROPERTY: 부동산 투자 (3종) - 구 C =====
+  {
+    id: 'C1_realtor',
+    category: 'PROPERTY',
+    nameKey: 'cp.C1.name',
+    descKey: 'cp.C1.desc',
+    cost: 3,
+    icon: '🏠',
+    requires: [],
+    effect: {
+      type: 'property_income_multiplier',
+      value: 1.3, // 부동산 수익 +30%
+    },
+  },
+  {
+    id: 'C2_builder',
+    category: 'PROPERTY',
+    nameKey: 'cp.C2.name',
+    descKey: 'cp.C2.desc',
+    cost: 5,
+    icon: '🏗️',
+    requires: ['C1_realtor'],
+    effect: {
+      type: 'property_price_discount',
+      value: 0.25, // 부동산 해금 가격 -25%
+    },
+  },
+  {
+    id: 'C3_redeveloper',
+    category: 'PROPERTY',
+    nameKey: 'cp.C3.name',
+    descKey: 'cp.C3.desc',
+    cost: 8,
+    icon: '🌆',
+    requires: ['C2_builder'],
+    effect: {
+      type: 'property_to_financial_synergy',
+      value: 1.15, // 부동산→금융 시너지 +15%
+    },
+  },
+
+  // ===== Category META: 메타 & 편의 (4종) - 구 F + G =====
+  // 영구 슬롯 (F 계열)
   {
     id: 'F1_preserve_1',
-    category: 'F',
+    category: 'META',
     nameKey: 'cp.F1.name',
     descKey: 'cp.F1.desc',
     cost: 6,
-    icon: '🔒',
+    icon: '💎',
     requires: [],
     effect: {
       type: 'permanent_slot',
@@ -319,22 +401,21 @@ export const PRESTIGE_UPGRADES = [
   },
   {
     id: 'F2_preserve_2',
-    category: 'F',
+    category: 'META',
     nameKey: 'cp.F2.name',
     descKey: 'cp.F2.desc',
     cost: 15,
-    icon: '🔐',
+    icon: '💎',
     requires: ['F1_preserve_1'],
     effect: {
       type: 'permanent_slot',
       value: 2, // 2번째 영구 슬롯
     },
   },
-
-  // ===== Category G: 게임플레이 변경 (2종) =====
+  // 게임플레이 변경 (G 계열)
   {
     id: 'G1_prediction',
-    category: 'G',
+    category: 'META',
     nameKey: 'cp.G1.name',
     descKey: 'cp.G1.desc',
     cost: 7,
@@ -347,11 +428,11 @@ export const PRESTIGE_UPGRADES = [
   },
   {
     id: 'G2_insider',
-    category: 'G',
+    category: 'META',
     nameKey: 'cp.G2.name',
     descKey: 'cp.G2.desc',
     cost: 12,
-    icon: '👁️',
+    icon: '📰',
     requires: ['G1_prediction'],
     effect: {
       type: 'market_event_preview',
@@ -361,9 +442,41 @@ export const PRESTIGE_UPGRADES = [
 ]
 
 /**
- * 카테고리 정보
+ * 카테고리 정보 (6개로 병합)
+ *
+ * MECE 병합:
+ * - QUICK_START: I(프레스티지 자동화) + E(시작 가속) → "자동화/가속" 목적
+ * - LABOR: D(클릭/노동) + H(인맥) → "클릭/승진 진행" 목적
+ * - BOOST: A(기본 부스트) → 범용
+ * - FINANCIAL: B(금융) → 금융 특화
+ * - PROPERTY: C(부동산) → 부동산 특화
+ * - META: F(영구 슬롯) + G(게임플레이) → "메타 시스템" 목적
  */
 export const CATEGORIES = {
+  QUICK_START: { nameKey: 'cp.cat.quickStart', icon: '🎒', color: '#fbbf24' },
+  LABOR: { nameKey: 'cp.cat.labor', icon: '💼', color: '#a78bfa' },
+  BOOST: { nameKey: 'cp.cat.boost', icon: '📚', color: '#4ade80' },
+  FINANCIAL: { nameKey: 'cp.cat.financial', icon: '💵', color: '#60a5fa' },
+  PROPERTY: { nameKey: 'cp.cat.property', icon: '🏘️', color: '#f97316' },
+  META: { nameKey: 'cp.cat.meta', icon: '⏳', color: '#6b7280' },
+}
+
+/**
+ * 카테고리 표시 순서 (게임 흐름 기반)
+ * 1. 첫 프레스티지 후 → 🚀 빠른 시작 (1CP 자동클릭)
+ * 2. 초반 진행 → 💪 노동 & 승진 (1CP 인맥)
+ * 3. 안정적 성장 → 📈 범용 강화
+ * 4. 중반 콘텐츠 → 💰 금융
+ * 5. 중반 콘텐츠 → 🏢 부동산
+ * 6. 후반 편의 → 🔧 메타
+ */
+export const CATEGORY_ORDER = ['QUICK_START', 'LABOR', 'BOOST', 'FINANCIAL', 'PROPERTY', 'META']
+
+/**
+ * 레거시 카테고리 정보 (하위 호환용)
+ * @deprecated 새 시스템에서는 CATEGORIES 사용
+ */
+export const LEGACY_CATEGORIES = {
   A: { nameKey: 'cp.category.A', icon: '📈', color: '#4ade80' },
   B: { nameKey: 'cp.category.B', icon: '💰', color: '#60a5fa' },
   C: { nameKey: 'cp.category.C', icon: '🏢', color: '#f97316' },
@@ -371,6 +484,8 @@ export const CATEGORIES = {
   E: { nameKey: 'cp.category.E', icon: '🚀', color: '#fbbf24' },
   F: { nameKey: 'cp.category.F', icon: '🔒', color: '#6b7280' },
   G: { nameKey: 'cp.category.G', icon: '🎮', color: '#ec4899' },
+  H: { nameKey: 'cp.category.H', icon: '🤝', color: '#14b8a6' },
+  I: { nameKey: 'cp.category.I', icon: '🤖', color: '#8b5cf6' },
 }
 
 /**
@@ -489,6 +604,12 @@ export function getAllPrestigeEffects() {
     click_bonus_chance: 0,
     permanent_slot: 0,
     market_event_preview: false,
+
+    // 인맥 경로: 승진 요구량 감소 (곱연산, 기본값 1.0)
+    promotion_requirement_reduction: 0,
+
+    // 프레스티지 자동화: 자동 클릭 속도 (최대값 선택)
+    prestige_auto_click: 0,
   }
 
   for (const upgradeId of gameState.purchasedUpgrades || []) {
@@ -512,6 +633,12 @@ export function getAllPrestigeEffects() {
       effects[type] = value
     } else if (type === 'starting_bundle') {
       effects[type] = value
+    } else if (type === 'promotion_requirement_reduction') {
+      // 인맥 감소는 합산 (0.2 + 0.15 + 0.15 = 0.5, 즉 50% 감소)
+      effects[type] = (effects[type] || 0) + value
+    } else if (type === 'prestige_auto_click') {
+      // 프레스티지 자동 클릭은 최대값 선택 (상위 업그레이드가 대체)
+      effects[type] = Math.max(effects[type] || 0, value)
     } else {
       effects[type] = (effects[type] || 0) + (typeof value === 'number' ? value : 0)
     }
@@ -580,9 +707,9 @@ export function saveToPermSlot(upgradeId, slotIndex) {
   if (slotIndex >= maxSlots) return false
   if (!(gameState.purchasedUpgrades || []).includes(upgradeId)) return false
 
-  // 영구 슬롯은 F 카테고리 업그레이드 자체를 저장할 수 없음
+  // 영구 슬롯은 영구 슬롯 업그레이드(F1, F2) 자체를 저장할 수 없음
   const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
-  if (upgrade?.category === 'F') return false
+  if (upgrade?.id.startsWith('F')) return false
 
   // 슬롯 배열 초기화
   if (!gameState.permanentSlots) {
@@ -628,10 +755,9 @@ export function resetPurchasedUpgrades() {
     }
   }
 
-  // F 카테고리 (영구 슬롯 해금)는 항상 유지
+  // 영구 슬롯 해금 업그레이드(F1, F2)는 항상 유지
   for (const upgradeId of purchased) {
-    const upgrade = PRESTIGE_UPGRADES.find(u => u.id === upgradeId)
-    if (upgrade?.category === 'F' && !preserved.includes(upgradeId)) {
+    if (upgradeId.startsWith('F') && !preserved.includes(upgradeId)) {
       preserved.push(upgradeId)
     }
   }
@@ -744,6 +870,77 @@ export function getActivePrestigeBonuses() {
  */
 export function getBonusesByTier() {
   return { tier1: [], tier2: [], tier3: [], tier4: [] }
+}
+
+// ===== 클릭 가속 시스템 헬퍼 함수 =====
+
+/**
+ * CP 기반 클릭 가치 배수 계산
+ * 누적 CP(보유 + 사용)에 따라 클릭당 승진 기여도 증가
+ * 1 CP = +1% 클릭 가치
+ *
+ * @returns {number} 클릭 가치 배수 (예: 1.5 = 50% 증가)
+ */
+export function getPromotionClickMultiplier() {
+  const totalCP = getTotalCPForBonus()
+  return 1 + totalCP * 0.01 // 1 CP = +1%
+}
+
+/**
+ * 인맥 업그레이드 기반 승진 요구량 감소율 계산
+ * H1: -20%, H2: 추가 -15%, H3: 추가 -15% = 최대 50% 감소
+ *
+ * @returns {number} 감소율 (0~0.5, 예: 0.35 = 35% 감소)
+ */
+export function getNetworkRequirementReduction() {
+  const effects = getAllPrestigeEffects()
+  return effects.promotion_requirement_reduction || 0
+}
+
+/**
+ * 인맥 업그레이드 적용된 승진 요구량 배수 계산
+ * 예: 35% 감소 시 0.65 반환 (기존 요구량 × 0.65)
+ *
+ * @returns {number} 요구량 배수 (0.5~1.0)
+ */
+export function getPromotionRequirementMultiplier() {
+  const reduction = getNetworkRequirementReduction()
+  return Math.max(0.5, 1 - reduction) // 최소 50%까지만 감소
+}
+
+/**
+ * 프레스티지 자동 클릭 속도 계산
+ * I1: 1회/초, I2: 2회/초, I3: 4회/초
+ *
+ * @returns {number} 초당 자동 클릭 횟수 (0 = 비활성)
+ */
+export function getPrestigeAutoClickSpeed() {
+  const effects = getAllPrestigeEffects()
+  return effects.prestige_auto_click || 0
+}
+
+/**
+ * 프레스티지 자동 클릭 활성화 여부
+ * @returns {boolean} 활성화 여부
+ */
+export function isPrestigeAutoClickEnabled() {
+  return getPrestigeAutoClickSpeed() > 0
+}
+
+/**
+ * 승진까지 필요한 유효 클릭 수 계산
+ * CP 보너스와 인맥 감소를 모두 적용
+ *
+ * @param {number} baseRequirement - 기본 승진 요구 클릭 수
+ * @returns {number} 유효 필요 클릭 수
+ */
+export function getEffectivePromotionRequirement(baseRequirement) {
+  const clickMultiplier = getPromotionClickMultiplier()
+  const requirementMultiplier = getPromotionRequirementMultiplier()
+
+  // 요구량 감소 적용 후, 클릭 가치 증가 적용
+  // 예: 기본 1000클릭, 35% 감소 → 650클릭, 클릭 가치 1.5배 → 433클릭
+  return Math.ceil((baseRequirement * requirementMultiplier) / clickMultiplier)
 }
 
 /**

@@ -173,52 +173,77 @@
 }
 
 /* ---------- Button Pulse (Sell Mode) ---------- */
+/* GPU 가속: pseudo-element + opacity 사용 */
 .btn.affordable-sell {
-  animation: pulse-sell 2s infinite;
+  position: relative;
 }
 
-@keyframes pulse-sell {
+.btn.affordable-sell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  opacity: 0;
+  animation: glowPulseSell 2s infinite;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+@keyframes glowPulseSell {
   0%,
   100% {
-    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+    opacity: 0.3;
   }
   50% {
-    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+    opacity: 1;
   }
 }
 
 /* ---------- Building Glow ---------- */
-.building-item.affordable {
-  animation: upgradeGlow 2s infinite;
+/* GPU 가속: pseudo-element + opacity 사용 */
+.building-item.affordable,
+.upgrade-item.affordable {
+  position: relative;
+}
+
+.building-item.affordable::after,
+.upgrade-item.affordable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+  opacity: 0;
+  animation: glowPulseAffordable 2s infinite;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+@keyframes glowPulseAffordable {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .building-item.affordable-sell {
-  animation: sellGlow 2s infinite;
+  position: relative;
 }
 
-@keyframes sellGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
-  }
-}
-
-/* ---------- Upgrade Glow ---------- */
-.upgrade-item.affordable {
-  animation: upgradeGlow 2s infinite;
-}
-
-@keyframes upgradeGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
-  }
+.building-item.affordable-sell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  opacity: 0;
+  animation: glowPulseSell 2s infinite;
+  pointer-events: none;
+  will-change: opacity;
 }
 
 /* ---------- Career Promotion ---------- */
@@ -318,16 +343,19 @@
 }
 
 /* ---------- Income Bar Shimmer ---------- */
+/* GPU 가속: transform 사용 (left 대신) */
 .income-segment::before {
   animation: shimmer 2s infinite;
+  will-change: transform;
+  left: 0;
 }
 
 @keyframes shimmer {
   0% {
-    left: -100%;
+    transform: translateX(-200%);
   }
   100% {
-    left: 100%;
+    transform: translateX(200%);
   }
 }
 
@@ -387,5 +415,28 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ---------- Reduced Motion Support ---------- */
+/* 시스템 설정에서 애니메이션 줄이기 활성화 시 무거운 애니메이션 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+  .btn.affordable,
+  .building-item.affordable,
+  .upgrade-item.affordable,
+  .building-item.affordable-sell,
+  .btn.affordable-sell,
+  .income-segment::before,
+  .work.auto-click-enabled .auto-work-indicator,
+  #workBtn.auto-click-pulse {
+    animation: none !important;
+  }
+
+  .btn.affordable-sell::after,
+  .building-item.affordable::after,
+  .upgrade-item.affordable::after,
+  .building-item.affordable-sell::after {
+    animation: none !important;
+    opacity: 0.5 !important;
   }
 }

@@ -747,7 +747,15 @@ export default {
   'cp.networkDesc': 'Total Income',
   'cp.firstTowerBonus': 'First Tower Bonus',
 
-  // CP Categories
+  // CP Categories (New merged structure)
+  'cp.cat.quickStart': 'Starting Line',
+  'cp.cat.labor': 'Office Life',
+  'cp.cat.boost': 'Self-Improvement',
+  'cp.cat.financial': 'Smart Money',
+  'cp.cat.property': 'Home Ownership',
+  'cp.cat.meta': 'Past Life Memories',
+
+  // CP Categories (Legacy compatibility)
   'cp.category.A': 'Basic Boosts',
   'cp.category.B': 'Financial Path',
   'cp.category.C': 'Real Estate Path',
@@ -755,18 +763,20 @@ export default {
   'cp.category.E': 'Head Start',
   'cp.category.F': 'Permanent Slots',
   'cp.category.G': 'Gameplay Modifiers',
+  'cp.category.H': 'Networking Path',
+  'cp.category.I': 'Prestige Automation',
 
   // CP Hint
   'cp.hint': '🗼 Earn CP by purchasing Seoul Tower. CP provides permanent bonuses in future runs.',
 
-  // CP Upgrades - A: Basic Boosts
-  'cp.A1.name': 'New Hire Mentoring',
+  // CP Upgrades - A: Self-Improvement
+  'cp.A1.name': '👨‍🏫 Mentorship Program',
   'cp.A1.desc': 'Click income +20%',
-  'cp.A2.name': 'Career Starter Network',
-  'cp.A2.desc': 'Auto income +25%',
-  'cp.A3.name': 'Career Recognition',
+  'cp.A2.name': '📱 LinkedIn Networking',
+  'cp.A2.desc': 'Your network is your net worth (+25%)',
+  'cp.A3.name': '🏆 Career Recognition',
   'cp.A3.desc': 'Starting cash +10M',
-  'cp.A4.name': 'Industry Reputation',
+  'cp.A4.name': '⭐ Industry Reputation',
   'cp.A4.desc': 'All prices -10%',
 
   // CP Upgrades - B: Financial Path
@@ -785,13 +795,13 @@ export default {
   'cp.C3.name': 'Redevelopment Expert',
   'cp.C3.desc': 'Property→Financial synergy +15%',
 
-  // CP Upgrades - D: Click/Labor Path
-  'cp.D1.name': 'Workaholic DNA',
-  'cp.D1.desc': 'Click income +50%',
-  'cp.D2.name': 'Automation Master',
-  'cp.D2.desc': 'Auto-click speed x2',
-  'cp.D3.name': 'CEO Mentality',
-  'cp.D3.desc': '5% chance bonus on click',
+  // CP Upgrades - D: Office Life (Click/Labor)
+  'cp.D1.name': '💪 Overtime Champion',
+  'cp.D1.desc': 'Working late? No problem (+50%)',
+  'cp.D2.name': '📊 Excel Wizard',
+  'cp.D2.desc': 'Macro your way to success (speed x2)',
+  'cp.D3.name': '🎯 Performance Driven',
+  'cp.D3.desc': 'Sometimes you hit it big (5% bonus)',
 
   // CP Upgrades - E: Head Start
   'cp.E1.name': 'Parent Support',
@@ -801,35 +811,39 @@ export default {
   'cp.E3.name': 'Silver Spoon',
   'cp.E3.desc': 'Start with 1 villa + Worker title',
 
-  // CP Upgrades - F: Permanent Slots
-  'cp.F1.name': 'Core Competency Preservation I',
-  'cp.F1.desc': '1 upgrade persists through reset',
-  'cp.F2.name': 'Core Competency Preservation II',
-  'cp.F2.desc': 'Unlock 2nd permanent slot',
+  // CP Upgrades - F: Past Life Memories (Permanent Slots)
+  'cp.F1.name': '💎 Unforgettable Skill',
+  'cp.F1.desc': 'Muscle memory from past lives',
+  'cp.F2.name': '💎 Natural Talent',
+  'cp.F2.desc': 'Born with an extra gift',
 
-  // CP Upgrades - G: Gameplay Modifiers
-  'cp.G1.name': 'Market Prediction',
-  'cp.G1.desc': 'Market event effects +50%',
-  'cp.G2.name': 'Information Asymmetry',
-  'cp.G2.desc': 'Preview next market event',
+  // CP Upgrades - G: Past Life Memories (Gameplay)
+  'cp.G1.name': '🔮 Good Instincts',
+  'cp.G1.desc': 'Something feels right (+50%)',
+  'cp.G2.name': '📰 Rumor Has It',
+  'cp.G2.desc': 'Hear the gossip first',
+
+  // CP Upgrades - H: Office Life (Networking)
+  'cp.H1.name': '🍺 Happy Hour Bonding',
+  'cp.H1.desc': 'Get close with your boss (-20%)',
+  'cp.H2.name': '🏌️ Golf Schmoozing',
+  'cp.H2.desc': 'Network on the fairway (-15%)',
+  'cp.H3.name': '🏰 Six Degrees of Separation',
+  'cp.H3.desc': 'Friend of a friend of a VIP (-15%)',
+
+  // CP Upgrades - I: Starting Line (Automation)
+  'cp.I1.name': '☕ Coffee Money at Least',
+  'cp.I1.desc': 'Clock in, money flows (1x/sec)',
+  'cp.I2.name': '⚡ Side Hustle',
+  'cp.I2.desc': 'Main job + gig (2x/sec)',
+  'cp.I3.name': '🔥 No Work-Life Balance',
+  'cp.I3.desc': 'Multiple income streams (4x/sec)',
 
   // CP UI
   'cp.permSlots': 'Permanent Slots',
   'cp.permSlots.hint': 'Upgrades that persist through prestige',
   'cp.emptySlot': 'Empty Slot',
   'cp.removeSlot': 'Remove',
-  'cp.buildGuide': 'Build Guide',
-
-  // CP Build Paths
-  'cp.build.financial': 'Financial Specialist',
-  'cp.build.financial.desc': 'Strong mid-game, steady late-game',
-  'cp.build.property': 'Property Specialist',
-  'cp.build.property.desc': 'Slow start, explosive late-game',
-  'cp.build.active': 'Active Clicker',
-  'cp.build.active.desc': 'Best efficiency for active play',
-  'cp.build.speedrun': 'Speedrun',
-  'cp.build.speedrun.desc': 'Fastest path to tower',
-
   // CP Tab
   'tab.career': 'Career',
 
@@ -896,9 +910,15 @@ export default {
     '🗼 Seoul Tower Complete 🗼\n\n' +
     'From part-timer to CEO.\n' +
     'From deposit to Seoul Tower.\n\n' +
-    'Your name is now engraved in the heart of Seoul.\n\n' +
+    'Your name is now engraved in the heart of Seoul.\n' +
     'Seoul Tower 🗼 acquired ({count} total)\n\n' +
-    'Time for a new beginning.',
+    '━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '💼 Career Points (CP) +{earnedCP} earned!\n\n' +
+    '✨ In your new start:\n' +
+    '• Network bonus: +{cpBonus}% income\n' +
+    '• CP upgrades for faster growth\n' +
+    '• Permanent slots to keep upgrades\n\n' +
+    'Challenge again with your new power!',
 
   // Prestige messages
   'msg.prestigeComplete': '🗼 A new beginning. Once more.',

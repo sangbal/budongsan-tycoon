@@ -7,6 +7,7 @@
 import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import { safeText } from './domUtils.js'
+import { getEffectivePromotionRequirement } from '../systems/prestigeBonus.js'
 
 /**
  * 커리어 이름 가져오기
@@ -69,19 +70,22 @@ export function updateCareerUI({
     const elCareerRemaining = document.getElementById('careerRemaining')
 
     if (nextCareer) {
-      // 승진 진행률 계산 및 표시
-      const progress = Math.min((totalClicks / nextCareer.requiredClicks) * 100, 100)
-      const remaining = Math.max(0, nextCareer.requiredClicks - totalClicks)
+      // CP 보너스와 인맥 감소가 적용된 유효 요구량 계산
+      const effectiveRequirement = getEffectivePromotionRequirement(nextCareer.requiredClicks)
+
+      // 승진 진행률 계산 및 표시 (유효 요구량 기준)
+      const progress = Math.min((totalClicks / effectiveRequirement) * 100, 100)
+      const remaining = Math.max(0, effectiveRequirement - totalClicks)
 
       if (elCareerProgress) {
         elCareerProgress.style.width = progress + '%'
         elCareerProgress.setAttribute('aria-valuenow', Math.round(progress))
       }
 
-      // 간소화된 진행률 표시
+      // 간소화된 진행률 표시 (유효 요구량 표시)
       safeText(
         elCareerProgressText,
-        `${Math.round(progress)}% (${totalClicks}/${nextCareer.requiredClicks})`
+        `${Math.round(progress)}% (${totalClicks}/${effectiveRequirement})`
       )
 
       // 남은 클릭 수 표시
