@@ -102,9 +102,15 @@ header {
   }
 }
 
-/* 공유/즐겨찾기 버튼 */
+/* 버튼 그룹을 우측 끝으로 정렬 */
+.header-row-1 .favorite-btn {
+  margin-left: auto !important;
+}
+
+/* 공유/즐겨찾기/설정 버튼 */
 .share-btn,
-.favorite-btn {
+.favorite-btn,
+.settings-btn {
   flex-shrink: 0;
   border: none;
   color: var(--text);
@@ -118,13 +124,15 @@ header {
 }
 
 .share-btn:hover,
-.favorite-btn:hover {
+.favorite-btn:hover,
+.settings-btn:hover {
   background: var(--bg2);
   transform: translateY(-2px);
 }
 
 .share-btn:active,
-.favorite-btn:active {
+.favorite-btn:active,
+.settings-btn:active {
   transform: translateY(0);
 }
 
@@ -142,8 +150,14 @@ header {
 }
 
 .share-btn .share-label,
-.favorite-btn .favorite-label {
+.favorite-btn .favorite-label,
+.settings-btn .settings-label {
   font-size: 12px;
+}
+
+.settings-btn .settings-icon {
+  font-size: 16px;
+  flex: 0 0 auto;
 }
 
 /* Login 버튼 */
@@ -273,13 +287,15 @@ header {
 
   .share-btn .share-label,
   .favorite-btn .favorite-label,
-  .login-btn .login-label {
+  .login-btn .login-label,
+  .settings-btn .settings-label {
     display: none;
   }
 
   .share-btn,
   .favorite-btn,
-  .login-btn {
+  .login-btn,
+  .settings-btn {
     padding: 6px 10px;
   }
 

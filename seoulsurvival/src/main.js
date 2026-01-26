@@ -527,11 +527,17 @@ document.addEventListener('DOMContentLoaded', () => {
   cloudSyncManager.initVisibilityListeners()
   setupToggleSwitches({ settings, saveSettings, updateUI })
 
+  // ======= 설정 모달 초기화 =======
+  import('./ui/settingsModal.js').then(({ createSettingsModal }) => {
+    const settingsModal = createSettingsModal({
+      syncNicknameFromServer,
+    })
+    settingsModal.initSettingsModal()
+  })
+
   // ======= 하단 네비게이션 탭 전환 =======
   const tabNavigation = createTabNavigation({
     refreshPrestigeTab,
-    syncNicknameFromServer,
-    openNicknameChangeModal: () => nicknameManager?.openNicknameChangeModal(),
     LeaderboardUI,
     setupAchievementScrollOptimization: () => {
       achievementGridInstance?.setupAchievementScrollOptimization()

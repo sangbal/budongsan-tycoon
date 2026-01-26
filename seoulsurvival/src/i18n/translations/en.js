@@ -154,12 +154,20 @@ export default {
 
   // Settings tab
   'settings.language.title': '🌐 Language',
+  'settings.language': 'Language',
+  'settings.modal.close': 'Close Settings',
   'settings.gameInfo.title': '📋 Game Info',
   'settings.visualEffects.title': '🎨 Visual Effects',
   'settings.numberDisplay.title': '🔢 Number Display',
   'settings.account.title': '👤 Account (Social Login)',
   'settings.saveManagement.title': '💾 Save Management',
   'settings.reset.title': '🔄 Reset Game',
+  'settings.display.title': 'Display',
+  'settings.display.format': 'Number Format',
+  'settings.graphics.title': 'Graphics',
+  'settings.accountData.title': 'Account & Data',
+  'settings.dangerZone.title': 'Danger Zone',
+  'settings.dangerZone.warning': 'This action cannot be undone.',
 
   // Header
   'header.cash': '💵 Cash',
@@ -175,6 +183,8 @@ export default {
   'header.favorite_btn.title': 'Add to Favorites / Home Screen',
   'header.share_btn': 'Share',
   'header.share_btn.title': 'Share the Game',
+  'header.settings_btn': 'Settings',
+  'header.settings_btn.title': 'Open Settings',
 
   // Work Tab
   'work.title': 'Work',

@@ -156,12 +156,20 @@ export default {
 
   // 설정 탭
   'settings.language.title': '🌐 언어',
+  'settings.language': '언어',
+  'settings.modal.close': '설정 닫기',
   'settings.gameInfo.title': '📋 게임 정보',
   'settings.visualEffects.title': '🎨 시각 효과',
   'settings.numberDisplay.title': '🔢 숫자 표시',
   'settings.account.title': '👤 계정 (소셜 로그인)',
   'settings.saveManagement.title': '💾 저장 관리',
   'settings.reset.title': '🔄 게임 새로 시작',
+  'settings.display.title': '디스플레이',
+  'settings.display.format': '숫자 형식',
+  'settings.graphics.title': '그래픽',
+  'settings.accountData.title': '계정 및 데이터',
+  'settings.dangerZone.title': '위험 영역',
+  'settings.dangerZone.warning': '이 작업은 되돌릴 수 없습니다.',
 
   // 헤더
   'header.cash': '💵 현금',
@@ -177,6 +185,8 @@ export default {
   'header.favorite_btn.title': '즐겨찾기 / 홈 화면에 추가 안내',
   'header.share_btn': '공유',
   'header.share_btn.title': '게임 공유하기',
+  'header.settings_btn': '설정',
+  'header.settings_btn.title': '설정 열기',
 
   // Work Tab
   'work.title': '노동',
