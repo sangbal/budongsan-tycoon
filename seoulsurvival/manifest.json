@@ -1,0 +1,69 @@
+{
+  "name": "서울 생존기 : 흙수저 탈출",
+  "short_name": "서울 생존기",
+  "description": "노동 → 투자 → 자동화. 클릭으로 월급을 자본으로 바꾸고 서울에서 살아남아라.",
+  "start_url": "/seoulsurvival/",
+  "scope": "/seoulsurvival/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0b0f19",
+  "background_color": "#0b0f19",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["games"],
+  "screenshots": [
+    {
+      "src": "assets/icons/screenshot-540x720.png",
+      "sizes": "540x720",
+      "form_factor": "narrow",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/screenshot-1280x720.png",
+      "sizes": "1280x720",
+      "form_factor": "wide",
+      "type": "image/png"
+    }
+  ],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "게임 시작",
+      "short_name": "플레이",
+      "description": "Seoul Survival 게임 시작",
+      "url": "/seoulsurvival/",
+      "icons": [
+        {
+          "src": "assets/icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
