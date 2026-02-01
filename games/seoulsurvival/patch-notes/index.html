@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="canonical" href="https://clicksurvivor.com/games/seoulsurvival/patch-notes/" />
+  <meta name="description" content="Seoul Survival 패치노트. 최신 업데이트와 변경사항을 확인하세요." />
+
+  <meta property="og:site_name" content="ClickSurvivor" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://clicksurvivor.com/games/seoulsurvival/patch-notes/" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content="Seoul Survival 패치노트 | ClickSurvivor" />
+  <meta property="og:description" content="Seoul Survival 패치노트. 최신 업데이트와 변경사항을 확인하세요." />
+  <meta property="og:image" content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-22" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Seoul Survival 패치노트 | ClickSurvivor" />
+  <meta name="twitter:description" content="Seoul Survival 패치노트. 최신 업데이트와 변경사항을 확인하세요." />
+  <meta name="twitter:image" content="https://clicksurvivor.com/og/clicksurvivor-home-1200x630.png?v=2025-12-22" />
+
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index,follow" />
+
+  <link rel="icon" type="image/webp" href="../../../assets/logo-i7-wKku9.webp" />
+  <link rel="apple-touch-icon" href="../../../assets/logo-i7-wKku9.webp" />
+  <title>Seoul Survival 패치노트 | ClickSurvivor</title>
+
+
+  <style>
+    :root {
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-7: 32px;
+      --space-8: 48px;
+      --space-9: 64px;
+      --font-xs: 12px;
+      --font-sm: 13px;
+      --font-md: 14px;
+      --font-lg: 16px;
+      --font-xl: 18px;
+      --font-2xl: clamp(28px, 3.4vw, 44px);
+    }
+
+    body {
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 18px 70px;
+    }
+
+    .page-header {
+      margin-top: var(--space-8);
+      margin-bottom: var(--space-6);
+    }
+
+    .page-title {
+      font-size: clamp(24px, 3.4vw, 44px);
+      font-weight: 950;
+      margin: 0 0 var(--space-3);
+      letter-spacing: -.3px;
+      line-height: 1.2;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: var(--font-md);
+      margin: 0;
+    }
+
+    .release-note {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: var(--space-6);
+      margin-bottom: var(--space-5);
+    }
+
+    .release-note-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .release-note-version {
+      font-size: var(--font-xl);
+      font-weight: 950;
+      color: var(--accent);
+    }
+
+    .release-note-title {
+      font-size: var(--font-lg);
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .release-note-date {
+      color: var(--muted);
+      font-size: var(--font-sm);
+      margin-left: auto;
+    }
+
+    .release-note-content {
+      color: var(--text);
+      font-size: var(--font-md);
+      line-height: 1.7;
+    }
+
+    .patch-item {
+      margin: var(--space-2) 0;
+      padding-left: var(--space-4);
+      position: relative;
+    }
+
+    .patch-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .patch-category {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: var(--font-xs);
+      font-weight: 700;
+      margin-right: var(--space-2);
+      text-transform: uppercase;
+    }
+
+    .category-feature {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    .category-fix {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .category-balance {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+
+    .category-ui {
+      background: rgba(96, 165, 250, 0.15);
+      color: #60a5fa;
+    }
+
+    .category-content {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    .category-performance {
+      background: rgba(251, 146, 60, 0.2);
+      color: #fb923c;
+      border: 1px solid #fb923c;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--space-9) var(--space-4);
+      color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      .release-note-header {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+      }
+
+      .release-note-date {
+        grid-column: 1;
+        justify-self: start;
+      }
+    }
+  </style>
+  <script type="module" crossorigin src="../../../assets/games-seoulsurvival-patchnotes-DyT5KBXE.js"></script>
+  <link rel="modulepreload" crossorigin href="../../../assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/seoulsurvival-i18n-z3sVIM_M.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/shared-auth-BS6hMw4s.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/shared-common-Bh-ahcVH.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/patchnotes.registry-FKfJoHun.js">
+  <link rel="stylesheet" crossorigin href="../../../assets/shared-common-0_VAKT2z.css">
+</head>
+<body>
+  <!-- Header mount point -->
+  <div id="header-mount"></div>
+
+  <main class="wrap" data-testid="patch-notes-root">
+    <div class="page-header">
+      <h1 class="page-title" data-i18n="patchNotes.pageTitle">Seoul Survival 패치노트</h1>
+      <p class="page-subtitle" data-i18n="patchNotes.pageSubtitle">최신 업데이트와 변경사항</p>
+    </div>
+
+    <div id="patchnotes-container">
+      <!-- Patch notes will be dynamically rendered -->
+    </div>
+  </main>
+
+  <!-- Footer mount point -->
+  <div id="footer-mount"></div>
+
+</body>
+</html>
