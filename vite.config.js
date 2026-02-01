@@ -34,6 +34,11 @@ export default defineConfig({
         'auth-callback': resolve(__dirname, 'auth/callback/index.html'),
         terms: resolve(__dirname, 'terms.html'),
         privacy: resolve(__dirname, 'privacy.html'),
+        'games-seoulsurvival': resolve(__dirname, 'games/seoulsurvival/index.html'),
+        'games-seoulsurvival-patchnotes': resolve(
+          __dirname,
+          'games/seoulsurvival/patch-notes/index.html'
+        ),
         seoulsurvival: resolve(__dirname, 'seoulsurvival/index.html'),
         'kimchi-invasion': resolve(__dirname, 'kimchi-invasion/index.html'),
       },

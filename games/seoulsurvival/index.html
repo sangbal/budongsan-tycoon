@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko" data-theme="seoulsurvival">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seoul Survival - ClickSurvivor Hub</title>
+    <meta name="description" content="노동으로 시작해 투자로 성장하는 증분 게임. 브라우저에서 즉시 플레이하세요." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Seoul Survival - ClickSurvivor Hub" />
+    <meta property="og:description" content="노동으로 시작해 투자로 성장하는 증분 게임" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/assets/seoulsurvival-capsule.jpg" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/shared/styles/uniform-core.css" />
+    <link rel="stylesheet" href="/shared/styles/header.css" />
+    <link rel="stylesheet" href="/shared/styles/game-page.css" />
+  </head>
+  <body>
+    <!-- Header mount point -->
+    <div id="header-mount"></div>
+
+    <!-- Main content -->
+    <main id="app">
+      <!-- Hero Section -->
+      <section class="game-page-hero">
+        <div class="hero-capsule-wrapper">
+          <img
+            id="hero-capsule"
+            src=""
+            alt="Seoul Survival"
+            class="hero-capsule-image"
+          />
+        </div>
+      </section>
+
+      <!-- Content Section (2-column layout) -->
+      <section class="game-page-content">
+        <div class="content-container">
+          <!-- Left: Media Column -->
+          <div class="game-media-column">
+            <div id="media-gallery" class="media-gallery">
+              <!-- Screenshots will be dynamically inserted -->
+            </div>
+          </div>
+
+          <!-- Right: Info Panel -->
+          <div class="game-info-panel">
+            <div class="game-header">
+              <h1 id="game-title" class="game-title">Seoul Survival</h1>
+              <p id="game-subtitle" class="game-subtitle">흙수저 탈출</p>
+            </div>
+
+            <div id="game-short-description" class="game-short-description"></div>
+
+            <div id="game-tags" class="game-tags"></div>
+
+            <div class="game-features" id="game-features"></div>
+
+            <div class="game-cta-section">
+              <a
+                href="../../seoulsurvival/"
+                class="btn-primary btn-cta-play"
+                data-i18n="gamePage.cta.play"
+              >
+                지금 플레이
+              </a>
+            </div>
+
+            <div class="game-meta">
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="gamePage.meta.releaseDate">출시일</span>
+                <span id="release-date" class="meta-value">-</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="gamePage.meta.developer">개발자</span>
+                <span id="developer" class="meta-value">-</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="gamePage.meta.status">상태</span>
+                <span id="status" class="meta-value">-</span>
+              </div>
+            </div>
+
+            <div class="game-browser-compat">
+              <h3 data-i18n="gamePage.browserCompat.title">브라우저 지원</h3>
+              <div id="browser-compat-list" class="browser-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="game-about-section">
+        <div class="about-container">
+          <h2 data-i18n="gamePage.about.title">게임 소개</h2>
+          <div id="about-content" class="about-content"></div>
+        </div>
+      </section>
+
+      <!-- Patch Notes Section -->
+      <section class="game-patchnotes-section">
+        <div class="patchnotes-container">
+          <div class="patchnotes-header">
+            <h2 data-i18n="gamePage.patchnotes.title">패치노트</h2>
+            <a href="/games/seoulsurvival/patch-notes/" class="patchnotes-view-all" data-i18n="gamePage.patchnotes.viewAll">
+              모두 보기
+            </a>
+          </div>
+          <div id="patchnotes-list" class="patchnotes-list">
+            <!-- Patch notes will be dynamically inserted -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobile CTA (sticky bottom) -->
+      <div class="mobile-cta-sticky">
+        <a
+          href="../../seoulsurvival/"
+          class="btn-primary btn-cta-mobile"
+          data-i18n="gamePage.cta.play"
+        >
+          지금 플레이
+        </a>
+      </div>
+    </main>
+
+    <!-- Footer mount point -->
+    <div id="footer-mount"></div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
