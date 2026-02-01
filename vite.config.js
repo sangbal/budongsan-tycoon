@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { copyFileSync, mkdirSync } from 'fs'
@@ -59,6 +59,24 @@ export default defineConfig({
           console.log('[Vite] Copied PWA files (manifest.json, sw.js) to dist/seoulsurvival/')
         } catch (error) {
           console.warn('[Vite] Failed to copy PWA files:', error)
+        }
+
+        // Copy seoulsurvival PWA icons
+        const iconsSourceDir = resolve(__dirname, 'seoulsurvival/assets/icons')
+        const iconsDestDir = resolve(__dirname, 'dist/seoulsurvival/assets/icons')
+
+        try {
+          mkdirSync(iconsDestDir, { recursive: true })
+          // Copy all PNG icon files
+          const files = readdirSync(iconsSourceDir)
+          files.forEach(file => {
+            if (file.endsWith('.png')) {
+              copyFileSync(resolve(iconsSourceDir, file), resolve(iconsDestDir, file))
+            }
+          })
+          console.log('[Vite] Copied PWA icons to dist/seoulsurvival/assets/icons/')
+        } catch (error) {
+          console.warn('[Vite] Failed to copy icons:', error)
         }
       },
     },
