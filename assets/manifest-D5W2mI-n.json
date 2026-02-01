@@ -11,20 +11,6 @@
   "lang": "ko",
   "dir": "ltr",
   "categories": ["games"],
-  "screenshots": [
-    {
-      "src": "assets/icons/screenshot-540x720.png",
-      "sizes": "540x720",
-      "form_factor": "narrow",
-      "type": "image/png"
-    },
-    {
-      "src": "assets/icons/screenshot-1280x720.png",
-      "sizes": "1280x720",
-      "form_factor": "wide",
-      "type": "image/png"
-    }
-  ],
   "icons": [
     {
       "src": "assets/icons/icon-192x192.png",
