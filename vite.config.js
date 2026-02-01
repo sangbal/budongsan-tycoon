@@ -3,6 +3,7 @@ import { resolve } from 'path'
 import { readFileSync } from 'fs'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { copyFileSync, mkdirSync } from 'fs'
 
 // package.json에서 버전 읽기
 const packageJson = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
@@ -18,10 +19,54 @@ export default defineConfig({
       gzipSize: true,
       brotliSize: true,
     }),
+    {
+      // Custom plugin to copy PWA and TWA files after build
+      name: 'copy-pwa-twa-files',
+      apply: 'build',
+      enforce: 'post',
+      async generateBundle() {
+        // Copy .well-known/assetlinks.json to dist/.well-known/assetlinks.json
+        const wellKnownSourceDir = resolve(__dirname, '.well-known')
+        const wellKnownDestDir = resolve(__dirname, 'dist', '.well-known')
+
+        try {
+          mkdirSync(wellKnownDestDir, { recursive: true })
+          copyFileSync(
+            resolve(wellKnownSourceDir, 'assetlinks.json'),
+            resolve(wellKnownDestDir, 'assetlinks.json')
+          )
+          console.log('[Vite] Copied .well-known/assetlinks.json to dist/.well-known/')
+        } catch (error) {
+          console.warn('[Vite] Failed to copy .well-known files:', error)
+        }
+
+        // Copy seoulsurvival PWA files
+        const seoulSurvivalSourceDir = resolve(__dirname, 'seoulsurvival')
+        const seoulSurvivalDestDir = resolve(__dirname, 'dist', 'seoulsurvival')
+
+        try {
+          mkdirSync(seoulSurvivalDestDir, { recursive: true })
+          // Copy manifest.json
+          copyFileSync(
+            resolve(seoulSurvivalSourceDir, 'manifest.json'),
+            resolve(seoulSurvivalDestDir, 'manifest.json')
+          )
+          // Copy Service Worker
+          copyFileSync(
+            resolve(seoulSurvivalSourceDir, 'sw.js'),
+            resolve(seoulSurvivalDestDir, 'sw.js')
+          )
+          console.log('[Vite] Copied PWA files (manifest.json, sw.js) to dist/seoulsurvival/')
+        } catch (error) {
+          console.warn('[Vite] Failed to copy PWA files:', error)
+        }
+      },
+    },
   ],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
+  assetsInclude: [],
   build: {
     rollupOptions: {
       input: {
