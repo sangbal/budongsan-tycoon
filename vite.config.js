@@ -78,6 +78,23 @@ export default defineConfig({
         } catch (error) {
           console.warn('[Vite] Failed to copy icons:', error)
         }
+
+        // Copy seoulsurvival PWA screenshots
+        const screenshotsSourceDir = resolve(__dirname, 'seoulsurvival/assets/screenshots')
+        const screenshotsDestDir = resolve(__dirname, 'dist/seoulsurvival/assets/screenshots')
+
+        try {
+          mkdirSync(screenshotsDestDir, { recursive: true })
+          const files = readdirSync(screenshotsSourceDir)
+          for (const file of files) {
+            if (file.endsWith('.png')) {
+              copyFileSync(resolve(screenshotsSourceDir, file), resolve(screenshotsDestDir, file))
+            }
+          }
+          console.log('[Vite] Copied PWA screenshots to dist/seoulsurvival/assets/screenshots/')
+        } catch (error) {
+          console.warn('[Vite] Failed to copy screenshots:', error)
+        }
       },
     },
   ],
