@@ -1,4 +1,5 @@
 {
+  "id": "/seoulsurvival/",
   "name": "서울 생존기 : 흙수저 탈출",
   "short_name": "서울 생존기",
   "description": "노동 → 투자 → 자동화. 클릭으로 월급을 자본으로 바꾸고 서울에서 살아남아라.",
@@ -13,25 +14,25 @@
   "categories": ["games"],
   "icons": [
     {
-      "src": "assets/icons/icon-192x192.png",
+      "src": "/seoulsurvival/assets/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-192x192-maskable.png",
+      "src": "/seoulsurvival/assets/icons/icon-192x192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "assets/icons/icon-512x512.png",
+      "src": "/seoulsurvival/assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-512x512-maskable.png",
+      "src": "/seoulsurvival/assets/icons/icon-512x512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -45,9 +46,10 @@
       "url": "/seoulsurvival/",
       "icons": [
         {
-          "src": "assets/icons/icon-96x96.png",
+          "src": "/seoulsurvival/assets/icons/icon-96x96.png",
           "sizes": "96x96",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any"
         }
       ]
     }
