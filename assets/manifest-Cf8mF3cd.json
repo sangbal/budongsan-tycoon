@@ -53,5 +53,35 @@
         }
       ]
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/seoulsurvival/assets/screenshots/screenshot-1-main.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "노동 화면"
+    },
+    {
+      "src": "/seoulsurvival/assets/screenshots/screenshot-2-invest.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "투자 화면"
+    },
+    {
+      "src": "/seoulsurvival/assets/screenshots/screenshot-3-stats.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "통계 화면"
+    },
+    {
+      "src": "/seoulsurvival/assets/screenshots/screenshot-4-ranking.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "랭킹 화면"
+    }
   ]
 }
