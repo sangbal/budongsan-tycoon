@@ -30,6 +30,7 @@
 
   <link rel="stylesheet" href="/shared/styles/uniform-core.css" />
   <link rel="stylesheet" href="/shared/styles/header.css" />
+  <link rel="stylesheet" href="/shared/styles/footer.css" />
 
   <style>
     :root {
@@ -67,10 +68,11 @@
     }
 
     .page-title {
-      font-size: var(--font-2xl);
+      font-size: clamp(24px, 3.4vw, 44px);
       font-weight: 950;
       margin: 0 0 var(--space-3);
       letter-spacing: -.3px;
+      line-height: 1.2;
     }
 
     .page-subtitle {
@@ -88,11 +90,11 @@
     }
 
     .release-note-header {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: var(--space-3);
       margin-bottom: var(--space-4);
-      flex-wrap: wrap;
     }
 
     .release-note-version {
@@ -173,8 +175,9 @@
     }
 
     .category-performance {
-      background: rgba(94, 234, 212, 0.15);
-      color: #5eead4;
+      background: rgba(251, 146, 60, 0.2);
+      color: #fb923c;
+      border: 1px solid #fb923c;
     }
 
     .empty-state {
@@ -183,10 +186,15 @@
       color: var(--muted);
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 600px) {
+      .release-note-header {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+      }
+
       .release-note-date {
-        margin-left: 0;
-        width: 100%;
+        grid-column: 1;
+        justify-self: start;
       }
     }
   </style>

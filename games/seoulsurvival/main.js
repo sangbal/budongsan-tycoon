@@ -1,10 +1,11 @@
 // games/seoulsurvival/main.js
 // Seoul Survival 게임 페이지 진입점
 
-import { renderHeader } from '../../hub/components/header.js'
-import { renderFooter } from '../../hub/components/footer.js'
-import { applyLang } from '../../shared/i18n/core.js'
+import { renderHeader } from '../../shared/shell/header.js'
+import { renderFooter } from '../../shared/shell/footer.js'
+import { applyLang } from '../../shared/i18n/lang.js'
 import { getGameById } from '../../hub/games.registry.js'
+import { getPatchNotesByGame } from '../../hub/patchnotes.registry.js'
 
 const GAME_ID = 'seoulsurvival'
 
@@ -31,6 +32,9 @@ function renderGamePage() {
 
   // About Content
   renderAboutContent(game, currentLang)
+
+  // Patch Notes
+  renderPatchNotes(currentLang)
 }
 
 /**
@@ -163,19 +167,90 @@ function renderAboutContent(game, lang) {
     aboutEl.innerHTML = game.aboutContent[lang]
   }
 }
+/**
+ * 패치노트 렌더링
+ */
+function renderPatchNotes(lang) {
+  const patchnotesEl = document.getElementById('patchnotes-list')
+  if (!patchnotesEl) return
+
+  const patchNotes = getPatchNotesByGame(GAME_ID, 2) // 최신 2개만 표시
+
+  if (!patchNotes || patchNotes.length === 0) {
+    patchnotesEl.innerHTML = '<p style="color: #999; text-align: center;">패치노트가 없습니다.</p>'
+    return
+  }
+
+  patchnotesEl.innerHTML = patchNotes
+    .map(
+      note => `
+    <div class="patchnote-card">
+      <div class="patchnote-header">
+        <div class="patchnote-title-wrapper">
+          <div class="patchnote-version">v${note.version}</div>
+          <h3 class="patchnote-title">${note.title[lang]}</h3>
+        </div>
+        <div class="patchnote-date">${formatDate(note.date, lang)}</div>
+      </div>
+      <div class="patchnote-items">
+        ${note.items
+          .map(
+            item => `
+          <div class="patchnote-item">
+            <span class="category-badge category-badge--${item.category}">${getCategoryLabel(item.category, lang)}</span>
+            <span class="patchnote-text">${item.text[lang]}</span>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+    </div>
+  `
+    )
+    .join('')
+}
+
+/**
+ * 카테고리 라벨 반환
+ */
+function getCategoryLabel(category, lang) {
+  const labels = {
+    feature: { ko: '기능', en: 'Feature' },
+    fix: { ko: '수정', en: 'Fix' },
+    balance: { ko: '밸런스', en: 'Balance' },
+    ui: { ko: 'UI', en: 'UI' },
+    content: { ko: '콘텐츠', en: 'Content' },
+    performance: { ko: '성능', en: 'Performance' },
+  }
+  return labels[category]?.[lang] || category
+}
+
+/**
+ * 날짜 포맷
+ */
+function formatDate(dateStr, lang) {
+  const date = new Date(dateStr)
+  if (lang === 'ko') {
+    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`
+  }
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
 
 /**
  * 초기화
  */
 function init() {
   // Header & Footer 렌더링
-  renderHeader()
-  renderFooter()
+  const headerMount = document.getElementById('header-mount')
+  const footerMount = document.getElementById('footer-mount')
+
+  if (headerMount) renderHeader(headerMount)
+  if (footerMount) renderFooter(footerMount)
+
+  // i18n 적용
 
   // 게임 페이지 렌더링
   renderGamePage()
-
-  // i18n 적용
   applyLang()
 }
 
