@@ -35,6 +35,19 @@
   <link rel="shortcut icon" type="image/webp" href="assets/images/logo.webp" />
   <link rel="apple-touch-icon" href="assets/images/logo.webp" />
   <link rel="icon" href="assets/images/logo.webp" type="image/webp" sizes="any" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/seoulsurvival/manifest.json" />
+
+  <!-- Apple Mobile Web App -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="서울 생존기" />
+
+  <!-- Mobile Web App Colors (Microsoft Tiles) -->
+  <meta name="msapplication-TileColor" content="#0b0f19" />
+  <meta name="msapplication-TileImage" content="assets/icons/icon-144x144.png" />
+
   <link rel="stylesheet" href="../shared/styles/uniform-core.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/game-ui.css" />
@@ -87,7 +100,7 @@
         <div class="chip stat-tooltip" id="financialChip" title=""><span class="chip-icon" aria-hidden="true">💰</span><span class="chip-label" data-i18n="header.financial.label">금융</span><b id="financial">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
         <div class="chip stat-tooltip" id="propertyChip" title=""><span class="chip-icon" aria-hidden="true">🏢</span><span class="chip-label" data-i18n="header.properties.label">부동산</span><b id="properties">0</b><span class="muted" data-i18n="ui.unit.property">채</span></div>
         <div class="chip stat-tooltip" id="rpsChip" title=""><span class="chip-icon" aria-hidden="true">📈</span><span class="chip-label" data-i18n="header.rps.label">초당</span><b id="rps">0</b></div>
-        <div class="chip" id="towerBadge" style="display: none; background: linear-gradient(135deg, rgba(94, 234, 212, 0.15), rgba(94, 234, 212, 0.05)); border: 1px solid rgba(94, 234, 212, 0.3); box-shadow: 0 0 12px rgba(94, 234, 212, 0.2);"><span style="font-size: 16px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🗼</span><b id="towerCountHeader">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
+        <div class="chip tower-badge" id="towerBadge"><span class="tower-badge-icon">🗼</span><b id="towerCountHeader">0</b><span class="muted" data-i18n="ui.unit.count">개</span></div>
       </div>
     </header>
 
@@ -95,8 +108,8 @@
       <!-- 노동 탭 -->
       <div id="workTab" class="tab-content active">
       <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h2 style="margin: 0;"><span class="tab-icon" aria-hidden="true">🛠️</span> <span data-i18n="ui.work">노동</span></h2>
+        <div class="work-header">
+          <h2><span class="tab-icon" aria-hidden="true">🛠️</span> <span data-i18n="ui.work">노동</span></h2>
         </div>
         <div class="work">
           <button id="workBtn" class="btn btn-lg" aria-label="노동하기 버튼, 클릭당 수익" aria-describedby="clickIncomeButton" data-i18n-aria-label="work.button.ariaLabel"><span data-i18n="work.button">🛠️ 노동</span> +<span id="clickIncomeButton" aria-label="클릭당 수익 금액" data-i18n-aria-label="work.clickIncome.ariaLabel">1만</span><span data-i18n="ui.currencyShort">원</span></button>
@@ -105,7 +118,7 @@
           </div>
         </div>
         <!-- 승진 진행 카드 -->
-        <div class="career-progress-card" style="margin-top: 12px; padding: 12px; background: var(--bg2); border-radius: 8px;">
+        <div class="career-progress-card">
           <div class="career-meta-row">
             <div class="career-badge">💼 <span id="currentCareer" aria-live="polite">알바</span></div>
             <span class="desc" id="careerRemaining" style="font-size: 12px; color: var(--accent);" aria-live="polite">다음 승진까지 40클릭 남음</span>
@@ -113,12 +126,12 @@
           <div class="progress-container" style="margin-bottom: 6px;">
             <div class="progress-bar" id="careerProgress" style="width: 0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" data-i18n-aria-label="ui.careerProgress"></div>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span class="desc" id="careerProgressText" style="font-size: 12px;" aria-live="polite">0% (0/40)</span>
-            <span class="desc" style="font-size: 12px; color: transparent;">.</span>
+          <div class="career-progress-footer">
+            <span class="desc career-progress-text" id="careerProgressText" aria-live="polite">0% (0/40)</span>
+            <span class="desc visually-hidden">.</span>
           </div>
         </div>
-        <div class="card diary-card" style="margin-top:12px">
+        <div class="card diary-card">
           <h2>
             <span class="diary-title" data-i18n="ui.diary">📓 일기장</span>
             <span class="diary-header-meta" id="diaryHeaderMeta">----.--.--(--일차)</span>
@@ -463,7 +476,7 @@
 
         <!-- 3. 효율 분석 -->
         <div class="stats-section collapsible">
-          <h3 class="stats-toggle"><span data-i18n="stats.efficiencyRanking">⚡ 효율 순위 (개당 초당 수익)</span> <span class="toggle-icon">▼</span></h3>
+          <h3 class="stats-toggle"><span data-i18n="stats.payback.title">⏱️ 투자 회수 시간</span> <span class="toggle-icon">▼</span></h3>
           <div class="stats-content">
             <div class="efficiency-list">
               <div class="efficiency-item best">
@@ -712,11 +725,11 @@
         <!-- 게임 정보 -->
         <div class="stats-section game-info-section">
           <h3 data-i18n="settings.gameInfo.title">📋 게임 정보</h3>
-          <div style="text-align: center; margin-bottom: 16px;">
-            <img src="assets/images/logo.webp" alt="서울 생존기" data-i18n-alt="game.name" style="max-width: 120px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));" />
+          <div class="game-info-logo">
+            <img src="assets/images/logo.webp" alt="서울 생존기" data-i18n-alt="game.name" class="logo-image" />
           </div>
           <div class="stat-grid">
-            <div class="stat-item" style="grid-column: 1 / 3;">
+            <div class="stat-item stat-item-full">
               <span class="stat-label" data-i18n="settings.gameTitle">게임 제목</span>
               <span class="stat-value" data-i18n="game.title">서울 생존기 : 흙수저 탈출</span>
             </div>
@@ -729,7 +742,7 @@
               <span class="stat-value" id="gameVersionDisplay">v1.2.0</span>
             </div>
           </div>
-          <div class="settings-link-group" style="margin-top: 16px;">
+          <div class="settings-link-group">
             <a href="/" target="_blank" rel="noopener noreferrer" class="settings-link" data-i18n="settings.homepage">
               🌐 홈페이지 이동
             </a>
@@ -743,9 +756,9 @@
             <div class="settings-subsection">
               <div class="settings-subsection__title" data-i18n="settings.graphics.title">그래픽</div>
               <div class="stat-grid">
-                <div class="stat-item settings-toggle-container" style="grid-column: 1 / 3;">
+                <div class="stat-item settings-toggle-container stat-item-full">
                   <div class="settings-toggle-info">
-                    <span class="stat-label" data-i18n="settings.particles">파티클 켬</span>
+                    <label for="toggleParticles" class="stat-label" data-i18n="settings.particles">파티클 켬</label>
                     <div class="settings-toggle-desc" data-i18n="settings.particlesDesc">
                       떨어지는 지폐/상품 애니메이션
                     </div>
@@ -755,9 +768,9 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                <div class="stat-item settings-toggle-container" style="grid-column: 1 / 3;">
+                <div class="stat-item settings-toggle-container stat-item-full">
                   <div class="settings-toggle-info">
-                    <span class="stat-label" data-i18n="settings.fancyGraphics">화려한 그래픽 켬</span>
+                    <label for="toggleFancyGraphics" class="stat-label" data-i18n="settings.fancyGraphics">화려한 그래픽 켬</label>
                     <div class="settings-toggle-desc" data-i18n="settings.fancyGraphicsDesc">
                       시각 효과 향상 (비활성화 시 성능 향상)
                     </div>
@@ -772,9 +785,9 @@
             <div class="settings-subsection">
               <div class="settings-subsection__title" data-i18n="settings.display.format">숫자 형식</div>
               <div class="stat-grid">
-                <div class="stat-item settings-toggle-container" style="grid-column: 1 / 3;">
+                <div class="stat-item settings-toggle-container stat-item-full">
                   <div class="settings-toggle-info">
-                    <span class="stat-label" data-i18n="settings.shortNumbers">짧은 숫자 켬</span>
+                    <label for="toggleShortNumbers" class="stat-label" data-i18n="settings.shortNumbers">짧은 숫자 켬</label>
                     <div class="settings-toggle-desc" data-i18n="settings.shortNumbersDesc">
                       큰 숫자를 간단하게 표시 (예: 1,000만 → 1천만)
                     </div>
@@ -802,29 +815,35 @@
         <div class="stats-section">
           <h3><span data-i18n="settings.accountData.title">👤 계정 및 데이터</span></h3>
           <div>
-            <!-- 계정 상태 카드 -->
-            <div class="status-card">
-              <div class="status-card__indicator" id="authStatusIndicator"></div>
-              <div class="status-card__info">
-                <div class="status-card__label" data-i18n="settings.status">상태</div>
-                <div class="status-card__value" id="authStatusLabel" data-i18n="settings.guestMode">게스트 모드 (로그인 준비 중)</div>
+            <div class="stat-grid">
+              <!-- 상태 + 로그아웃 버튼 -->
+              <div class="stat-item settings-toggle-container" style="grid-column: 1 / 3;">
+                <div class="settings-toggle-info">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status-indicator" id="authStatusIndicator" style="width: 10px; height: 10px; border-radius: 50%; background: #666; flex-shrink: 0;"></span>
+                    <span class="stat-label" data-i18n="settings.status">상태</span>:
+                    <span id="authStatusLabel" data-i18n="settings.guestMode">게스트 모드</span>
+                  </div>
+                </div>
+                <div id="logoutButtonContainer" hidden>
+                  <button id="logoutBtn" class="btn-secondary btn-sm" data-i18n="settings.logout">로그아웃</button>
+                </div>
               </div>
-            </div>
-            <div class="status-card">
-              <div class="status-card__info">
-                <div class="status-card__label" data-i18n="settings.user">사용자</div>
-                <div class="status-card__value" id="authUserLabel" data-i18n="settings.guest">게스트</div>
-              </div>
-            </div>
-            <div class="status-card" id="nicknameInfoItem" style="display: none;">
-              <div class="status-card__info">
-                <div class="status-card__label" data-i18n="settings.nickname">닉네임</div>
-                <div class="status-card__value" id="playerNicknameLabel">-</div>
+
+              <!-- 닉네임 + 변경 버튼 -->
+              <div class="stat-item settings-toggle-container" id="nicknameInfoItem" style="grid-column: 1 / 3; display: none;">
+                <div class="settings-toggle-info">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="stat-label" data-i18n="settings.nickname">닉네임</span>:
+                    <span id="playerNicknameLabel">-</span>
+                  </div>
+                </div>
+                <button id="nicknameChangeBtn" class="btn-secondary btn-sm" data-i18n="settings.nickname.change.button">변경</button>
               </div>
             </div>
 
             <!-- 닉네임 중복 안내 배너 (마이그레이션 충돌 시 표시) -->
-            <div class="warning-box" id="nicknameConflictBanner" style="display: none;">
+            <div class="warning-box" id="nicknameConflictBanner" style="display: none; margin-top: 12px;">
               <span data-i18n="settings.nickname.change.needRename">닉네임이 중복되어 변경이 필요합니다.</span>
               <button
                 id="nicknameConflictChangeBtn"
@@ -836,62 +855,31 @@
               </button>
             </div>
 
-            <!-- 닉네임 변경 버튼 -->
-            <div class="settings-btn-group" id="nicknameChangeButtonContainer" style="margin-top: 12px; display: none;">
-              <button
-                id="nicknameChangeBtn"
-                class="btn settings-btn"
-                style="background: var(--primary); color: white; min-width: 160px;"
-                data-i18n="settings.nickname.change.button"
-              >
-                닉네임 변경
-              </button>
-            </div>
-
-            <!-- 로그인/로그아웃 버튼 -->
+            <!-- 로그인 버튼 (비로그인 시만 표시) -->
             <div class="settings-btn-group" style="margin-top: 12px;">
               <div id="authProviderButtons" style="display:flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn settings-btn" data-auth-provider="google" style="background: var(--primary); color: white; min-width: 160px;" data-i18n="settings.loginGoogle">🔐 Google로 로그인</button>
               </div>
-              <div id="logoutButtonContainer" style="margin-top: 10px;" hidden>
-                <button class="btn settings-btn" id="logoutBtn" style="background: var(--bad); color: white; width: 100%;" data-i18n="settings.logout">
-                  🚪 로그아웃
-                </button>
-              </div>
             </div>
 
-            <!-- 저장 정보 (하나의 박스에 통합) -->
-            <div class="stat-item" style="margin-top: 16px; display: block;">
-              <span class="stat-label" data-i18n="settings.saveManagement.autoSaveInterval">자동 저장 주기</span>
-              <div class="settings-toggle-desc" data-i18n="settings.saveManagement.autoSaveIntervalValue">5초마다</div>
-
-              <span class="stat-label" style="margin-top: 8px; display: block;" data-i18n="settings.saveManagement.saveLocation">저장 위치</span>
-              <div class="settings-toggle-desc" data-i18n="settings.saveManagement.saveLocationValue">브라우저 LocalStorage</div>
-
-              <span class="stat-label" style="margin-top: 8px; display: block;" data-i18n="settings.saveManagement.lastSave">마지막 저장</span>
-              <div class="settings-toggle-desc" id="lastSaveTimeSettings">--:--</div>
-
-              <div id="cloudSyncRow" style="display: none;">
-                <span class="stat-label" style="margin-top: 8px; display: block;" data-i18n="settings.saveManagement.lastCloudSync">마지막 클라우드 동기화</span>
-                <div class="settings-toggle-desc" id="cloudLastSync">--:--</div>
-              </div>
-            </div>
-
-            <!-- 클라우드 저장 (로그인 사용자만) -->
-            <div id="cloudSaveSection" style="display: none; margin-top: 16px;">
-              <div class="settings-desc" style="margin-bottom: 10px;" data-i18n="settings.saveManagement.cloudSaveDesc">
-                ☁️ 클라우드 세이브: 로그인한 사용자는 클라우드에 저장하여 여러 기기에서 진행 상황을 동기화할 수 있습니다.
-              </div>
-              <div class="settings-btn-group" style="margin-bottom: 10px;">
-                <button class="btn settings-btn" id="cloudUploadBtn" style="background: var(--info); color: white; min-width: 160px;" data-i18n="settings.saveManagement.cloudSaveBtn">
-                  ☁️ 클라우드 저장
-                </button>
-                <button class="btn settings-btn" id="cloudDownloadBtn" style="background: var(--btn2); color: var(--text); min-width: 160px;" data-i18n="settings.saveManagement.cloudLoadBtn">
-                  ☁️ 클라우드 불러오기
-                </button>
-              </div>
-              <div class="settings-desc" id="cloudSaveHint" data-i18n="settings.saveManagement.cloudSaveHint">
-                로컬 저장은 5초마다 자동으로 이루어집니다. 클라우드 저장은 탭을 닫을 때 자동으로 업로드되며, 수동으로도 저장/불러오기가 가능합니다.
+            <!-- 클라우드 저장 (로그인 사용자만, 펼치기) -->
+            <div class="stats-section collapsible collapsed" id="cloudSaveSection" style="display: none; margin-top: 16px;">
+              <h3 class="stats-toggle" aria-expanded="false" role="button" tabindex="0">
+                <span data-i18n="settings.cloudSave.title">☁️ 클라우드 저장</span>
+                <span class="toggle-icon" aria-hidden="true">▼</span>
+              </h3>
+              <div class="stats-content">
+                <div class="settings-btn-group" style="margin-bottom: 10px;">
+                  <button class="btn settings-btn" id="cloudUploadBtn" style="background: var(--info); color: white; flex: 1;" data-i18n="settings.saveManagement.cloudSaveBtn">
+                    ☁️ 클라우드 저장
+                  </button>
+                  <button class="btn settings-btn" id="cloudDownloadBtn" style="background: var(--btn2); color: var(--text); flex: 1;" data-i18n="settings.saveManagement.cloudLoadBtn">
+                    ☁️ 클라우드 불러오기
+                  </button>
+                </div>
+                <div class="settings-desc" id="cloudSaveHint" data-i18n="settings.saveManagement.cloudSaveHint">
+                  로컬 저장은 5초마다 자동으로 이루어집니다. 클라우드 저장은 탭을 닫을 때 자동으로 업로드되며, 수동으로도 저장/불러오기가 가능합니다.
+                </div>
               </div>
             </div>
 
@@ -904,13 +892,13 @@
             <button class="btn settings-btn" id="exportSaveBtn" style="background: var(--primary); color: white; min-width: 160px; display: none;">
               📤 저장 내보내기
             </button>
-            <div class="settings-desc" style="display: none;">
+            <div class="settings-desc hidden">
               저장 내용을 백업하거나 다른 컴퓨터로 전송
             </div>
             <button class="btn settings-btn" id="importSaveBtn" style="background: var(--secondary); color: white; min-width: 160px; display: none;">
               📥 저장 가져오기
             </button>
-            <div class="settings-desc" style="display: none;">
+            <div class="settings-desc hidden">
               백업한 저장 파일 불러오기
             </div>
             <input type="file" id="importFileInput" accept=".json" style="display: none;">
@@ -918,17 +906,32 @@
         </div>
 
         <!-- 위험 영역 -->
-        <div class="stats-section settings-danger-section">
-          <h3 class="stats-toggle--danger"><span data-i18n="settings.dangerZone.title">⚠️ 위험 영역</span></h3>
-          <div>
+        <div class="stats-section settings-danger-section collapsible collapsed">
+          <h3 class="stats-toggle stats-toggle--danger" aria-expanded="false" role="button" tabindex="0">
+            <span data-i18n="settings.dangerZone.title">⚠️ 위험 영역</span>
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+          </h3>
+          <div class="stats-content">
             <div class="warning-box" data-i18n="settings.dangerZone.warning">이 작업은 되돌릴 수 없습니다.</div>
+
+            <!-- 게임 초기화 (런만 리셋) -->
             <div class="settings-btn-group">
               <button class="reset-btn settings-btn settings-btn--danger" id="resetBtnSettings" data-i18n="settings.reset.title">
-                🔄 게임 새로 시작
+                🔄 게임 초기화
               </button>
             </div>
             <div class="settings-desc" style="margin-top: 8px;" data-i18n="settings.resetWarning">
-              ⚠️ 이번 런을 초기화합니다. 🗼 누적 기록과 ⏱ 누적 시간은 유지됩니다.
+              이번 런을 초기화합니다. 누적 기록(🗼 타워, CP)과 플레이 시간은 유지됩니다.
+            </div>
+
+            <!-- 완전 초기화 (모든 데이터 삭제) -->
+            <div class="settings-btn-group" style="margin-top: 16px;">
+              <button class="reset-btn settings-btn settings-btn--danger" id="hardResetBtn" data-i18n="settings.hardReset.title">
+                💀 완전 초기화
+              </button>
+            </div>
+            <div class="settings-desc" style="margin-top: 8px;" data-i18n="settings.hardResetWarning">
+              모든 데이터를 삭제합니다. 누적 타워, CP, 플레이 시간 등 모두 사라집니다.
             </div>
           </div>
         </div>
@@ -1031,6 +1034,24 @@
 
   <script type="module" src="./src/main.js"></script>
   <script type="module" src="../shared/authBoot.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((registration) => {
+          console.log('[PWA] Service Worker registered successfully:', registration)
+
+          // Check for updates periodically
+          setInterval(() => {
+            registration.update()
+          }, 60000) // Check every minute
+        }).catch((error) => {
+          console.warn('[PWA] Service Worker registration failed:', error)
+        })
+      })
+    }
+  </script>
 </body>
 </html>
 

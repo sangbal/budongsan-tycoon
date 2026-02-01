@@ -14,6 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "test:all": "npm run test:unit && npm run test",
     "e2e:auth": "node tools/e2e-auth-setup.js",
+    "generate:icons": "node scripts/generate-pwa-icons.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -45,6 +46,7 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "rollup-plugin-visualizer": "^6.0.5",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vite": "^6.0.0",
     "vitest": "^4.0.16"
