@@ -21,6 +21,7 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
+    "check:structure": "node scripts/check-structure.js",
     "prepare": "husky"
   },
   "devDependencies": {

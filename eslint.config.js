@@ -44,6 +44,17 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prettier/prettier': 'warn',
       'no-undef': 'off', // TypeScript handles this
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../../../shared', '../../../shared/**'],
+              message: '@shared/ 별칭을 사용하세요. 예: import { x } from "@shared/auth/core.js"',
+            },
+          ],
+        },
+      ],
     },
     settings: {
       react: {

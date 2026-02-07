@@ -82,3 +82,19 @@ playwright/.auth/user.json
 
 # Null file artifact
 nul
+
+# Claude Code 로컬 전용
+.claude/plans/
+.claude/plugins/
+
+# MCP 백업
+.mcp.json.backup
+
+# 임시 분석 파일
+diff_nickname.txt
+
+# PWA 빌드 산출물
+dev-sw.js
+dev-sw.js.map
+workbox-*.js
+workbox-*.js.map

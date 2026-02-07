@@ -98,6 +98,13 @@ export default defineConfig({
       },
     },
   ],
+  resolve: {
+    alias: {
+      '@shared': resolve(__dirname, './shared'),
+      '@seoulsurvival': resolve(__dirname, './seoulsurvival/src'),
+      '@kimchi-invasion': resolve(__dirname, './kimchi-invasion/src'),
+    },
+  },
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },

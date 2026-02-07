@@ -1,18 +1,6 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
   "mcpServers": {
-    "github": {
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        ".mcp/load-env-and-run.ps1",
-        ".mcp/bin/github-mcp-server.exe",
-        "stdio"
-      ],
-      "description": "GitHub 공식 MCP 서버 v0.29.0 - 이슈, PR, 저장소 관리"
-    },
     "playwright": {
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@playwright/mcp"],
@@ -24,17 +12,16 @@
       "description": "Sequential Thinking - 단계별 추론 및 문제 해결"
     }
   },
-  "_comment": "🎯 MCP 서버 그룹화 완료",
+  "_comment": "🎯 MCP 서버 그룹화 완료 (2026-02-07 최적화)",
   "_info": {
     "structure": ".claude/skills/ 폴더 구조로 전환됨",
-    "groups": {
-      "researcher": "brave-search, playwright (웹 검색, 브라우저 자동화)",
-      "developer": "github, filesystem, testsprite (코드 작성, 테스트 자동화)",
-      "backend_ops": "supabase, sentry (데이터베이스, 모니터링)",
-      "thought_engine": "sequential-thinking, context7 (단계별 추론, 문서 검색)"
+    "active_servers": {
+      "root": "playwright, sequential-thinking (루트 .mcp.json)",
+      "backend_ops": "supabase (데이터베이스, 인증)",
+      "thought_engine": "context7 (문서 검색)"
     },
-    "migration_date": "2026-01-10",
-    "backup_file": ".mcp.json.backup",
-    "next_step": "각 스킬 그룹의 mcp.json을 Claude Code에서 로드"
+    "disabled_servers": "github (Bash tool 사용), sentry (미사용)",
+    "optimization_date": "2026-02-07",
+    "previous_backup": ".mcp.json.backup"
   }
 }
