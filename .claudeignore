@@ -1,0 +1,36 @@
+# 빌드 출력
+dist/
+
+# 이미지/바이너리 (Claude가 읽을 필요 없음)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.webp
+
+# 생성된 이미지
+kimchi-invasion/generated-images/
+
+# 레거시 코드 (참조 불필요)
+legacy/
+
+# 대용량 문서
+kimchi-invasion/kimchi-invasion.md
+
+# 테스트 산출물
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# 패키지 Lock 파일
+package-lock.json
+kimchi-invasion/package-lock.json
+
+# 스토어 이미지
+seoulsurvival/assets/store/
