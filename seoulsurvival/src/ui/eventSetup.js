@@ -127,6 +127,12 @@ export function setupResetButtons(deps) {
   if (elResetBtnSettings) {
     elResetBtnSettings.addEventListener('click', () => saveLoadManager.resetGame())
   }
+
+  // 완전 초기화 버튼
+  const elHardResetBtn = document.getElementById('hardResetBtn')
+  if (elHardResetBtn) {
+    elHardResetBtn.addEventListener('click', () => saveLoadManager.hardResetGame())
+  }
 }
 
 /**

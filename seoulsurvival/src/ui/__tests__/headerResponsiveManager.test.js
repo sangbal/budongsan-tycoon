@@ -95,7 +95,11 @@ describe('headerResponsiveManager', () => {
 
       manager.initResizeListeners()
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'resize',
+        expect.any(Function),
+        expect.objectContaining({ passive: true })
+      )
     })
 
     it('초기화 시 syncHeaderHeight가 호출됨', () => {

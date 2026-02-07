@@ -3,6 +3,26 @@
    UI 컴포넌트, 레이아웃, 상호작용 스타일
    ========================================================================== */
 
+/* ---------- CSS Variables ---------- */
+:root {
+  /* Spacing System (8px grid) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+
+  /* Color Variables */
+  --bg-gradient-start: #0b1220;
+  --bg-gradient-mid: #0b1324;
+  --bg-gradient-end: #0c1428;
+  --color-bull-glow: rgba(94, 234, 212, 0.4);
+  --color-scrollbar-track: rgba(18, 26, 43, 0.3);
+  --color-scrollbar-thumb: rgba(94, 234, 212, 0.4);
+  --color-scrollbar-thumb-hover: rgba(94, 234, 212, 0.6);
+  --color-scrollbar-thumb-active: rgba(94, 234, 212, 0.8);
+}
+
 /* ---------- Scrollbar Styling ---------- */
 ::-webkit-scrollbar {
   width: 10px;
@@ -10,31 +30,31 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(18, 26, 43, 0.3);
+  background: var(--color-scrollbar-track);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(94, 234, 212, 0.4);
+  background: var(--color-scrollbar-thumb);
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(94, 234, 212, 0.6);
+  background: var(--color-scrollbar-thumb-hover);
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: rgba(94, 234, 212, 0.8);
+  background: var(--color-scrollbar-thumb-active);
   background-clip: padding-box;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(94, 234, 212, 0.4) rgba(18, 26, 43, 0.3);
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
 
 /* ---------- Base Layout ---------- */
@@ -56,7 +76,12 @@ body {
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #0b1220, #0b1324 40%, #0c1428);
+  background: linear-gradient(
+    180deg,
+    var(--bg-gradient-start),
+    var(--bg-gradient-mid) 40%,
+    var(--bg-gradient-end)
+  );
   color: var(--text);
   font:
     14px/1.4 system-ui,
@@ -72,7 +97,7 @@ body {
 .app {
   max-width: 2000px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: var(--spacing-lg) var(--spacing-xl);
   padding-top: 100px;
   box-sizing: border-box;
 }
@@ -80,7 +105,7 @@ body {
 .grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 16px;
+  gap: var(--spacing-lg);
 }
 
 /* ---------- Statbar ---------- */
@@ -91,6 +116,19 @@ body {
   align-items: center;
   flex: 1 1 100%;
   min-width: 0;
+}
+
+/* Tower Badge */
+.tower-badge {
+  display: none;
+  background: linear-gradient(135deg, rgba(94, 234, 212, 0.15), rgba(94, 234, 212, 0.05));
+  border: 1px solid rgba(94, 234, 212, 0.3);
+  box-shadow: 0 0 12px rgba(94, 234, 212, 0.2);
+}
+
+.tower-badge-icon {
+  font-size: 16px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .share-btn {
@@ -111,6 +149,17 @@ body {
 }
 
 /* ---------- Work Section ---------- */
+.work-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.work-header h2 {
+  margin: 0;
+}
+
 .work {
   display: flex;
   align-items: center;
@@ -282,11 +331,15 @@ body {
 }
 
 /* ---------- Diary Section ---------- */
+.diary-card {
+  margin-top: var(--spacing-md);
+}
+
 .diary-card h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--spacing-md);
   margin: 0 0 10px;
   font-size: 16px;
 }
@@ -397,12 +450,19 @@ body {
 }
 
 /* ---------- Career Section ---------- */
+.career-progress-card {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg2);
+  border-radius: 8px;
+}
+
 .career-meta-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .career-badge {
@@ -420,8 +480,35 @@ body {
   white-space: nowrap;
 }
 
+.career-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.career-progress-text {
+  font-size: 12px;
+}
+
 .career-card {
   transition: all 0.3s ease;
+}
+
+/* Visually Hidden (접근성: 화면에는 숨기되 스크린리더에는 노출) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hidden {
+  display: none !important;
 }
 
 /* ---------- Button States ---------- */
@@ -1180,10 +1267,14 @@ button.favorite-btn.chip:disabled {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px;
+  padding: var(--spacing-md);
   background: var(--panel);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.stat-item-full {
+  grid-column: 1 / 3;
 }
 
 .stat-label {
@@ -1223,6 +1314,17 @@ button.favorite-btn.chip:disabled {
   z-index: 1;
 }
 
+.game-info-logo {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.logo-image {
+  max-width: 120px;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
 /* ---------- In-App Browser Warning ---------- */
 .inapp-warning-banner {
   position: sticky;
@@ -1254,6 +1356,24 @@ button.favorite-btn.chip:disabled {
 .btn-small {
   font-size: 12px;
   padding: 4px 8px;
+}
+
+/* 설정 행 내 작은 버튼 */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-width: auto;
+  background: var(--btn);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm:hover {
+  background: var(--btn2);
+  border-color: var(--accent);
 }
 
 /* ---------- Toggle Switch ---------- */
@@ -1467,7 +1587,8 @@ button.favorite-btn.chip:disabled {
 .settings-link-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
 }
 
 .settings-link {
@@ -2297,8 +2418,11 @@ button.favorite-btn.chip:disabled {
 }
 
 .synergy-icon {
-  font-size: 24px;
-  flex-shrink: 0;
+  display: none;
+}
+
+.synergy-badge {
+  padding: 10px 14px;
 }
 
 .synergy-info {
@@ -2313,18 +2437,26 @@ button.favorite-btn.chip:disabled {
   margin-bottom: 4px;
 }
 
+.synergy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .synergy-desc {
   font-size: 12px;
   color: var(--muted);
   line-height: 1.3;
+  flex: 1;
 }
 
 .synergy-effect {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent);
   flex-shrink: 0;
-  padding: 4px 8px;
+  padding: 2px 6px;
   background: rgba(94, 234, 212, 0.1);
   border-radius: 4px;
 }

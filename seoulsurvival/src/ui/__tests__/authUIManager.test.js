@@ -17,6 +17,7 @@ describe('authUIManager', () => {
       <div id="authProviderButtons" style="display: flex;"></div>
       <div id="logoutButtonContainer" hidden></div>
       <div id="cloudSaveSection" style="display: none;"></div>
+      <div id="cloudSyncRow" style="display: none;"></div>
       <span id="authStatusLabel">Guest Mode</span>
       <button data-auth-provider="google">Google Login</button>
       <button id="logoutBtn">Logout</button>
@@ -42,6 +43,7 @@ describe('authUIManager', () => {
       expect(document.getElementById('authProviderButtons').style.display).toBe('flex')
       expect(document.getElementById('logoutButtonContainer').hidden).toBe(true)
       expect(document.getElementById('cloudSaveSection').style.display).toBe('none')
+      expect(document.getElementById('cloudSyncRow').style.display).toBe('none')
     })
 
     it('로그인 상태에서 로그아웃 버튼 표시', () => {
@@ -50,6 +52,7 @@ describe('authUIManager', () => {
       expect(document.getElementById('authProviderButtons').style.display).toBe('none')
       expect(document.getElementById('logoutButtonContainer').hidden).toBe(false)
       expect(document.getElementById('cloudSaveSection').style.display).toBe('block')
+      expect(document.getElementById('cloudSyncRow').style.display).toBe('flex')
     })
   })
 

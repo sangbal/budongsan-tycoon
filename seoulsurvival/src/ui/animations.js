@@ -18,6 +18,10 @@ let elWork = null
 let rectCache = { workRect: null, containerRect: null, timestamp: 0 }
 const RECT_CACHE_TTL = 1000 // 1초 유효
 
+// ======= 리스너 참조 (cleanup용) =======
+let resizeHandler = null
+let isInitialized = false
+
 /**
  * 캐시된 위치 정보 반환 (getBoundingClientRect 호출 최소화)
  * @returns {Object} { workRect, containerRect }
@@ -40,16 +44,36 @@ function getCachedRects() {
  * @param {HTMLElement} workElement - 노동 버튼 요소
  */
 export function initAnimations(workElement) {
+  // 중복 초기화 방지
+  if (isInitialized) {
+    elWork = workElement
+    return
+  }
+  isInitialized = true
+
   elWork = workElement
 
   // 리사이즈 시 캐시 무효화
-  window.addEventListener(
-    'resize',
-    () => {
-      rectCache.workRect = null
-    },
-    { passive: true }
-  )
+  resizeHandler = () => {
+    rectCache.workRect = null
+  }
+  window.addEventListener('resize', resizeHandler, { passive: true })
+}
+
+/**
+ * 애니메이션 시스템 정리 (cleanup)
+ */
+export function cleanupAnimations() {
+  if (!isInitialized) return
+
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler)
+    resizeHandler = null
+  }
+
+  elWork = null
+  rectCache = { workRect: null, containerRect: null, timestamp: 0 }
+  isInitialized = false
 }
 
 /**

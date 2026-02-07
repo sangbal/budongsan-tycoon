@@ -25,6 +25,40 @@ let elModalSecondary = null
 
 // ======= 모달 상태 =======
 let modalOnConfirm = null
+let previousFocusElement = null
+
+/**
+ * 포커스 트랩 생성 (Tab/Shift+Tab 순환)
+ * @param {HTMLElement} modalElement - 모달 루트 요소
+ */
+function createFocusTrap(modalElement) {
+  const focusableSelectors =
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  const focusableElements = modalElement.querySelectorAll(focusableSelectors)
+  const firstFocusable = focusableElements[0]
+  const lastFocusable = focusableElements[focusableElements.length - 1]
+
+  const handleTabKey = e => {
+    if (e.key !== 'Tab') return
+
+    if (e.shiftKey) {
+      // Shift+Tab: 첫 요소에서 마지막 요소로
+      if (document.activeElement === firstFocusable) {
+        e.preventDefault()
+        lastFocusable.focus()
+      }
+    } else {
+      // Tab: 마지막 요소에서 첫 요소로
+      if (document.activeElement === lastFocusable) {
+        e.preventDefault()
+        firstFocusable.focus()
+      }
+    }
+  }
+
+  modalElement.addEventListener('keydown', handleTabKey)
+  return () => modalElement.removeEventListener('keydown', handleTabKey)
+}
 
 /**
  * 모달 시스템 초기화
@@ -45,6 +79,12 @@ export function closeModal() {
   if (!elModalRoot) return
   elModalRoot.classList.add('game-modal-hidden')
   modalOnConfirm = null
+
+  // 이전 포커스 복원
+  if (previousFocusElement && typeof previousFocusElement.focus === 'function') {
+    previousFocusElement.focus()
+  }
+  previousFocusElement = null
 }
 
 /**
@@ -58,6 +98,10 @@ export function openInfoModal(title, message, icon = 'ℹ️') {
     alert(message)
     return
   }
+
+  // 현재 포커스 저장
+  previousFocusElement = document.activeElement
+
   elModalRoot.classList.remove('game-modal-hidden')
   const titleIcon = elModalTitle.querySelector('.icon')
   const titleText = elModalTitle.querySelector('.text')
@@ -74,6 +118,10 @@ export function openInfoModal(title, message, icon = 'ℹ️') {
   elModalSecondary.onclick = () => {
     closeModal()
   }
+
+  // 포커스 트랩 설정 및 첫 번째 버튼에 포커스
+  createFocusTrap(elModalRoot)
+  setTimeout(() => elModalPrimary.focus(), 100)
 }
 
 /**
@@ -93,6 +141,9 @@ export function openConfirmModal(title, message, onConfirm, options = {}) {
     if (userConfirmed && typeof onConfirm === 'function') onConfirm()
     return
   }
+
+  // 현재 포커스 저장
+  previousFocusElement = document.activeElement
 
   elModalRoot.classList.remove('game-modal-hidden')
   const titleIcon = elModalTitle.querySelector('.icon')
@@ -119,6 +170,10 @@ export function openConfirmModal(title, message, onConfirm, options = {}) {
       options.onCancel()
     }
   }
+
+  // 포커스 트랩 설정 및 Primary 버튼에 포커스
+  createFocusTrap(elModalRoot)
+  setTimeout(() => elModalPrimary.focus(), 100)
 }
 
 /**
@@ -144,6 +199,9 @@ export function openInputModal(title, message, onConfirm, options = {}) {
     }
     return
   }
+
+  // 현재 포커스 저장
+  previousFocusElement = document.activeElement
 
   elModalRoot.classList.remove('game-modal-hidden')
   const titleIcon = elModalTitle.querySelector('.icon')
@@ -261,6 +319,9 @@ export function openInputModal(title, message, onConfirm, options = {}) {
   } else {
     elModalSecondary.onclick = null
   }
+
+  // 포커스 트랩 설정
+  createFocusTrap(elModalRoot)
 }
 
 /**

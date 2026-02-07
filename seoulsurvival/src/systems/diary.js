@@ -40,6 +40,14 @@ let elLog = null
 let gameStartTimeRef = null
 let sessionStartTimeRef = null
 
+// ======= 템플릿 선택 상태 (window 전역 변수 대체) =======
+// Map을 사용하여 key별 마지막 선택 인덱스 저장
+const __diaryLastPickMap = new Map()
+
+// 시장 이벤트 컨텍스트 (window 전역 변수 대체)
+let __diaryLastMarketProduct = null
+let __diaryLastMarketName = null
+
 /**
  * 일기장 시스템 초기화
  * @param {HTMLElement} logElement - 일기장 DOM 요소
@@ -70,13 +78,12 @@ const soften = txt => stripPrefix(txt).replace(/\s+/g, ' ').trim()
  */
 function pick(key, arr) {
   if (!Array.isArray(arr) || arr.length === 0) return ''
-  const storeKey = `__diaryLastPick_${key}`
-  const last = window[storeKey]
+  const last = __diaryLastPickMap.get(key)
   let idx = rand(arr.length)
   if (arr.length > 1 && typeof last === 'number' && idx === last) {
     idx = (idx + 1 + rand(arr.length - 1)) % arr.length
   }
-  window[storeKey] = idx
+  __diaryLastPickMap.set(key, idx)
   return arr[idx]
 }
 
@@ -248,8 +255,8 @@ function diaryize(raw) {
     const eventName = (name2 || name1 || '').trim()
 
     const product = detectProduct(`${eventName} ${body}`) || '시장'
-    window.__diaryLastMarketProduct = product
-    window.__diaryLastMarketName = eventName || body
+    __diaryLastMarketProduct = product
+    __diaryLastMarketName = eventName || body
 
     const templates = marketEventByProduct[product] || marketEventByProduct['시장']
     const template = pick(`market_${product}`, templates)
@@ -258,16 +265,16 @@ function diaryize(raw) {
 
   // ======= 시장 이벤트 종료 =======
   if (s.startsWith('📉') && s.includes('종료')) {
-    const product = window.__diaryLastMarketProduct || '시장'
-    const name = window.__diaryLastMarketName || ''
+    const product = __diaryLastMarketProduct || '시장'
+    const name = __diaryLastMarketName || ''
 
     const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
     const key = isRealEstate ? '부동산' : product
     const templates = marketEndByProduct[key] || marketEndByProduct['시장']
     const template = pick(`marketEnd_${key}`, templates)
 
-    window.__diaryLastMarketProduct = null
-    window.__diaryLastMarketName = null
+    __diaryLastMarketProduct = null
+    __diaryLastMarketName = null
 
     return applyTemplate(template, { name })
   }
@@ -275,8 +282,8 @@ function diaryize(raw) {
   // ======= 팁/메모 =======
   if (s.startsWith('💡')) {
     const body = soften(s)
-    const product = window.__diaryLastMarketProduct || ''
-    const name = window.__diaryLastMarketName || ''
+    const product = __diaryLastMarketProduct || ''
+    const name = __diaryLastMarketName || ''
 
     const isRealEstate = ['빌라', '오피스텔', '아파트', '상가', '빌딩'].includes(product)
     const key = isRealEstate ? '부동산' : product

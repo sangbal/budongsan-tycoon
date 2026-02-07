@@ -112,10 +112,14 @@ export default {
   'modal.error.resetError.title': '오류',
   'modal.error.resetError.message':
     '게임 초기화 중 오류가 발생했습니다.\n페이지를 새로고침해주세요.',
-  'modal.confirm.reset.title': '게임 새로 시작',
+  'modal.confirm.reset.title': '게임 초기화',
   'modal.confirm.reset.message':
     '이번 런을 초기화하고 새로 시작합니다.\n\n🗼 누적 기록(서울타워)과 ⏱ 누적 시간은 유지됩니다.\n\n계속하시겠습니까?',
-  'modal.confirm.reset.primaryLabel': '새로 시작',
+  'modal.confirm.reset.primaryLabel': '초기화',
+  'modal.confirm.hardReset.title': '완전 초기화',
+  'modal.confirm.hardReset.message':
+    '정말로 모든 데이터를 삭제하시겠습니까?\n\n누적 타워, 경력 포인트, 플레이 시간 등 모든 진행 상황이 영구적으로 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
+  'modal.confirm.hardReset.primaryLabel': '완전 초기화',
   'modal.nickname.title': '닉네임 설정',
   'modal.nickname.message': '리더보드에 표시될 닉네임을 입력하세요.\n(1~6자, 공백 불가)',
   'modal.nickname.placeholder': '1~6자 닉네임',
@@ -163,7 +167,11 @@ export default {
   'settings.numberDisplay.title': '🔢 숫자 표시',
   'settings.account.title': '👤 계정 (소셜 로그인)',
   'settings.saveManagement.title': '💾 저장 관리',
-  'settings.reset.title': '🔄 게임 새로 시작',
+  'settings.cloudSave.title': '☁️ 클라우드 저장',
+  'settings.reset.title': '🔄 게임 초기화',
+  'settings.hardReset.title': '💀 완전 초기화',
+  'settings.hardResetWarning':
+    '모든 데이터를 삭제합니다. 누적 타워, CP, 플레이 시간 등 모두 사라집니다.',
   'settings.display.title': '디스플레이',
   'settings.display.format': '숫자 형식',
   'settings.graphics.title': '그래픽',
@@ -264,6 +272,8 @@ export default {
   'stats.playTime': '이번 런 플레이 시간',
   'stats.hourlyRate': '시간당 수익',
   'stats.efficiencyRanking': 'ROI 순위 (투자 대비 수익률)',
+  'stats.payback.title': '⏱️ 투자 회수 시간',
+  'stats.payback.minutes': '분 만에 원금 회수',
   'stats.incomeStructure': '수익 구조',
   'stats.assetRatio': '자산 비율',
   'stats.financialProducts': '금융상품',
@@ -314,7 +324,8 @@ export default {
   'settings.notLoggedIn': '로그인 안 됨',
   'settings.loginGoogle': 'Google로 로그인',
   'settings.logout': '로그아웃',
-  'settings.resetWarning': '이번 런을 초기화합니다. 🗼 누적 기록과 ⏱ 누적 시간은 유지됩니다.',
+  'settings.resetWarning':
+    '이번 런을 초기화합니다. 누적 기록(🗼 타워, CP)과 플레이 시간은 유지됩니다.',
   'settings.saveManagement.cloudSaveDesc':
     '☁️ 클라우드 세이브: 로그인한 사용자는 클라우드에 저장하여 여러 기기에서 진행 상황을 동기화할 수 있습니다.',
   'settings.saveManagement.cloudSaveBtn': '☁️ 클라우드 저장',
@@ -808,11 +819,11 @@ export default {
   'cp.D3.desc': '가끔 대박 (5% 보너스)',
 
   // CP 업그레이드 - E: 시작 가속
-  'cp.E1.name': '부모님 지원',
+  'cp.E1.name': '👨‍👩‍👧 부모님 지원',
   'cp.E1.desc': '시작 시 예금 5개',
-  'cp.E2.name': '학연/지연',
+  'cp.E2.name': '🤝 학연/지연',
   'cp.E2.desc': '시작 시 계약직',
-  'cp.E3.name': '금수저 출생',
+  'cp.E3.name': '🥄 금수저 출생',
   'cp.E3.desc': '시작 시 빌라 1개 + 사원',
 
   // CP 업그레이드 - F: 전생의 기억 (영구 슬롯)

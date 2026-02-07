@@ -7,7 +7,7 @@
  * - 로그인 시 저장 충돌 해결
  */
 
-import { fetchCloudSave, upsertCloudSave } from '../../../shared/cloudSave.js'
+import { fetchCloudSave, upsertCloudSave } from '@shared/cloudSave.js'
 import * as NumberFormat from '../utils/numberFormat.js'
 import * as Diary from '../systems/diary.js'
 
@@ -622,7 +622,7 @@ export function createCloudSyncManager(deps) {
               const currentUser = await getUser()
               if (currentUser) {
                 // 서버에서 최신 닉네임 가져오기
-                const { getUserProfile } = await import('../../../shared/auth/core.js')
+                const { getUserProfile } = await import('@shared/auth/core.js')
                 const profile = await getUserProfile('seoulsurvival')
                 if (profile.success && profile.user?.nickname) {
                   setPlayerNickname(profile.user.nickname)

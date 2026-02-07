@@ -47,8 +47,8 @@ import { createCollapsibleManager } from '../ui/collapsible.js'
 import { createCloudSyncManager } from '../persist/cloudSync.js'
 import { createSaveLoadManager } from '../persist/saveLoad.js'
 import { createNicknameManager } from '../systems/nicknameManager.js'
-import { getUser, onAuthStateChange, signInGoogle, signOut } from '../../../shared/auth/core.js'
-import { isSupabaseConfigured } from '../../../shared/auth/config.js'
+import { getUser, onAuthStateChange, signInGoogle, signOut } from '@shared/auth/core.js'
+import { isSupabaseConfigured } from '@shared/auth/config.js'
 import {
   updateLeaderboard,
   getLeaderboard,
@@ -57,7 +57,7 @@ import {
   validateNickname,
   claimNickname,
   getMyRank,
-} from '../../../shared/leaderboard.js'
+} from '@shared/leaderboard.js'
 import {
   t,
   applyI18nToDOM,

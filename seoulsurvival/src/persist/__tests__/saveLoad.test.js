@@ -475,4 +475,269 @@ describe('createSaveLoadManager', () => {
       expect(gameVars.playerNickname).toBe(initialNickname)
     })
   })
+
+  describe('P0: 직렬화 엣지 케이스', () => {
+    it('모든 필드 왕복(roundtrip) 검증', () => {
+      const manager = createSaveLoadManager(deps)
+
+      // 모든 게임 변수의 원본 값 저장
+      const originalValues = {
+        cash: gameVars.cash,
+        totalClicks: gameVars.totalClicks,
+        totalLaborIncome: gameVars.totalLaborIncome,
+        careerLevel: gameVars.careerLevel,
+        clickMultiplier: gameVars.clickMultiplier,
+        rentMultiplier: gameVars.rentMultiplier,
+        autoClickEnabled: gameVars.autoClickEnabled,
+        managerLevel: gameVars.managerLevel,
+        rentCost: gameVars.rentCost,
+        mgrCost: gameVars.mgrCost,
+        deposits: gameVars.deposits,
+        savings: gameVars.savings,
+        bonds: gameVars.bonds,
+        usStocks: gameVars.usStocks,
+        cryptos: gameVars.cryptos,
+        depositsLifetime: gameVars.depositsLifetime,
+        savingsLifetime: gameVars.savingsLifetime,
+        bondsLifetime: gameVars.bondsLifetime,
+        usStocksLifetime: gameVars.usStocksLifetime,
+        cryptosLifetime: gameVars.cryptosLifetime,
+        villas: gameVars.villas,
+        officetels: gameVars.officetels,
+        apartments: gameVars.apartments,
+        shops: gameVars.shops,
+        buildings: gameVars.buildings,
+        towers_run: gameVars.towers_run,
+        towers_lifetime: gameVars.towers_lifetime,
+        villasLifetime: gameVars.villasLifetime,
+        officetelsLifetime: gameVars.officetelsLifetime,
+        apartmentsLifetime: gameVars.apartmentsLifetime,
+        shopsLifetime: gameVars.shopsLifetime,
+        buildingsLifetime: gameVars.buildingsLifetime,
+        marketMultiplier: gameVars.marketMultiplier,
+        playerNickname: gameVars.playerNickname,
+      }
+
+      manager.saveGame()
+
+      // 모든 값 변경
+      Object.keys(originalValues).forEach(key => {
+        if (typeof gameVars[key] === 'number') {
+          gameVars[key] = 99999999
+        } else if (typeof gameVars[key] === 'boolean') {
+          gameVars[key] = !originalValues[key]
+        } else if (typeof gameVars[key] === 'string') {
+          gameVars[key] = 'changed_value'
+        }
+      })
+
+      // 로드
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      // 모든 필드 원본과 비교
+      expect(gameVars.cash).toBe(originalValues.cash)
+      expect(gameVars.totalClicks).toBe(originalValues.totalClicks)
+      expect(gameVars.careerLevel).toBe(originalValues.careerLevel)
+      expect(gameVars.clickMultiplier).toBe(originalValues.clickMultiplier)
+      expect(gameVars.rentMultiplier).toBe(originalValues.rentMultiplier)
+      expect(gameVars.autoClickEnabled).toBe(originalValues.autoClickEnabled)
+      expect(gameVars.managerLevel).toBe(originalValues.managerLevel)
+      expect(gameVars.deposits).toBe(originalValues.deposits)
+      expect(gameVars.savings).toBe(originalValues.savings)
+      expect(gameVars.bonds).toBe(originalValues.bonds)
+      expect(gameVars.usStocks).toBe(originalValues.usStocks)
+      expect(gameVars.cryptos).toBe(originalValues.cryptos)
+      expect(gameVars.villas).toBe(originalValues.villas)
+      expect(gameVars.officetels).toBe(originalValues.officetels)
+      expect(gameVars.apartments).toBe(originalValues.apartments)
+      expect(gameVars.shops).toBe(originalValues.shops)
+      expect(gameVars.buildings).toBe(originalValues.buildings)
+      expect(gameVars.towers_run).toBe(originalValues.towers_run)
+      expect(gameVars.towers_lifetime).toBe(originalValues.towers_lifetime)
+      expect(gameVars.marketMultiplier).toBe(originalValues.marketMultiplier)
+      expect(gameVars.playerNickname).toBe(originalValues.playerNickname)
+    })
+
+    it('버전 마이그레이션: towers를 towers_lifetime으로 변환 (v1.1 호환)', () => {
+      const manager = createSaveLoadManager(deps)
+
+      // v1.1 형식 데이터 (towers 필드 사용)
+      const legacyData = {
+        cash: 1000000,
+        towers: 15, // 기존 필드
+        towers_run: 3,
+        // towers_lifetime 없음
+      }
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(legacyData))
+
+      manager.loadGame()
+
+      expect(gameVars.towers_lifetime).toBe(15)
+      expect(gameVars.towers_run).toBe(3)
+    })
+
+    it('손상된 저장 데이터 복구: 빈 객체', () => {
+      const manager = createSaveLoadManager(deps)
+      mockLocalStorage.getItem.mockReturnValue('{}')
+
+      const result = manager.loadGame()
+
+      expect(result).toBe(true) // 빈 객체도 유효한 JSON
+      // 기본값으로 초기화됨
+      expect(gameVars.cash).toBe(0)
+      expect(gameVars.totalClicks).toBe(0)
+      expect(gameVars.clickMultiplier).toBe(1)
+    })
+
+    it('손상된 저장 데이터: 잘못된 타입 (string을 number로)', () => {
+      const manager = createSaveLoadManager(deps)
+      const corruptedData = {
+        cash: 'not_a_number', // 잘못된 타입
+        totalClicks: 100,
+      }
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(corruptedData))
+
+      const result = manager.loadGame()
+
+      expect(result).toBe(true)
+      // 타입 검증으로 잘못된 타입은 기본값으로 복구됨
+      expect(gameVars.cash).toBe(0) // 문자열은 기본값 0으로 복구
+      expect(gameVars.totalClicks).toBe(100)
+    })
+
+    it('매우 큰 숫자 직렬화 (1e15, 게임 내 최대 현실적 값)', () => {
+      const manager = createSaveLoadManager(deps)
+
+      gameVars.cash = 1e15 // 1000조
+      gameVars.lifetimeEarnings = 1e15
+
+      manager.saveGame()
+
+      // 값 변경
+      gameVars.cash = 0
+      gameVars.lifetimeEarnings = 0
+
+      // 로드
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(gameVars.cash).toBe(1e15)
+    })
+
+    it('극단적으로 큰 숫자 직렬화 (Number.MAX_SAFE_INTEGER)', () => {
+      const manager = createSaveLoadManager(deps)
+
+      // JavaScript의 안전한 정수 최대값
+      gameVars.cash = Number.MAX_SAFE_INTEGER
+
+      manager.saveGame()
+
+      gameVars.cash = 0
+
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(gameVars.cash).toBe(Number.MAX_SAFE_INTEGER)
+    })
+
+    it('CP 시스템 필드 왕복 검증', () => {
+      const manager = createSaveLoadManager(deps)
+
+      gameVars.careerPoints = 50
+      gameVars.totalCareerPoints = 100
+      gameVars.purchasedUpgrades = ['A1_mentor', 'B1_broker']
+      gameVars.permanentSlots = ['A1_mentor', null]
+      gameVars.lifetimeEarnings = 5e12
+
+      manager.saveGame()
+
+      // 값 변경
+      gameVars.careerPoints = 0
+      gameVars.totalCareerPoints = 0
+      gameVars.purchasedUpgrades = []
+      gameVars.permanentSlots = []
+      gameVars.lifetimeEarnings = 0
+
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(gameVars.careerPoints).toBe(50)
+      expect(gameVars.totalCareerPoints).toBe(100)
+      expect(gameVars.purchasedUpgrades).toEqual(['A1_mentor', 'B1_broker'])
+      expect(gameVars.permanentSlots).toEqual(['A1_mentor', null])
+      expect(gameVars.lifetimeEarnings).toBe(5e12)
+    })
+
+    it('업그레이드 상태 왕복 검증 (upgradesV2)', () => {
+      const manager = createSaveLoadManager(deps)
+
+      // 초기 업그레이드 상태 설정
+      UPGRADES.click_boost_1 = { unlocked: true, purchased: true }
+      UPGRADES.click_boost_2 = { unlocked: true, purchased: false }
+      UPGRADES.auto_click_1 = { unlocked: false, purchased: false }
+
+      manager.saveGame()
+
+      // 상태 변경
+      UPGRADES.click_boost_1 = { unlocked: false, purchased: false }
+      UPGRADES.click_boost_2 = { unlocked: false, purchased: false }
+
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(UPGRADES.click_boost_1.unlocked).toBe(true)
+      expect(UPGRADES.click_boost_1.purchased).toBe(true)
+      expect(UPGRADES.click_boost_2.unlocked).toBe(true)
+      expect(UPGRADES.click_boost_2.purchased).toBe(false)
+    })
+
+    it('업적 상태 왕복 검증', () => {
+      const manager = createSaveLoadManager(deps)
+
+      // 초기 업적 상태
+      ACHIEVEMENTS[0] = { id: 'first_click', unlocked: true }
+      ACHIEVEMENTS[1] = { id: 'first_million', unlocked: true }
+      ACHIEVEMENTS[2] = { id: 'first_billion', unlocked: true }
+
+      manager.saveGame()
+
+      // 상태 변경
+      ACHIEVEMENTS[0].unlocked = false
+      ACHIEVEMENTS[1].unlocked = false
+      ACHIEVEMENTS[2].unlocked = false
+
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(ACHIEVEMENTS[0].unlocked).toBe(true)
+      expect(ACHIEVEMENTS[1].unlocked).toBe(true)
+      expect(ACHIEVEMENTS[2].unlocked).toBe(true)
+    })
+
+    it('totalPlayTime 누적 검증', () => {
+      const manager = createSaveLoadManager(deps)
+
+      gameVars.totalPlayTime = 3600000 // 1시간
+      gameVars.sessionStartTime = Date.now() - 1800000 // 30분 전
+
+      manager.saveGame()
+
+      gameVars.totalPlayTime = 0
+
+      const savedJson = mockLocalStorage.setItem.mock.calls[0][1]
+      mockLocalStorage.getItem.mockReturnValue(savedJson)
+      manager.loadGame()
+
+      expect(gameVars.totalPlayTime).toBe(3600000)
+      // sessionStartTime은 로드 시 현재 시간으로 재설정됨
+      expect(gameVars.sessionStartTime).toBeGreaterThan(0)
+    })
+  })
 })

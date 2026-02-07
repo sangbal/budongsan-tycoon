@@ -1,6 +1,6 @@
 /**
  * 효율 분석 모듈
- * - ROI (투자 대비 수익률) 계산
+ * - 투자 회수 시간 계산
  * - 자산 가치 계산 헬퍼
  * - 통계 섹션 잠금 상태 관리
  */
@@ -30,8 +30,8 @@ export function calculatePropertyValueForType(type, count, getPropertyCost) {
 }
 
 /**
- * 효율 분석 (ROI: 투자 대비 수익률)
- * @returns {string[]} 상위 3개 자산의 ROI 정보
+ * 효율 분석 (투자 회수 시간)
+ * @returns {string[]} 상위 3개 자산의 회수 시간 정보
  */
 export function calculateEfficiencies(deps) {
   const { getProductName, getFinancialCost, getPropertyCost } = deps
@@ -39,7 +39,7 @@ export function calculateEfficiencies(deps) {
   const rentMultiplier = gameState.rentMultiplier
   const assets = []
 
-  // 금융상품 - ROI = (초당 수익 / 개당 평균 구매가) × 100
+  // 금융상품 - 회수 시간 = 개당 평균 구매가 / 초당 수익 (초)
   if (state.deposits > 0) {
     const totalInvestment = calculateFinancialValueForType(
       'deposit',
@@ -48,10 +48,10 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.deposits
     const incomePerSec = FINANCIAL_INCOME.deposit
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('deposit'),
-      roi,
+      paybackSeconds,
       count: state.deposits,
     })
   }
@@ -63,10 +63,10 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.savings
     const incomePerSec = FINANCIAL_INCOME.savings
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('savings'),
-      roi,
+      paybackSeconds,
       count: state.savings,
     })
   }
@@ -74,10 +74,10 @@ export function calculateEfficiencies(deps) {
     const totalInvestment = calculateFinancialValueForType('bond', state.bonds, getFinancialCost)
     const avgCost = totalInvestment / state.bonds
     const incomePerSec = FINANCIAL_INCOME.bond
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('bond'),
-      roi,
+      paybackSeconds,
       count: state.bonds,
     })
   }
@@ -89,10 +89,10 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.usStocks
     const incomePerSec = FINANCIAL_INCOME.usStock
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('usStock'),
-      roi,
+      paybackSeconds,
       count: state.usStocks,
     })
   }
@@ -104,23 +104,23 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.cryptos
     const incomePerSec = FINANCIAL_INCOME.crypto
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('crypto'),
-      roi,
+      paybackSeconds,
       count: state.cryptos,
     })
   }
 
-  // 부동산 - ROI = (초당 수익 / 개당 평균 구매가) × 100
+  // 부동산 - 회수 시간 = 개당 평균 구매가 / 초당 수익 (초)
   if (state.villas > 0) {
     const totalInvestment = calculatePropertyValueForType('villa', state.villas, getPropertyCost)
     const avgCost = totalInvestment / state.villas
     const incomePerSec = BASE_RENT.villa * rentMultiplier
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('villa'),
-      roi,
+      paybackSeconds,
       count: state.villas,
     })
   }
@@ -132,10 +132,10 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.officetels
     const incomePerSec = BASE_RENT.officetel * rentMultiplier
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('officetel'),
-      roi,
+      paybackSeconds,
       count: state.officetels,
     })
   }
@@ -147,10 +147,10 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.apartments
     const incomePerSec = BASE_RENT.apartment * rentMultiplier
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('apartment'),
-      roi,
+      paybackSeconds,
       count: state.apartments,
     })
   }
@@ -158,10 +158,10 @@ export function calculateEfficiencies(deps) {
     const totalInvestment = calculatePropertyValueForType('shop', state.shops, getPropertyCost)
     const avgCost = totalInvestment / state.shops
     const incomePerSec = BASE_RENT.shop * rentMultiplier
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('shop'),
-      roi,
+      paybackSeconds,
       count: state.shops,
     })
   }
@@ -173,25 +173,23 @@ export function calculateEfficiencies(deps) {
     )
     const avgCost = totalInvestment / state.buildings
     const incomePerSec = BASE_RENT.building * rentMultiplier
-    const roi = avgCost > 0 ? (incomePerSec / avgCost) * 100 : 0
+    const paybackSeconds = avgCost > 0 && incomePerSec > 0 ? avgCost / incomePerSec : Infinity
     assets.push({
       name: getProductName('building'),
-      roi,
+      paybackSeconds,
       count: state.buildings,
     })
   }
 
-  // ROI 순으로 정렬 (높은 순)
-  assets.sort((a, b) => b.roi - a.roi)
+  // 회수 시간 순으로 정렬 (짧은 순)
+  assets.sort((a, b) => a.paybackSeconds - b.paybackSeconds)
 
   // 상위 3개 반환
-  const perSecUnit = t('stats.unit.perSec')
-  return assets
-    .slice(0, 3)
-    .map(
-      a =>
-        `${a.name} (ROI ${a.roi.toFixed(4)}%${perSecUnit}, ${a.count}${t('ui.unit.count')} ${t('ui.owned')})`
-    )
+  const paybackUnit = t('stats.payback.minutes')
+  return assets.slice(0, 3).map(a => {
+    const paybackMinutes = (a.paybackSeconds / 60).toFixed(1)
+    return `${a.name}: ${paybackMinutes}${paybackUnit}`
+  })
 }
 
 /**

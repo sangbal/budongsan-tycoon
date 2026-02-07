@@ -22,7 +22,7 @@ import {
   calculatePropertyValueForType,
   updateStatsLockStates,
 } from './efficiency.js'
-import { setAchievementScrollActive, updateAchievementGrid } from './achievementGrid.js'
+import { setAchievementScrollActive, updateAchievementGrid } from './statsAchievementGrid.js'
 
 // 하위 모듈 re-export
 export { resetGrowthTracking, loadGrowthTracking, saveGrowthTracking, setAchievementScrollActive }

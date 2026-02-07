@@ -248,7 +248,7 @@ function renderUpgradeCard(upgrade) {
   return `
     <div class="row building-item cp-item ${statusClass}" data-upgrade-id="${upgrade.id}">
       <div class="meta">
-        <span class="title">${upgrade.icon} ${tFunc(upgrade.nameKey)}</span>
+        <span class="title">${tFunc(upgrade.nameKey)}</span>
         <span class="desc">${tFunc(upgrade.descKey)}</span>
         ${
           upgrade.requires.length > 0

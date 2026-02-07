@@ -737,32 +737,12 @@ export function removeFromPermSlot(slotIndex) {
 }
 
 /**
- * 프레스티지 시 구매 업그레이드 리셋 (영구 슬롯 제외)
+ * 프레스티지 시 구매 업그레이드 리셋
+ * [변경] CP 상품은 계정 누적 데이터이므로 모두 영구 유지
  */
 export function resetPurchasedUpgrades() {
-  const effects = getAllPrestigeEffects()
-  const maxSlots = effects.permanent_slot
-  const preserved = []
-  const purchased = gameState.purchasedUpgrades || []
-
-  // 영구 슬롯에 저장된 업그레이드 보존
-  if (gameState.permanentSlots) {
-    for (let i = 0; i < maxSlots; i++) {
-      const id = gameState.permanentSlots[i]
-      if (id && purchased.includes(id)) {
-        preserved.push(id)
-      }
-    }
-  }
-
-  // 영구 슬롯 해금 업그레이드(F1, F2)는 항상 유지
-  for (const upgradeId of purchased) {
-    if (upgradeId.startsWith('F') && !preserved.includes(upgradeId)) {
-      preserved.push(upgradeId)
-    }
-  }
-
-  gameState.purchasedUpgrades = preserved
+  // CP 상품은 프레스티지 후에도 영구 유지
+  // 함수 본문을 비워 리셋 로직 제거
 }
 
 /**

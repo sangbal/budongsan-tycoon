@@ -68,23 +68,28 @@ export function updateGrowthTracking(deps) {
     state.buildingsLifetime +
     state.totalLaborIncome
 
-  // 1시간 이내 기록 유지 (최대 60개)
-  hourlyEarningsHistory = hourlyEarningsHistory.filter(entry => now - entry.time < 3600000)
-  if (hourlyEarningsHistory.length > 60) {
-    hourlyEarningsHistory = hourlyEarningsHistory.slice(-60)
-  }
-  // 24시간 이내 기록 유지 (최대 1440개)
-  dailyEarningsHistory = dailyEarningsHistory.filter(entry => now - entry.time < 86400000)
-  if (dailyEarningsHistory.length > 1440) {
-    dailyEarningsHistory = dailyEarningsHistory.slice(-1440)
-  }
-
-  // 1분마다 스냅샷 저장
+  // 1분마다 스냅샷 저장 (push 먼저, 그 다음 정리)
   if (now - lastSnapshotTime >= 60000) {
     hourlyEarningsHistory.push({ time: now, earnings: currentEarnings })
     dailyEarningsHistory.push({ time: now, earnings: currentEarnings })
     lastSnapshotTime = now
   }
+
+  // 1시간 이내 기록 유지 - 먼저 최대 개수로 제한 후 시간 필터링
+  // (배열이 무한 증가하는 것을 방지)
+  const MAX_HOURLY_ENTRIES = 60
+  const MAX_DAILY_ENTRIES = 1440
+
+  if (hourlyEarningsHistory.length > MAX_HOURLY_ENTRIES) {
+    hourlyEarningsHistory = hourlyEarningsHistory.slice(-MAX_HOURLY_ENTRIES)
+  }
+  hourlyEarningsHistory = hourlyEarningsHistory.filter(entry => now - entry.time < 3600000)
+
+  // 24시간 이내 기록 유지
+  if (dailyEarningsHistory.length > MAX_DAILY_ENTRIES) {
+    dailyEarningsHistory = dailyEarningsHistory.slice(-MAX_DAILY_ENTRIES)
+  }
+  dailyEarningsHistory = dailyEarningsHistory.filter(entry => now - entry.time < 86400000)
 
   // 최근 1시간 수익 계산
   const hourlyEarnings =

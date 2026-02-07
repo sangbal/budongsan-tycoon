@@ -27,11 +27,13 @@ export function createAuthUIManager(deps) {
     const authProviderButtons = document.getElementById('authProviderButtons')
     const logoutButtonContainer = document.getElementById('logoutButtonContainer')
     const cloudSaveSection = document.getElementById('cloudSaveSection')
+    const cloudSyncRow = document.getElementById('cloudSyncRow')
     const authStatusLabel = document.getElementById('authStatusLabel')
 
     if (authProviderButtons) authProviderButtons.style.display = isLoggedIn ? 'none' : 'flex'
     if (logoutButtonContainer) logoutButtonContainer.hidden = !isLoggedIn
     if (cloudSaveSection) cloudSaveSection.style.display = isLoggedIn ? 'block' : 'none'
+    if (cloudSyncRow) cloudSyncRow.style.display = isLoggedIn ? 'flex' : 'none'
 
     // 인증 상태 라벨 업데이트
     if (authStatusLabel) {

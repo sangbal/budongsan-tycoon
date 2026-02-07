@@ -106,6 +106,27 @@ export function createSettingsTabManager(deps) {
   }
 
   /**
+   * 설정 토글 항목의 클릭 영역 확대
+   * - 설명 텍스트 클릭 시에도 토글 작동
+   */
+  function setupToggleClickExpansion() {
+    const toggleContainers = document.querySelectorAll('.settings-toggle-container')
+
+    toggleContainers.forEach(container => {
+      const toggleInfo = container.querySelector('.settings-toggle-info')
+      const input = container.querySelector('input[type="checkbox"]')
+
+      if (toggleInfo && input) {
+        toggleInfo.style.cursor = 'pointer'
+        toggleInfo.addEventListener('click', () => {
+          input.checked = !input.checked
+          input.dispatchEvent(new Event('change', { bubbles: true }))
+        })
+      }
+    })
+  }
+
+  /**
    * 설정 탭 초기화
    */
   function initSettingsTab() {
@@ -174,6 +195,15 @@ export function createSettingsTabManager(deps) {
     if (elResetBtnSettings) {
       elResetBtnSettings.addEventListener('click', () => saveLoadManager.resetGame())
     }
+
+    // 완전 초기화 버튼
+    const elHardResetBtn = document.getElementById('hardResetBtn')
+    if (elHardResetBtn) {
+      elHardResetBtn.addEventListener('click', () => saveLoadManager.hardResetGame())
+    }
+
+    // 토글 클릭 영역 확대 설정
+    setupToggleClickExpansion()
   }
 
   return {

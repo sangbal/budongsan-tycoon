@@ -36,12 +36,13 @@ export function updateSynergyDisplay() {
         .map(
           synergy => `
         <div class="synergy-badge active">
-          <span class="synergy-icon">${synergy.icon}</span>
           <div class="synergy-info">
             <div class="synergy-name">${t(synergy.nameKey)}</div>
-            <div class="synergy-desc">${t(synergy.descKey)}</div>
+            <div class="synergy-row">
+              <span class="synergy-desc">${t(synergy.descKey)}</span>
+              <span class="synergy-effect">x${synergy.multiplier.toFixed(2)}</span>
+            </div>
           </div>
-          <div class="synergy-effect">x${synergy.multiplier.toFixed(2)}</div>
         </div>
       `
         )

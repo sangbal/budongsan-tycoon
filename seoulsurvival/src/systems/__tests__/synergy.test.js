@@ -14,8 +14,8 @@ import {
   applyClickSynergyMultiplier,
   updateCompletionistSynergy,
   getSynergyDisplayData,
-} from './synergy.js'
-import { gameState } from '../state/gameState.js'
+} from '../synergy.js'
+import { gameState } from '../../state/gameState.js'
 
 describe('Synergy System', () => {
   let mockState

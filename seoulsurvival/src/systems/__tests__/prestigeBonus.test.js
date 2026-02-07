@@ -22,8 +22,9 @@ import {
   getPrestigeMultiplier,
   getAllPrestigeMultipliers,
   getPrestigeBonusInfoHTML,
-} from './prestigeBonus.js'
-import { gameState } from '../state/gameState.js'
+  applyStartingBonuses,
+} from '../prestigeBonus.js'
+import { gameState } from '../../state/gameState.js'
 
 describe('Prestige Bonus System v2.0', () => {
   beforeEach(() => {
@@ -388,6 +389,150 @@ describe('Prestige Bonus System v2.0', () => {
       expect(effects.financial_income_multiplier).toBeCloseTo(1.3, 2)
       expect(effects.property_income_multiplier).toBeCloseTo(1.3, 2)
       expect(effects.click_income_multiplier).toBeCloseTo(1.5, 2)
+    })
+  })
+
+  describe('P0: 승진 요구량 감소 (H1~H3)', () => {
+    it('H1 구매: 승진 요구량 -20%', () => {
+      gameState.careerPoints = 10
+      purchaseUpgrade('H1_network_basic')
+
+      const effects = getAllPrestigeEffects()
+      expect(effects.promotion_requirement_reduction).toBeCloseTo(0.2, 2)
+    })
+
+    it('H1+H2 구매: 승진 요구량 -35%', () => {
+      gameState.careerPoints = 20
+      purchaseUpgrade('H1_network_basic')
+      purchaseUpgrade('H2_network_power')
+
+      const effects = getAllPrestigeEffects()
+      // H1: 0.2, H2: 0.15 = 0.35
+      expect(effects.promotion_requirement_reduction).toBeCloseTo(0.35, 2)
+    })
+
+    it('H1+H2+H3 구매: 승진 요구량 -50% (최대)', () => {
+      gameState.careerPoints = 30
+      purchaseUpgrade('H1_network_basic')
+      purchaseUpgrade('H2_network_power')
+      purchaseUpgrade('H3_vip_connections')
+
+      const effects = getAllPrestigeEffects()
+      // H1: 0.2, H2: 0.15, H3: 0.15 = 0.50
+      expect(effects.promotion_requirement_reduction).toBeCloseTo(0.5, 2)
+    })
+
+    it('H2 구매 시 H1 선행조건 미충족', () => {
+      gameState.careerPoints = 20
+      // H1 없이 H2 구매 시도
+      const result = canPurchaseUpgrade('H2_network_power')
+      expect(result.canPurchase).toBe(false)
+      expect(result.reason).toBe('requires_not_met')
+      expect(result.missing).toBe('H1_network_basic')
+    })
+
+    it('H3 구매 시 H2 선행조건 미충족', () => {
+      gameState.careerPoints = 30
+      purchaseUpgrade('H1_network_basic')
+      // H2 없이 H3 구매 시도
+      const result = canPurchaseUpgrade('H3_vip_connections')
+      expect(result.canPurchase).toBe(false)
+      expect(result.reason).toBe('requires_not_met')
+      expect(result.missing).toBe('H2_network_power')
+    })
+
+    it('H 계열 선행조건 체인 전체 구매', () => {
+      gameState.careerPoints = 50
+
+      // H1 -> H2 -> H3 순서로 구매
+      expect(purchaseUpgrade('H1_network_basic')).toBe(true)
+      expect(purchaseUpgrade('H2_network_power')).toBe(true)
+      expect(purchaseUpgrade('H3_vip_connections')).toBe(true)
+
+      // 모두 구매 목록에 있어야 함
+      expect(gameState.purchasedUpgrades).toContain('H1_network_basic')
+      expect(gameState.purchasedUpgrades).toContain('H2_network_power')
+      expect(gameState.purchasedUpgrades).toContain('H3_vip_connections')
+    })
+  })
+
+  describe('P0: applyStartingBonuses 멱등성', () => {
+    it('중복 호출 시 보너스 중복 적용 - starting_cash', () => {
+      gameState.careerPoints = 20
+      gameState.purchasedUpgrades = []
+      purchaseUpgrade('A1_mentor')
+      purchaseUpgrade('A2_network')
+      purchaseUpgrade('A3_recognition') // starting_cash: 10,000,000
+
+      // 첫 번째 호출
+      gameState.cash = 0
+      applyStartingBonuses()
+      const firstCash = gameState.cash
+      expect(firstCash).toBe(10_000_000)
+
+      // 두 번째 호출 (이미 보너스가 적용된 상태)
+      applyStartingBonuses()
+      const secondCash = gameState.cash
+
+      // 두 번째 호출도 추가됨 (현재 로직상 멱등성 없음)
+      // 이것은 설계 의도: 프레스티지 시 cash가 0으로 초기화된 후 1회만 호출되어야 함
+      expect(secondCash).toBe(firstCash + 10_000_000)
+    })
+
+    it('프레스티지 흐름에서 1회만 호출 확인', () => {
+      // 실제 프레스티지 흐름: resetHoldings -> applyStartingBonuses (1회)
+      // 이 테스트는 문서화 목적
+      gameState.careerPoints = 10
+      gameState.purchasedUpgrades = []
+      purchaseUpgrade('E1_parents') // starting_deposits: 5
+
+      gameState.deposits = 0
+      gameState.cash = 0
+
+      const bonuses = applyStartingBonuses()
+
+      expect(bonuses.deposits).toBe(5)
+      expect(gameState.deposits).toBe(5)
+    })
+  })
+
+  describe('P0: 영구슬롯 선행조건 체인', () => {
+    it('F2 구매 시 F1 선행조건 필요', () => {
+      gameState.careerPoints = 30
+
+      // F1 없이 F2 구매 시도
+      const result = canPurchaseUpgrade('F2_preserve_2')
+      expect(result.canPurchase).toBe(false)
+      expect(result.reason).toBe('requires_not_met')
+      expect(result.missing).toBe('F1_preserve_1')
+    })
+
+    it('F1 -> F2 순서로 구매 성공', () => {
+      gameState.careerPoints = 30
+
+      expect(purchaseUpgrade('F1_preserve_1')).toBe(true)
+      expect(purchaseUpgrade('F2_preserve_2')).toBe(true)
+
+      const effects = getAllPrestigeEffects()
+      expect(effects.permanent_slot).toBe(2) // 최대값 선택
+    })
+
+    it('프레스티지 후 F1, F2 유지', () => {
+      gameState.careerPoints = 30
+      gameState.towers_lifetime = 1
+
+      purchaseUpgrade('F1_preserve_1')
+      purchaseUpgrade('F2_preserve_2')
+      purchaseUpgrade('A1_mentor') // 일반 업그레이드
+
+      // 프레스티지 실행
+      processPrestige()
+
+      // F 카테고리는 유지
+      expect(gameState.purchasedUpgrades).toContain('F1_preserve_1')
+      expect(gameState.purchasedUpgrades).toContain('F2_preserve_2')
+      // 일반 업그레이드는 리셋
+      expect(gameState.purchasedUpgrades).not.toContain('A1_mentor')
     })
   })
 })

@@ -26,8 +26,11 @@ export function createKeyboardShortcuts(deps) {
     2: 'shopTab',
     3: 'statsTab',
     4: 'rankingTab',
-    5: 'settingsTab',
+    5: 'careerTab',
   }
+
+  // 탭 순서 (Arrow 키 네비게이션용)
+  const TAB_ORDER = ['workTab', 'shopTab', 'statsTab', 'rankingTab', 'careerTab']
 
   /**
    * 탭 전환 (Alt + 1-5)
@@ -44,15 +47,60 @@ export function createKeyboardShortcuts(deps) {
   }
 
   /**
+   * Arrow 키로 탭 네비게이션
+   * @param {string} direction - 'left' | 'right'
+   */
+  function handleArrowTabSwitch(direction) {
+    const activeBtn = document.querySelector('.nav-btn.active')
+    if (!activeBtn) return
+
+    const currentTab = activeBtn.dataset.tab
+    const currentIndex = TAB_ORDER.indexOf(currentTab)
+    if (currentIndex === -1) return
+
+    let nextIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1
+    // 순환
+    if (nextIndex < 0) nextIndex = TAB_ORDER.length - 1
+    if (nextIndex >= TAB_ORDER.length) nextIndex = 0
+
+    const nextTab = TAB_ORDER[nextIndex]
+    const nextBtn = document.querySelector(`.nav-btn[data-tab="${nextTab}"]`)
+    if (nextBtn && nextBtn.offsetParent !== null) {
+      // 보이는 탭만 선택
+      nextBtn.click()
+      nextBtn.focus()
+    }
+  }
+
+  /**
    * 키보드 이벤트 핸들러
    * @param {KeyboardEvent} e - 키보드 이벤트
    */
   function handleKeydown(e) {
+    // 입력 필드에서 단축키 비활성화
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      return
+    }
+
     // 탭 전환: Alt + 1-5 (접근성)
     if (e.altKey && e.key >= '1' && e.key <= '5') {
       e.preventDefault()
       handleTabSwitch(e.key)
       return
+    }
+
+    // Arrow 키로 탭 네비게이션 (탭 버튼에 포커스 있을 때만)
+    if (e.target.classList.contains('nav-btn')) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handleArrowTabSwitch('left')
+        return
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleArrowTabSwitch('right')
+        return
+      }
     }
 
     // Ctrl + Shift + R: 게임 초기화

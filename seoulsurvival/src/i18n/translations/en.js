@@ -106,10 +106,14 @@ export default {
   'modal.error.resetError.title': 'Error',
   'modal.error.resetError.message':
     'An error occurred while resetting the game.\nPlease refresh the page.',
-  'modal.confirm.reset.title': 'Reset Game',
+  'modal.confirm.reset.title': 'Reset Run',
   'modal.confirm.reset.message':
     'This will reset the current run and start fresh.\n\n🗼 Cumulative records (Seoul Tower) and ⏱ cumulative time will be preserved.\n\nContinue?',
   'modal.confirm.reset.primaryLabel': 'Reset',
+  'modal.confirm.hardReset.title': 'Full Reset',
+  'modal.confirm.hardReset.message':
+    'Are you sure you want to delete ALL data?\n\nLifetime towers, career points, play time, and all progress will be permanently deleted.\n\nThis cannot be undone.',
+  'modal.confirm.hardReset.primaryLabel': 'Full Reset',
   'modal.nickname.title': 'Nickname Setting',
   'modal.nickname.message':
     'Please enter the nickname to be displayed on the leaderboard.\n(1-6 characters, spaces not allowed)',
@@ -161,7 +165,11 @@ export default {
   'settings.numberDisplay.title': '🔢 Number Display',
   'settings.account.title': '👤 Account (Social Login)',
   'settings.saveManagement.title': '💾 Save Management',
-  'settings.reset.title': '🔄 Reset Game',
+  'settings.cloudSave.title': '☁️ Cloud Save',
+  'settings.reset.title': '🔄 Reset Run',
+  'settings.hardReset.title': '💀 Full Reset',
+  'settings.hardResetWarning':
+    'Deletes all data. Lifetime towers, CP, play time - everything will be gone.',
   'settings.display.title': 'Display',
   'settings.display.format': 'Number Format',
   'settings.graphics.title': 'Graphics',
@@ -263,6 +271,8 @@ export default {
   'stats.playTime': 'This Run Play Time',
   'stats.hourlyRate': 'Hourly Rate',
   'stats.efficiencyRanking': 'ROI Ranking (Return on Investment)',
+  'stats.payback.title': '⏱️ Payback Time',
+  'stats.payback.minutes': 'min to break even',
   'stats.incomeStructure': 'Income Structure',
   'stats.assetRatio': 'Asset Ratio',
   'stats.financialProducts': 'Financial Products',
@@ -315,7 +325,7 @@ export default {
   'settings.language.korean': 'Korean',
   'settings.logout': 'Logout',
   'settings.resetWarning':
-    'This will reset the current run. 🗼 Cumulative records and ⏱ cumulative time will be preserved.',
+    'Resets current run. Lifetime records (🗼 towers, CP) and play time are preserved.',
   'settings.saveManagement.cloudSaveDesc':
     '☁️ Cloud Save: Logged-in users can save to the cloud to sync progress across devices.',
   'settings.saveManagement.cloudSaveBtn': '☁️ Cloud Save',
@@ -814,11 +824,11 @@ export default {
   'cp.D3.desc': 'Sometimes you hit it big (5% bonus)',
 
   // CP Upgrades - E: Head Start
-  'cp.E1.name': 'Parent Support',
+  'cp.E1.name': '👨‍👩‍👧 Parent Support',
   'cp.E1.desc': 'Start with 5 deposits',
-  'cp.E2.name': 'School Connections',
+  'cp.E2.name': '🤝 School Connections',
   'cp.E2.desc': 'Start as Contract Worker',
-  'cp.E3.name': 'Silver Spoon',
+  'cp.E3.name': '🥄 Silver Spoon',
   'cp.E3.desc': 'Start with 1 villa + Worker title',
 
   // CP Upgrades - F: Past Life Memories (Permanent Slots)

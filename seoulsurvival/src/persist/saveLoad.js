@@ -232,6 +232,16 @@ export function createSaveLoadManager(deps) {
   }
 
   /**
+   * 숫자 타입 검증 헬퍼 함수
+   * @param {*} val - 검증할 값
+   * @param {number} defaultVal - 기본값
+   * @returns {number} 유효한 숫자 또는 기본값
+   */
+  function toNumber(val, defaultVal) {
+    return typeof val === 'number' && !Number.isNaN(val) ? val : defaultVal
+  }
+
+  /**
    * 게임 데이터 불러오기 함수
    * @returns {boolean} 성공 여부
    */
@@ -248,50 +258,50 @@ export function createSaveLoadManager(deps) {
 
       const data = JSON.parse(saveData)
 
-      // 게임 상태 복원
-      gameVars.cash = data.cash || 0
-      gameVars.totalClicks = data.totalClicks || 0
-      gameVars.totalLaborIncome = data.totalLaborIncome || 0
-      gameVars.careerLevel = data.careerLevel || 0
-      gameVars.clickMultiplier = data.clickMultiplier || 1
-      gameVars.rentMultiplier = data.rentMultiplier || 1
+      // 게임 상태 복원 (타입 검증 포함)
+      gameVars.cash = toNumber(data.cash, 0)
+      gameVars.totalClicks = toNumber(data.totalClicks, 0)
+      gameVars.totalLaborIncome = toNumber(data.totalLaborIncome, 0)
+      gameVars.careerLevel = toNumber(data.careerLevel, 0)
+      gameVars.clickMultiplier = toNumber(data.clickMultiplier, 1)
+      gameVars.rentMultiplier = toNumber(data.rentMultiplier, 1)
       gameVars.autoClickEnabled = data.autoClickEnabled || false
-      gameVars.managerLevel = data.managerLevel || 0
-      gameVars.rentCost = data.rentCost || 1000000000
-      gameVars.mgrCost = data.mgrCost || 5000000000
+      gameVars.managerLevel = toNumber(data.managerLevel, 0)
+      gameVars.rentCost = toNumber(data.rentCost, 1000000000)
+      gameVars.mgrCost = toNumber(data.mgrCost, 5000000000)
 
       // 오토 업무 처리 UI 동기화
       updateAutoWorkUI()
 
       // 금융상품 복원
-      gameVars.deposits = data.deposits || 0
-      gameVars.savings = data.savings || 0
-      gameVars.bonds = data.bonds || 0
-      gameVars.usStocks = data.usStocks || 0
-      gameVars.cryptos = data.cryptos || 0
+      gameVars.deposits = toNumber(data.deposits, 0)
+      gameVars.savings = toNumber(data.savings, 0)
+      gameVars.bonds = toNumber(data.bonds, 0)
+      gameVars.usStocks = toNumber(data.usStocks, 0)
+      gameVars.cryptos = toNumber(data.cryptos, 0)
 
       // 금융상품 누적 생산량 복원
-      gameVars.depositsLifetime = data.depositsLifetime || 0
-      gameVars.savingsLifetime = data.savingsLifetime || 0
-      gameVars.bondsLifetime = data.bondsLifetime || 0
-      gameVars.usStocksLifetime = data.usStocksLifetime || 0
-      gameVars.cryptosLifetime = data.cryptosLifetime || 0
+      gameVars.depositsLifetime = toNumber(data.depositsLifetime, 0)
+      gameVars.savingsLifetime = toNumber(data.savingsLifetime, 0)
+      gameVars.bondsLifetime = toNumber(data.bondsLifetime, 0)
+      gameVars.usStocksLifetime = toNumber(data.usStocksLifetime, 0)
+      gameVars.cryptosLifetime = toNumber(data.cryptosLifetime, 0)
 
       // 부동산 복원
-      gameVars.villas = data.villas || 0
-      gameVars.officetels = data.officetels || 0
-      gameVars.apartments = data.apartments || 0
-      gameVars.shops = data.shops || 0
-      gameVars.buildings = data.buildings || 0
-      gameVars.towers_run = data.towers_run || 0
-      gameVars.towers_lifetime = data.towers_lifetime || data.towers || 0 // 마이그레이션: 기존 towers를 lifetime으로
+      gameVars.villas = toNumber(data.villas, 0)
+      gameVars.officetels = toNumber(data.officetels, 0)
+      gameVars.apartments = toNumber(data.apartments, 0)
+      gameVars.shops = toNumber(data.shops, 0)
+      gameVars.buildings = toNumber(data.buildings, 0)
+      gameVars.towers_run = toNumber(data.towers_run, 0)
+      gameVars.towers_lifetime = toNumber(data.towers_lifetime, toNumber(data.towers, 0)) // 마이그레이션: 기존 towers를 lifetime으로
 
       // CP 시스템 (경력 포인트) 복원
-      gameVars.careerPoints = data.careerPoints || 0
-      gameVars.totalCareerPoints = data.totalCareerPoints || 0
+      gameVars.careerPoints = toNumber(data.careerPoints, 0)
+      gameVars.totalCareerPoints = toNumber(data.totalCareerPoints, 0)
       gameVars.purchasedUpgrades = data.purchasedUpgrades || []
       gameVars.permanentSlots = data.permanentSlots || []
-      gameVars.lifetimeEarnings = data.lifetimeEarnings || 0
+      gameVars.lifetimeEarnings = toNumber(data.lifetimeEarnings, 0)
 
       // 기존 유저 CP 마이그레이션: towers_lifetime > 0인데 CP가 없으면 소급 지급
       if (gameVars.towers_lifetime > 0 && !data.careerPoints && !data.totalCareerPoints) {
@@ -304,11 +314,11 @@ export function createSaveLoadManager(deps) {
       }
 
       // 부동산 누적 생산량 복원
-      gameVars.villasLifetime = data.villasLifetime || 0
-      gameVars.officetelsLifetime = data.officetelsLifetime || 0
-      gameVars.apartmentsLifetime = data.apartmentsLifetime || 0
-      gameVars.shopsLifetime = data.shopsLifetime || 0
-      gameVars.buildingsLifetime = data.buildingsLifetime || 0
+      gameVars.villasLifetime = toNumber(data.villasLifetime, 0)
+      gameVars.officetelsLifetime = toNumber(data.officetelsLifetime, 0)
+      gameVars.apartmentsLifetime = toNumber(data.apartmentsLifetime, 0)
+      gameVars.shopsLifetime = toNumber(data.shopsLifetime, 0)
+      gameVars.buildingsLifetime = toNumber(data.buildingsLifetime, 0)
 
       // 업그레이드 복원 (새 Cookie Clicker 스타일)
       if (data.upgradesV2) {
@@ -328,8 +338,8 @@ export function createSaveLoadManager(deps) {
       reapplyIncomeTableAffectingUpgradeEffects(UPGRADES)
 
       // 시장 이벤트 복원
-      gameVars.marketMultiplier = data.marketMultiplier || 1
-      gameVars.marketEventEndTime = data.marketEventEndTime || 0
+      gameVars.marketMultiplier = toNumber(data.marketMultiplier, 1)
+      gameVars.marketEventEndTime = toNumber(data.marketEventEndTime, 0)
 
       // 업적 복원
       if (data.achievements) {
@@ -346,11 +356,7 @@ export function createSaveLoadManager(deps) {
       }
 
       // 누적 플레이시간 시스템 복원
-      if (data.totalPlayTime !== undefined) {
-        gameVars.totalPlayTime = data.totalPlayTime
-      } else {
-        gameVars.totalPlayTime = 0
-      }
+      gameVars.totalPlayTime = toNumber(data.totalPlayTime, 0)
       // 닉네임 복원
       gameVars.playerNickname = data.nickname || ''
       // 새 세션 시작 (이전 세션 시간은 이미 저장 시 totalPlayTime에 포함되어 있음)
@@ -464,10 +470,42 @@ export function createSaveLoadManager(deps) {
     }
   }
 
+  /**
+   * 완전 초기화 - 모든 데이터 삭제 (누적 기록 포함)
+   */
+  function hardResetGame() {
+    Modal.openConfirmModal(
+      t('modal.confirm.hardReset.title', {}, '완전 초기화'),
+      t(
+        'modal.confirm.hardReset.message',
+        {},
+        '정말로 모든 데이터를 삭제하시겠습니까?\n\n누적 타워, 경력 포인트, 플레이 시간 등 모든 진행 상황이 영구적으로 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.'
+      ),
+      () => {
+        // LocalStorage 완전 삭제
+        localStorage.removeItem(SAVE_KEY)
+
+        // 업적 초기화
+        for (const ach of ACHIEVEMENTS) {
+          ach.unlocked = false
+        }
+
+        // 페이지 새로고침으로 완전 초기 상태
+        window.location.reload()
+      },
+      {
+        icon: '💀',
+        primaryLabel: t('modal.confirm.hardReset.primaryLabel', {}, '완전 초기화'),
+        secondaryLabel: t('button.cancel'),
+      }
+    )
+  }
+
   return {
     saveGame,
     loadGame,
     resetGame,
+    hardResetGame,
     exportSave,
     importSave,
   }

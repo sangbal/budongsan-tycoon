@@ -9,9 +9,9 @@
 
 import { t } from '../i18n/index.js'
 import * as NumberFormat from '../utils/numberFormat.js'
-import { updateLeaderboard, getLeaderboard, getMyRank } from '../../../shared/leaderboard.js'
-import { getUser, signInGoogle } from '../../../shared/auth/core.js'
-import { isSupabaseConfigured } from '../../../shared/auth/config.js'
+import { updateLeaderboard, getLeaderboard, getMyRank } from '@shared/leaderboard.js'
+import { getUser, signInGoogle } from '@shared/auth/core.js'
+import { isSupabaseConfigured } from '@shared/auth/config.js'
 
 // ======= 상수 =======
 const LEADERBOARD_UPDATE_INTERVAL = 30000 // 30초
@@ -69,6 +69,8 @@ let __lbPollingStarted = false
 let __lbInterval = null
 let __lbObserver = null
 let __lbFirstLoad = true // 페이지 로드 후 첫 랭킹 탭 진입 플래그
+let __lbObserverDebounceTimer = null // IntersectionObserver 디바운스 타이머
+let __lbObserverLastState = null // IntersectionObserver 마지막 상태
 
 // ======= 게임 상태 참조 (main.js에서 설정) =======
 let gameStateRef = null
@@ -79,6 +81,38 @@ let gameStateRef = null
  */
 export function initLeaderboardUI(getGameState) {
   gameStateRef = getGameState
+  setupLoginButtonDelegation()
+}
+
+/**
+ * 로그인 버튼 이벤트 위임 설정 (한 번만 실행)
+ * myRankContent 영역에서 동적으로 생성되는 로그인 버튼 클릭을 처리
+ */
+let __loginDelegationInitialized = false
+function setupLoginButtonDelegation() {
+  if (__loginDelegationInitialized) return
+  __loginDelegationInitialized = true
+
+  const myRankContent = document.getElementById('myRankContent')
+  if (!myRankContent) return
+
+  myRankContent.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action="login-from-ranking"]')
+    if (!btn) return
+
+    e.preventDefault()
+    if (!isSupabaseConfigured()) {
+      alert(t('settings.guestMode') || 'Currently in guest mode. Login feature is coming soon.')
+      return
+    }
+    const result = await signInGoogle()
+    if (!result.ok) {
+      alert(t('error.loginFailed') || 'Login failed. Please try again.')
+    } else {
+      // 로그인 성공 후 리더보드 UI 다시 업데이트
+      setTimeout(() => updateLeaderboardUI(true), 1000)
+    }
+  })
 }
 
 /**
@@ -340,32 +374,13 @@ export async function updateLeaderboardUI(force = false) {
                   <div class="leaderboard-my-rank-empty">
                     ${t('ranking.loginRequired')}
                     <div class="leaderboard-my-rank-actions">
-                      <button type="button" class="btn" id="openLoginFromRanking">
+                      <button type="button" class="btn" data-action="login-from-ranking">
                         🔐 ${t('settings.loginGoogle')}
                       </button>
                     </div>
                   </div>
                 `
-              const loginBtn = document.getElementById('openLoginFromRanking')
-              if (loginBtn) {
-                loginBtn.addEventListener('click', async e => {
-                  e.preventDefault()
-                  if (!isSupabaseConfigured()) {
-                    alert(
-                      t('settings.guestMode') ||
-                        'Currently in guest mode. Login feature is coming soon.'
-                    )
-                    return
-                  }
-                  const result = await signInGoogle()
-                  if (!result.ok) {
-                    alert(t('error.loginFailed') || 'Login failed. Please try again.')
-                  } else {
-                    // 로그인 성공 후 리더보드 UI 다시 업데이트
-                    setTimeout(() => updateLeaderboardUI(true), 1000)
-                  }
-                })
-              }
+              // 이벤트 위임: 로그인 버튼 클릭 처리는 setupLoginButtonDelegation()에서 담당
               return
             }
 
@@ -388,7 +403,7 @@ export async function updateLeaderboardUI(force = false) {
                       <div class="leaderboard-my-rank-empty">
                         ${t('ranking.loginRequired')}
                         <div class="leaderboard-my-rank-actions">
-                          <button type="button" class="btn" id="openLoginFromRanking">
+                          <button type="button" class="btn" data-action="login-from-ranking">
                             🔐 ${t('settings.loginGoogle')}
                           </button>
                         </div>
@@ -492,27 +507,7 @@ export async function updateLeaderboardUI(force = false) {
                 }
 
                 myRankContent.innerHTML = innerHtml
-
-                const loginBtn = document.getElementById('openLoginFromRanking')
-                if (loginBtn) {
-                  loginBtn.addEventListener('click', async e => {
-                    e.preventDefault()
-                    if (!isSupabaseConfigured()) {
-                      alert(
-                        t('settings.guestMode') ||
-                          'Currently in guest mode. Login feature is coming soon.'
-                      )
-                      return
-                    }
-                    const result = await signInGoogle()
-                    if (!result.ok) {
-                      alert(t('error.loginFailed') || 'Login failed. Please try again.')
-                    } else {
-                      // 로그인 성공 후 리더보드 UI 다시 업데이트
-                      setTimeout(() => updateLeaderboardUI(true), 1000)
-                    }
-                  })
-                }
+                // 이벤트 위임: 로그인 버튼 클릭 처리는 setupLoginButtonDelegation()에서 담당
               } else {
                 const me = rankResult.data
                 const playTimeText = NumberFormat.formatPlaytimeMs(me.play_time_ms || 0)
@@ -661,15 +656,34 @@ export function startLeaderboardPolling() {
   const POLLING_INTERVAL_MS = 300000 // 5분 = 300초
   const delayToNextInterval = POLLING_INTERVAL_MS - (now % POLLING_INTERVAL_MS)
 
+  // 기존 타이머가 있으면 먼저 정리 (중복 방지)
+  if (__lbInterval) {
+    clearTimeout(__lbInterval)
+    __lbInterval = null
+  }
+
   __lbInterval = setTimeout(function tick() {
+    // 타이머 ID 초기화 (실행 시작)
+    __lbInterval = null
+
     const rankingActive = rankingTab.classList.contains('active')
     // 모바일에서는 active 여부를 계속 검사, 데스크톱에서는 IntersectionObserver가 stop을 담당
     if (!isDesktopLayout() && !rankingActive) {
       stopLeaderboardPolling()
       return
     }
+
+    // 폴링이 중단되었으면 다음 타이머 설정하지 않음
+    if (!__lbPollingStarted) {
+      return
+    }
+
     updateLeaderboardUI(false)
-    __lbInterval = setTimeout(tick, POLLING_INTERVAL_MS)
+
+    // 다음 폴링 예약 (폴링이 여전히 활성 상태일 때만)
+    if (__lbPollingStarted) {
+      __lbInterval = setTimeout(tick, POLLING_INTERVAL_MS)
+    }
   }, delayToNextInterval)
 }
 
@@ -702,9 +716,13 @@ export function setupLeaderboardObserver() {
     __lbObserver.disconnect()
   }
 
-  // IntersectionObserver 콜백이 중복 호출되지 않도록 디바운싱
-  let __lbObserverLastState = null
-  let __lbObserverDebounceTimer = null
+  // 기존 디바운스 타이머 정리
+  if (__lbObserverDebounceTimer) {
+    clearTimeout(__lbObserverDebounceTimer)
+    __lbObserverDebounceTimer = null
+  }
+  // 상태 초기화
+  __lbObserverLastState = null
 
   __lbObserver = new IntersectionObserver(
     entries => {

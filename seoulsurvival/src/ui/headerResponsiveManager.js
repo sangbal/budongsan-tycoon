@@ -8,6 +8,10 @@
  * @returns {Object} 관리자 객체
  */
 export function createHeaderResponsiveManager() {
+  // 리스너 참조 저장 (cleanup용)
+  let resizeObserver = null
+  let isInitialized = false
+
   /**
    * 헤더 높이를 CSS 변수로 동기화
    */
@@ -22,12 +26,16 @@ export function createHeaderResponsiveManager() {
    * 리사이즈 이벤트 리스너 초기화
    */
   function initResizeListeners() {
+    // 중복 초기화 방지
+    if (isInitialized) return
+    isInitialized = true
+
     syncHeaderHeight()
-    window.addEventListener('resize', syncHeaderHeight)
+    window.addEventListener('resize', syncHeaderHeight, { passive: true })
 
     // 모바일 주소창/뷰포트 변화 대응
     try {
-      window.visualViewport?.addEventListener('resize', syncHeaderHeight)
+      window.visualViewport?.addEventListener('resize', syncHeaderHeight, { passive: true })
     } catch {
       // Ignore if browser doesn't support this event
     }
@@ -36,15 +44,39 @@ export function createHeaderResponsiveManager() {
     try {
       const header = document.querySelector('header')
       if (header && 'ResizeObserver' in window) {
-        new ResizeObserver(syncHeaderHeight).observe(header)
+        resizeObserver = new ResizeObserver(syncHeaderHeight)
+        resizeObserver.observe(header)
       }
     } catch {
       // Ignore if browser doesn't support this event
     }
   }
 
+  /**
+   * 리스너 정리 (cleanup)
+   */
+  function cleanup() {
+    if (!isInitialized) return
+
+    window.removeEventListener('resize', syncHeaderHeight)
+
+    try {
+      window.visualViewport?.removeEventListener('resize', syncHeaderHeight)
+    } catch {
+      // Ignore
+    }
+
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+      resizeObserver = null
+    }
+
+    isInitialized = false
+  }
+
   return {
     syncHeaderHeight,
     initResizeListeners,
+    cleanup,
   }
 }

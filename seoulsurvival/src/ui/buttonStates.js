@@ -7,6 +7,7 @@
 import { t } from '../i18n/index.js'
 import { BASE_COSTS } from '../balance/index.js'
 import { getDomRefs } from './domRefs.js'
+import { formatKoreanNumber } from '../utils/numberFormat.js'
 
 /**
  * createButtonStateManager
@@ -98,36 +99,105 @@ export function createButtonStateManager(deps) {
     const unaffordableClass = isBuy ? 'unaffordable' : 'unaffordable-sell'
     const allClasses = ['affordable', 'unaffordable', 'affordable-sell', 'unaffordable-sell']
 
-    // 금융상품 버튼 클래스 업데이트
+    // 금융상품 버튼 클래스 및 aria-label 업데이트
     if (elBuyDeposit) {
       elBuyDeposit.classList.remove(...allClasses)
-      elBuyDeposit.classList.add(
-        depositCanBuy || depositCanSell ? affordableClass : unaffordableClass
-      )
+      const canAfford = depositCanBuy || depositCanSell
+      elBuyDeposit.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getFinancialCost('deposit', deposits, qty)
+          elBuyDeposit.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyDeposit.setAttribute('aria-label', `판매 불가: 보유량 ${deposits}개`)
+        }
+      } else {
+        elBuyDeposit.removeAttribute('aria-label')
+      }
     }
 
     if (elBuySavings) {
       elBuySavings.classList.remove(...allClasses)
-      elBuySavings.classList.add(
-        savingsCanBuy || savingsCanSell ? affordableClass : unaffordableClass
-      )
+      const canAfford = savingsCanBuy || savingsCanSell
+      elBuySavings.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getFinancialCost('savings', savings, qty)
+          elBuySavings.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuySavings.setAttribute('aria-label', `판매 불가: 보유량 ${savings}개`)
+        }
+      } else {
+        elBuySavings.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyBond) {
       elBuyBond.classList.remove(...allClasses)
-      elBuyBond.classList.add(bondCanBuy || bondCanSell ? affordableClass : unaffordableClass)
+      const canAfford = bondCanBuy || bondCanSell
+      elBuyBond.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getFinancialCost('bond', bonds, qty)
+          elBuyBond.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyBond.setAttribute('aria-label', `판매 불가: 보유량 ${bonds}개`)
+        }
+      } else {
+        elBuyBond.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyUsStock) {
       elBuyUsStock.classList.remove(...allClasses)
-      elBuyUsStock.classList.add(
-        usStockCanBuy || usStockCanSell ? affordableClass : unaffordableClass
-      )
+      const canAfford = usStockCanBuy || usStockCanSell
+      elBuyUsStock.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getFinancialCost('usStock', usStocks, qty)
+          elBuyUsStock.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyUsStock.setAttribute('aria-label', `판매 불가: 보유량 ${usStocks}개`)
+        }
+      } else {
+        elBuyUsStock.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyCrypto) {
       elBuyCrypto.classList.remove(...allClasses)
-      elBuyCrypto.classList.add(cryptoCanBuy || cryptoCanSell ? affordableClass : unaffordableClass)
+      const canAfford = cryptoCanBuy || cryptoCanSell
+      elBuyCrypto.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getFinancialCost('crypto', cryptos, qty)
+          elBuyCrypto.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyCrypto.setAttribute('aria-label', `판매 불가: 보유량 ${cryptos}개`)
+        }
+      } else {
+        elBuyCrypto.removeAttribute('aria-label')
+      }
     }
 
     // 부동산 버튼 상태 계산
@@ -149,47 +219,131 @@ export function createButtonStateManager(deps) {
     if (elBuyShop) elBuyShop.textContent = `${modeText}${qtyText}`
     if (elBuyBuilding) elBuyBuilding.textContent = `${modeText}${qtyText}`
 
-    // 부동산 버튼 클래스 업데이트
+    // 부동산 버튼 클래스 및 aria-label 업데이트
     if (elBuyVilla) {
       elBuyVilla.classList.remove(...allClasses)
-      elBuyVilla.classList.add(villaCanBuy || villaCanSell ? affordableClass : unaffordableClass)
+      const canAfford = villaCanBuy || villaCanSell
+      elBuyVilla.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getPropertyCost('villa', villas, qty)
+          elBuyVilla.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyVilla.setAttribute('aria-label', `판매 불가: 보유량 ${villas}채`)
+        }
+      } else {
+        elBuyVilla.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyOfficetel) {
       elBuyOfficetel.classList.remove(...allClasses)
-      elBuyOfficetel.classList.add(
-        officetelCanBuy || officetelCanSell ? affordableClass : unaffordableClass
-      )
+      const canAfford = officetelCanBuy || officetelCanSell
+      elBuyOfficetel.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getPropertyCost('officetel', officetels, qty)
+          elBuyOfficetel.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyOfficetel.setAttribute('aria-label', `판매 불가: 보유량 ${officetels}채`)
+        }
+      } else {
+        elBuyOfficetel.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyApt) {
       elBuyApt.classList.remove(...allClasses)
-      elBuyApt.classList.add(aptCanBuy || aptCanSell ? affordableClass : unaffordableClass)
+      const canAfford = aptCanBuy || aptCanSell
+      elBuyApt.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getPropertyCost('apartment', apartments, qty)
+          elBuyApt.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyApt.setAttribute('aria-label', `판매 불가: 보유량 ${apartments}채`)
+        }
+      } else {
+        elBuyApt.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyShop) {
       elBuyShop.classList.remove(...allClasses)
-      elBuyShop.classList.add(shopCanBuy || shopCanSell ? affordableClass : unaffordableClass)
+      const canAfford = shopCanBuy || shopCanSell
+      elBuyShop.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getPropertyCost('shop', shops, qty)
+          elBuyShop.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyShop.setAttribute('aria-label', `판매 불가: 보유량 ${shops}채`)
+        }
+      } else {
+        elBuyShop.removeAttribute('aria-label')
+      }
     }
 
     if (elBuyBuilding) {
       elBuyBuilding.classList.remove(...allClasses)
-      elBuyBuilding.classList.add(
-        buildingCanBuy || buildingCanSell ? affordableClass : unaffordableClass
-      )
+      const canAfford = buildingCanBuy || buildingCanSell
+      elBuyBuilding.classList.add(canAfford ? affordableClass : unaffordableClass)
+
+      if (!canAfford) {
+        if (isBuy) {
+          const cost = getPropertyCost('building', buildings, qty)
+          elBuyBuilding.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(cost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyBuilding.setAttribute('aria-label', `판매 불가: 보유량 ${buildings}채`)
+        }
+      } else {
+        elBuyBuilding.removeAttribute('aria-label')
+      }
     }
 
     // 서울타워 버튼 상태 (구매만 가능, 판매 불가)
     if (elBuyTower) {
       const towerCost = BASE_COSTS.tower
-      const towerCanBuy = isBuy && cash >= towerCost && isProductUnlocked('tower')
+      const towerUnlocked = isProductUnlocked('tower')
+      const towerCanBuy = isBuy && cash >= towerCost && towerUnlocked
       elBuyTower.textContent = isBuy ? `${t('button.buy')}${qtyText}` : t('button.sell')
       elBuyTower.classList.toggle('affordable', towerCanBuy)
-      elBuyTower.classList.toggle(
-        'unaffordable',
-        isBuy && (!towerCanBuy || !isProductUnlocked('tower'))
-      )
-      elBuyTower.disabled = getPurchaseMode() === 'sell' || !isProductUnlocked('tower')
+      elBuyTower.classList.toggle('unaffordable', isBuy && (!towerCanBuy || !towerUnlocked))
+      elBuyTower.disabled = getPurchaseMode() === 'sell' || !towerUnlocked
+
+      if (!towerCanBuy) {
+        if (!towerUnlocked) {
+          elBuyTower.setAttribute('aria-label', '잠금: 전제조건 미충족')
+        } else if (isBuy) {
+          elBuyTower.setAttribute(
+            'aria-label',
+            `구매 불가: 필요 금액 ${formatKoreanNumber(towerCost)}원, 보유 ${formatKoreanNumber(cash)}원`
+          )
+        } else {
+          elBuyTower.setAttribute('aria-label', '판매 불가: 서울타워는 판매할 수 없습니다')
+        }
+      } else {
+        elBuyTower.removeAttribute('aria-label')
+      }
     }
   }
 

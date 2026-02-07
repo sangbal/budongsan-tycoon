@@ -155,18 +155,45 @@ export function createCollapsibleManager() {
   }
 
   /**
+   * 설정 모달 내 collapsible 초기화
+   */
+  function initSettingsCollapsible() {
+    const settingsModalBody = document.getElementById('settingsModalBody')
+    if (!settingsModalBody) return
+
+    settingsModalBody.addEventListener('click', e => {
+      const toggle = e.target.closest('.stats-toggle')
+      const toggleIcon = e.target.closest('.toggle-icon')
+
+      if (toggle || toggleIcon) {
+        const section = (toggle || toggleIcon).closest('.stats-section')
+        if (section && section.classList.contains('collapsible')) {
+          const isCollapsed = section.classList.toggle('collapsed')
+
+          const toggleElem = section.querySelector('.stats-toggle')
+          if (toggleElem) {
+            toggleElem.setAttribute('aria-expanded', !isCollapsed)
+          }
+        }
+      }
+    })
+  }
+
+  /**
    * 모든 collapsible 섹션 초기화 (지연 실행)
    */
   function initAll(delay = 100) {
     setTimeout(() => {
       initStatsCollapsible()
       initInvestmentCollapsible()
+      initSettingsCollapsible()
     }, delay)
   }
 
   return {
     initStatsCollapsible,
     initInvestmentCollapsible,
+    initSettingsCollapsible,
     initAll,
   }
 }

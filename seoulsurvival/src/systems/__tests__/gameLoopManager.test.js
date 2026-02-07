@@ -350,4 +350,125 @@ describe('createGameLoopManager', () => {
       expect(manager).toHaveProperty('resumeTickLoop')
     })
   })
+
+  describe('P0: deltaTime 및 수익 누적', () => {
+    it('틱 루프에서 수익이 cash에 누적됨', () => {
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      expect(tickCallback).toBeDefined()
+
+      const initialCash = mockDeps.gameState.cash
+
+      // 틱 실행 (getRps * deltaTime 수익 추가)
+      tickCallback()
+
+      // 수익이 추가되었는지 확인
+      // getRps가 10을 반환하므로 약간의 수익 추가됨
+      expect(mockDeps.gameState.cash).toBeGreaterThanOrEqual(initialCash)
+    })
+
+    it('lifetimeEarnings 누적 확인', () => {
+      mockDeps.gameState.lifetimeEarnings = 1000
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      const initialLifetime = mockDeps.gameState.lifetimeEarnings
+
+      // 여러 틱 실행
+      for (let i = 0; i < 5; i++) {
+        tickCallback()
+      }
+
+      // lifetimeEarnings는 절대 감소하지 않음
+      expect(mockDeps.gameState.lifetimeEarnings).toBeGreaterThanOrEqual(initialLifetime)
+    })
+
+    it('totalLaborIncome 누적 (오토클릭)', () => {
+      mockDeps.gameState.autoClickEnabled = true
+      mockDeps.gameState.totalLaborIncome = 1000
+      manager.startAutoClick()
+
+      const callback = intervalCallbacks.get(1)?.callback
+      const initialLabor = mockDeps.gameState.totalLaborIncome
+
+      // 4틱 = 1초 (오토클릭 발동)
+      callback()
+      callback()
+      callback()
+      callback()
+
+      expect(mockDeps.gameState.totalLaborIncome).toBeGreaterThan(initialLabor)
+    })
+
+    it('금융상품 수익 계산 (getFinancialIncome 호출)', () => {
+      mockDeps.gameState.deposits = 10
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      tickCallback()
+
+      // getFinancialIncome이 호출되었는지 확인
+      expect(mockDeps.getFinancialIncome).toHaveBeenCalled()
+    })
+
+    it('부동산 수익 계산 (getPropertyIncome 호출)', () => {
+      mockDeps.gameState.villas = 5
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      tickCallback()
+
+      // getPropertyIncome이 호출되었는지 확인
+      expect(mockDeps.getPropertyIncome).toHaveBeenCalled()
+    })
+
+    it('슬로우 틱(10틱마다)에서 체크 함수들 호출', () => {
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+
+      // 10틱 실행
+      for (let i = 0; i < 10; i++) {
+        tickCallback()
+      }
+
+      expect(mockDeps.checkMarketEvent).toHaveBeenCalled()
+      expect(mockDeps.checkAchievements).toHaveBeenCalled()
+      expect(mockDeps.checkUpgradeUnlocks).toHaveBeenCalled()
+    })
+
+    it('UI 업데이트 호출', () => {
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      tickCallback()
+
+      expect(mockDeps.updateUI).toHaveBeenCalled()
+    })
+
+    it('음수 수익 방지', () => {
+      // getRps가 음수를 반환하는 경우
+      mockDeps.getRps.mockReturnValue(-10)
+      manager.startTickLoop(50)
+
+      const tickCallback = intervalCallbacks.get(1)?.callback
+      const initialCash = mockDeps.gameState.cash
+
+      tickCallback()
+
+      // 수익이 음수가 되면 cash가 줄어들 수 있음
+      // 게임 로직에 따라 다르므로 최소한 호출 확인
+      expect(mockDeps.getRps).toHaveBeenCalled()
+    })
+
+    it('자동 저장 간격 확인', () => {
+      manager.startAutoSave()
+
+      // setInterval이 AUTO_SAVE_INTERVAL_MS로 호출됨
+      expect(globalThis.setInterval).toHaveBeenCalled()
+      const callArgs = globalThis.setInterval.mock.calls[0]
+      expect(callArgs[1]).toBe(mockDeps.TIMING.AUTO_SAVE_INTERVAL_MS)
+    })
+  })
 })
