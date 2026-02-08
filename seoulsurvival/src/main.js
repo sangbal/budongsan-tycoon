@@ -52,6 +52,8 @@ import {
   createI18nUIManager,
   createAuthUIManager,
   createAchievementGrid,
+  createNotificationManager,
+  createSettingsTabManager,
   setupPurchaseModeButtons,
   setupPurchaseQuantityButtons,
   setupWorkClickHandler,
@@ -197,6 +199,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const { updateUpgradeAffordability, updateUpgradeProgress, updateUpgradeList, purchaseUpgrade } =
     upgradeManager
 
+  // 공유하기/즐겨찾기 기능 (achievementNotification보다 먼저 초기화)
+  const socialFeatures = createSocialFeatures({
+    t,
+    Diary,
+    Modal,
+    NumberFormat,
+    settings,
+    getCash: () => gameState.cash,
+    getRps,
+  })
+
   // achievementGrid 모듈 초기화
   achievementGridInstance = createAchievementGrid({
     getAchievements: () => ACHIEVEMENTS,
@@ -208,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ACHIEVEMENTS.forEach(achievement => {
       if (!achievement.unlocked && achievement.condition()) {
         achievement.unlocked = true
-        showAchievementNotification(achievement, t)
+        // shareGame을 shareCallback으로 전달
+        showAchievementNotification(achievement, t, socialFeatures.shareGame)
         const achievementName = t(`achievement.${achievement.id}.name`, {}, achievement.name)
         const achievementDesc = t(`achievement.${achievement.id}.desc`, {}, achievement.desc)
         Diary.addLog(t('msg.achievementUnlocked', { name: achievementName, desc: achievementDesc }))
@@ -288,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settings,
     updateUI,
     performAutoPrestige,
+    shareCallback: socialFeatures.shareGame, // 엔딩 모달 공유 버튼용
   })
   buttonStateManager = bsm
 
@@ -337,16 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPurchaseQuantityButtons({ elQty1, elQty5, elQty10, gameState, updateUI })
   setupWorkClickHandler({ elWork, workSystem })
 
-  // 공유하기/즐겨찾기 기능
-  const socialFeatures = createSocialFeatures({
-    t,
-    Diary,
-    Modal,
-    NumberFormat,
-    settings,
-    getCash: () => gameState.cash,
-    getRps,
-  })
+  // 공유하기/즐겨찾기 이벤트 리스너 (socialFeatures는 위에서 초기화됨)
   socialFeatures.initEventListeners({ shareBtn: elShareBtn, favoriteBtn: elFavoriteBtn })
 
   // 투자 탭 이벤트 리스너
@@ -373,11 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   keyboardShortcuts.initKeyboardShortcuts()
 
+  // ======= 알림 매니저 =======
+  const notificationManager = createNotificationManager({ toastInfo })
+
   // ======= 게임 루프 매니저 =======
   function initGameLoopManager() {
     gameLoopManager = createGameLoopManager({
       gameState,
       UPGRADES,
+      settings,
       TIMING,
       MARKET_EVENT_TIMING,
       PROBABILITY,
@@ -393,6 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
       updateUI,
       saveGame: () => saveLoadManager?.saveGame(),
       Animations,
+      notificationManager,
+      formatNumber: NumberFormat.formatNumber,
+      t,
       elWork,
     })
     gameLoopManager.startAllLoops()
@@ -525,7 +538,27 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   authUIManager.initAuthUI()
   cloudSyncManager.initVisibilityListeners()
-  setupToggleSwitches({ settings, saveSettings, updateUI })
+
+  // ======= 설정 탭 관리자 초기화 =======
+  const settingsTabManager = createSettingsTabManager({
+    settings,
+    SETTINGS_KEY,
+    saveLoadManager,
+    updateUI,
+    updateAchievementGrid: () => achievementGridInstance?.updateAchievementGrid(),
+    updateSaveStatus,
+    refreshPrestigeTab,
+    t,
+    getLang,
+    setLang,
+    applyI18nToDOMAsync,
+    NumberFormat,
+    getCareerName,
+    getCareerLevel: () => gameState.careerLevel,
+    safeText,
+    notificationManager,
+  })
+  settingsTabManager.initSettingsTab()
 
   // ======= 설정 모달 초기화 =======
   import('./ui/settingsModal.js').then(({ createSettingsModal }) => {

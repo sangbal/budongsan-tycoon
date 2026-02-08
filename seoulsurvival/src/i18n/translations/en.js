@@ -60,6 +60,9 @@ export default {
   'button.later': 'Later',
   'button.newStart': 'New Start',
 
+  // Common
+  'common.copy': 'Copy',
+
   // Messages (addLog)
   'msg.insufficientFunds': '💸 Insufficient funds. (Required: {amount})',
   'msg.purchased': '✅ Purchased {qty}{unit} of {product}. (Owned: {count}{unit})',
@@ -898,6 +901,11 @@ export default {
   // Share/Favorite
   'share.description':
     '💰 A game about getting rich through real estate and financial investments!\nCurrent Assets: {assets}\nPer Second: {rps}',
+  'share.context.referral':
+    '💰 A game about getting rich through real estate and financial investments!\nReferral Code: {referralCode}\nCurrent Assets: {assets}\nPer Second: {rps}',
+  'share.context.achievement':
+    '🏆 Achievement Unlocked!\n{achievementName}\nCurrent Assets: {assets}',
+  'share.context.tower': '🗼 Seoul Tower Purchased!\nTotal Towers: {towerCount}\nTry it yourself!',
   'share.notSupported': '❌ Sharing is not supported on this device/browser.',
   'share.success': '✅ Game shared successfully!',
   'share.failed': '❌ Failed to share.',
@@ -953,4 +961,39 @@ export default {
   'error.saveExport': 'An error occurred while exporting save.',
   'error.saveImportFormat': 'Invalid save file format.',
   'error.saveImport': 'An error occurred while importing save.',
+
+  // Browser notifications
+  'notification.offlineIncome.title': 'Offline Income',
+  'notification.offlineIncome.body': 'Earned {income} in {time}!',
+  'settings.notifications.title': 'Notifications',
+  'settings.notifications.enable': 'Enable browser notifications',
+  'settings.notifications.enableDesc': 'Receive browser notifications for offline income, etc.',
+  'settings.notifications.status.granted': 'Allowed',
+  'settings.notifications.status.denied': 'Blocked',
+  'settings.notifications.status.default': 'Not set',
+  'settings.notifications.status.unsupported': 'Not supported',
+  'settings.notifications.deniedMessage': 'Please allow notifications in your browser settings',
+
+  // Referral System
+  'referral.title': 'Invite Friends',
+  'referral.myCode': 'My Referral Code',
+  'referral.myLink': 'My Referral Link',
+  'referral.enterCode': 'Enter Friend Code',
+  'referral.submit': 'Submit',
+  'referral.rewards.title': 'Referral Rewards',
+  'referral.rewards.invited': 'Invited Friends',
+  'referral.rewards.bonus': 'Bonus',
+  'referral.rewardsDesc':
+    'Both parties receive bonuses when a friend joins.\nInvited friend: +5M starting cash (instant)\nInviter: +1 CP when referee plays 10 min (+2% permanent income, max 10 friends)',
+  'referral.loginRequired': 'Please log in to view your referral code.',
+  'referral.codeApplied': '✅ Referral code applied! +5M starting cash',
+  'referral.invalidCode': '❌ Invalid referral code.',
+  'referral.alreadyUsed': '❌ You have already used a referral code.',
+  'referral.cannotUseSelf': '❌ You cannot use your own referral code.',
+  'referral.copyLink': 'Copy Link',
+  'referral.copied': 'Copied!',
+  'referral.bonusReceived': 'Referral bonus! +5M starting cash 💰',
+  'referral.friendPlayed': '{name} reached 10 min playtime! +1 CP earned 🎉',
+  'referral.copySuccess': '✅ Referral code copied!',
+  'referral.copyFailed': '❌ Failed to copy.',
 }

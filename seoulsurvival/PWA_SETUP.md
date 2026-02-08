@@ -35,6 +35,9 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
 
+  <!-- Mobile Web App -->
+  <meta name="mobile-web-app-capable" content="yes" />
+
   <!-- Apple Mobile Web App (iOS) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

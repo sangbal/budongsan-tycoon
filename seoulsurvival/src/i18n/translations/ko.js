@@ -59,6 +59,9 @@ export default {
   'button.load': '불러오기',
   'button.newStart': '새로운 시작',
 
+  // 공통
+  'common.copy': '복사',
+
   // 메시지 (addLog)
   'msg.insufficientFunds': '💸 자금이 부족합니다. (필요: {amount}원)',
   'msg.purchased': '✅ {product} {qty}{unit}를 구입했습니다. (보유 {count}{unit})',
@@ -891,6 +894,10 @@ export default {
   // 공유/즐겨찾기
   'share.description':
     '💰 부동산과 금융 투자로 부자가 되는 게임!\n현재 자산: {assets}\n초당 수익: {rps}',
+  'share.context.referral':
+    '💰 부동산과 금융 투자로 부자가 되는 게임!\n레퍼럴 코드: {referralCode}\n현재 자산: {assets}\n초당 수익: {rps}',
+  'share.context.achievement': '🏆 업적 달성!\n{achievementName}\n현재 자산: {assets}',
+  'share.context.tower': '🗼 서울타워 구매 완료!\n누적 타워: {towerCount}개\n당신도 도전해보세요!',
   'share.notSupported': '❌ 이 기기/브라우저에서는 공유하기를 지원하지 않습니다.',
   'share.success': '✅ 게임이 공유되었습니다!',
   'share.failed': '❌ 공유에 실패했습니다.',
@@ -932,4 +939,39 @@ export default {
     '• CP 업그레이드로 빠른 성장\n' +
     '• 영구 슬롯으로 업그레이드 유지\n\n' +
     '더 강해진 당신으로 다시 도전하세요!',
+
+  // 브라우저 알림
+  'notification.offlineIncome.title': '오프라인 수익',
+  'notification.offlineIncome.body': '{time} 동안 {income} 획득!',
+  'settings.notifications.title': '알림',
+  'settings.notifications.enable': '브라우저 알림 사용',
+  'settings.notifications.enableDesc': '오프라인 수익 등을 브라우저 알림으로 받습니다',
+  'settings.notifications.status.granted': '허용됨',
+  'settings.notifications.status.denied': '차단됨',
+  'settings.notifications.status.default': '미설정',
+  'settings.notifications.status.unsupported': '미지원',
+  'settings.notifications.deniedMessage': '브라우저 설정에서 알림을 허용해주세요',
+
+  // 레퍼럴 시스템
+  'referral.title': '친구 초대',
+  'referral.myCode': '내 초대 코드',
+  'referral.myLink': '내 초대 링크',
+  'referral.enterCode': '친구 코드 입력',
+  'referral.submit': '등록',
+  'referral.rewards.title': '초대 보상',
+  'referral.rewards.invited': '초대받은 친구',
+  'referral.rewards.bonus': '보너스',
+  'referral.rewardsDesc':
+    '친구가 가입하면 양쪽 모두 보너스를 받습니다.\n초대받은 친구: 시작 자금 +500만원 (즉시)\n초대한 친구: 피추천인이 10분 플레이 시 +1 CP (영구 수익 +2%, 최대 10명)',
+  'referral.loginRequired': '로그인 후 초대 코드를 확인할 수 있습니다.',
+  'referral.codeApplied': '✅ 초대 코드가 적용되었습니다! 시작 자금 +500만원',
+  'referral.invalidCode': '❌ 유효하지 않은 초대 코드입니다.',
+  'referral.alreadyUsed': '❌ 이미 초대 코드를 사용했습니다.',
+  'referral.cannotUseSelf': '❌ 자신의 초대 코드는 사용할 수 없습니다.',
+  'referral.copySuccess': '✅ 초대 코드가 복사되었습니다!',
+  'referral.copyFailed': '❌ 복사에 실패했습니다.',
+  'referral.copyLink': '링크 복사',
+  'referral.copied': '복사됨!',
+  'referral.bonusReceived': '초대 보너스! +500만원 시작금 💰',
+  'referral.friendPlayed': '{name}님이 10분 플레이를 달성했습니다! +1 CP 획득 🎉',
 }

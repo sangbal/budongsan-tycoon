@@ -82,6 +82,9 @@ Seoul Survival을 Progressive Web App(PWA)으로 변환하고 Google Play Store�
 <!-- PWA Manifest -->
 <link rel="manifest" href="/seoulsurvival/manifest.json" />
 
+<!-- Mobile Web App -->
+<meta name="mobile-web-app-capable" content="yes" />
+
 <!-- Apple Mobile Web App (iOS) -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
