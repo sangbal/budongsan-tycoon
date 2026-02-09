@@ -5,7 +5,41 @@ Disallow: /dist/
 
 Sitemap: https://clicksurvivor.com/sitemap.xml
 
+# AI Search Crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /account/
+Disallow: /dist/
 
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /account/
+Disallow: /dist/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /account/
+Disallow: /dist/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /account/
+Disallow: /dist/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /account/
+Disallow: /dist/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /account/
+Disallow: /dist/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /account/
+Disallow: /dist/
 
 
 

@@ -1,0 +1,639 @@
+import{c as Ie,s as Ve,p as at}from"./vendor-react-zyYycamM.js";import{A as ct,C as R,G as E,T as _}from"./vendor-pixi-Dg8FuXnf.js";const fe={dollars:100,ironOre:0,ironPlate:0,iron:0,water:0,salt:0,ice:0,regolith:0,sand:0,energy:50,cabbage:0,radish:0,garlic:0,ginger:0,chilliPowder:0,kimchi:0,premiumKimchi:0,omegaKimchi:0},ye={iron:0,water:0,energy:0,kimchi:0},be={totalKimchiProduced:0,totalDollarsEarned:0,totalBuildingsPlaced:0,totalPlayTime:0,highestKimchiRate:0},g=Ie(Ve((s,e)=>({resources:{...fe},production:{...ye},buildings:[],buildingCounts:{},conveyors:[],inserters:[],research:{completed:[],current:null,progress:0},stats:{...be},version:"1.0.0",createdAt:null,lastSavedAt:null,playTime:0,isTutorialMode:!0,tutorialFurnacePlaced:!1,modifyResource:(t,i)=>{s(n=>({resources:{...n.resources,[t]:Math.max(0,(n.resources[t]??0)+i)}}))},modifyResources:t=>{s(i=>{const n={...i.resources};for(const[r,o]of Object.entries(t))n[r]=Math.max(0,(n[r]??0)+o);return{resources:n}})},canAfford:t=>{const{resources:i}=e();for(const[n,r]of Object.entries(t))if((i[n]??0)<r)return!1;return!0},spendResources:t=>e().canAfford(t)?(s(i=>{const n={...i.resources};for(const[r,o]of Object.entries(t))n[r]=Math.max(0,n[r]-o);return{resources:n}}),!0):!1,addBuilding:t=>{s(i=>{const n=[...i.buildings,t],r={...i.buildingCounts};return r[t.type]=(r[t.type]??0)+1,{buildings:n,buildingCounts:r,stats:{...i.stats,totalBuildingsPlaced:i.stats.totalBuildingsPlaced+1}}})},removeBuilding:t=>{s(i=>{const n=i.buildings.find(a=>a.id===t);if(!n)return i;const r=i.buildings.filter(a=>a.id!==t),o={...i.buildingCounts};return o[n.type]=Math.max(0,(o[n.type]??1)-1),{buildings:r,buildingCounts:o}})},updateBuilding:(t,i)=>{s(n=>({buildings:n.buildings.map(r=>r.id===t?{...r,...i}:r)}))},getBuildingAt:(t,i)=>e().buildings.find(n=>n.x===t&&n.y===i),addConveyor:t=>{s(i=>({conveyors:[...i.conveyors,t]}))},removeConveyor:t=>{s(i=>({conveyors:i.conveyors.filter(n=>n.id!==t)}))},updateConveyor:(t,i)=>{s(n=>({conveyors:n.conveyors.map(r=>r.id===t?{...r,...i}:r)}))},addInserter:t=>{s(i=>({inserters:[...i.inserters,t]}))},removeInserter:t=>{s(i=>({inserters:i.inserters.filter(n=>n.id!==t)}))},updateInserter:(t,i)=>{s(n=>({inserters:n.inserters.map(r=>r.id===t?{...r,...i}:r)}))},setProduction:t=>{s({production:{...e().production,...t}})},processTick:t=>{const{production:i,resources:n,stats:r}=e(),o={};let a=0;for(const[l,u]of Object.entries(i))if(u>0){const d=u*t;o[l]=d,l==="kimchi"&&(a=d)}Object.keys(o).length>0&&s(l=>{const u={...l.resources};for(const[d,h]of Object.entries(o))u[d]=(u[d]??0)+h;return{resources:u,playTime:l.playTime+t,stats:{...l.stats,totalKimchiProduced:l.stats.totalKimchiProduced+a,totalPlayTime:l.stats.totalPlayTime+t,highestKimchiRate:Math.max(l.stats.highestKimchiRate,i.kimchi??0)}}})},startResearch:t=>{s(i=>({research:{...i.research,current:t,progress:0}}))},setResearchProgress:(t,i)=>{s(n=>n.research.current!==t?n:{research:{...n.research,progress:i}})},completeResearch:t=>{s(i=>({research:{completed:[...new Set([...i.research.completed,t])],current:null,progress:0}}))},cancelResearch:()=>{s(t=>({research:{...t.research,current:null,progress:0}}))},exitTutorialMode:()=>{s({isTutorialMode:!1})},enterTutorialMode:()=>{s({isTutorialMode:!0,tutorialFurnacePlaced:!1})},setTutorialFurnacePlaced:()=>{s({tutorialFurnacePlaced:!0})},serialize:()=>{const t=e();return{version:t.version,createdAt:t.createdAt,lastSavedAt:Date.now(),playTime:t.playTime,resources:t.resources,production:t.production,buildings:t.buildings,buildingCounts:t.buildingCounts,research:t.research,stats:t.stats,isTutorialMode:t.isTutorialMode,tutorialFurnacePlaced:t.tutorialFurnacePlaced}},deserialize:t=>{t&&s({version:t.version??"1.0.0",createdAt:t.createdAt??Date.now(),lastSavedAt:t.lastSavedAt,playTime:t.playTime??0,resources:{...fe,...t.resources},production:{...ye,...t.production},buildings:t.buildings??[],buildingCounts:t.buildingCounts??{},research:t.research??{completed:[],current:null,progress:0},stats:{...be,...t.stats},isTutorialMode:t.isTutorialMode??!0,tutorialFurnacePlaced:t.tutorialFurnacePlaced??!1})},reset:()=>{s({resources:{...fe},production:{...ye},buildings:[],buildingCounts:{},conveyors:[],inserters:[],research:{completed:[],current:null,progress:0},stats:{...be},createdAt:Date.now(),lastSavedAt:null,playTime:0,isTutorialMode:!0,tutorialFurnacePlaced:!1})}})));let L=null,re=null,oe=null;async function lt(s={}){if(L)return console.warn("[PixiApp] Already initialized"),L;const{canvas:e,width:t=window.innerWidth,height:i=window.innerHeight,backgroundColor:n=856343,antialias:r=!0,autoDensity:o=!0,resolution:a=window.devicePixelRatio||1}=s;L=new ct,await L.init({canvas:e,width:t,height:i,backgroundColor:n,antialias:r,autoDensity:o,resolution:a,preference:"webgl"}),re=new R,re.label="game",L.stage.addChild(re),oe=new R,oe.label="ui",L.stage.addChild(oe);const l=()=>{L&&L.renderer.resize(window.innerWidth,window.innerHeight)};return window.addEventListener("resize",l),`${t}${i}${a}`,L.renderer.type,L}function ie(){return re}function ut(){return oe}function se(){return L?{width:L.screen.width,height:L.screen.height}:{width:0,height:0}}const q={minZoom:.25,maxZoom:2,zoomSpeed:.1,panSpeed:1,clampToBounds:!0},w={x:0,y:0};let B=1,W=null,he=!1,ce={x:0,y:0},le={x:0,y:0};function dt(s={}){Object.assign(q,s);const e=se();w.x=e.width/2,w.y=e.height/2}function ht(s){W=s}function gt(s,e){w.x=s,w.y=e,ge(),me()}function ne(s,e){w.x+=s*q.panSpeed/B,w.y+=e*q.panSpeed/B,ge(),me()}function mt(s,e,t){const i=B;if(B=Math.max(q.minZoom,Math.min(q.maxZoom,s)),e!==void 0&&t!==void 0){const n=se(),r=n.width/2,o=n.height/2,a=(e-r)/i,l=(t-o)/i,u=1-i/B;w.x+=a*u,w.y+=l*u}ge(),me()}function pt(s,e,t){const i=B*(1+s*q.zoomSpeed);mt(i,e,t)}function ze(s,e){const t=se(),i=t.width/2,n=t.height/2;return{x:w.x+(s-i)/B,y:w.y+(e-n)/B}}function ft(s,e){he=!0,ce.x=s,ce.y=e,le.x=w.x,le.y=w.y}function yt(s,e){if(!he)return;const t=(ce.x-s)/B,i=(ce.y-e)/B;w.x=le.x+t,w.y=le.y+i,ge(),me()}function bt(){he=!1}function vt(){return he}function ge(){if(!q.clampToBounds||!W)return;const s=se(),e=s.width/2/B,t=s.height/2/B;w.x=Math.max(W.minX+e,Math.min(W.maxX-e,w.x)),w.y=Math.max(W.minY+t,Math.min(W.maxY-t,w.y))}function me(){const s=ie();if(!s)return;const e=se(),t=e.width/2,i=e.height/2;s.scale.set(B),s.position.set(t-w.x*B,i-w.y*B)}const m={tileSize:64,mapWidth:50,mapHeight:50,chunkSize:16};let G=null;const ke=new Map;let te=[];const Ae={ground:9127187,rock:5913114,ice:8900331,sand:12886874,crater:4860426};function St(s={}){Object.assign(m,s);const e=ie();if(!e){console.error("[Tilemap] Game container not found");return}G&&G.destroy({children:!0}),G=new R,G.label="tilemap",e.addChildAt(G,0),wt(),Et();const t=m.mapWidth*m.tileSize,i=m.mapHeight*m.tileSize;ht({minX:0,minY:0,maxX:t,maxY:i}),`${m.mapWidth}${m.mapHeight}`}function wt(){te=[];for(let s=0;s<m.mapHeight;s++){te[s]=[];for(let e=0;e<m.mapWidth;e++)te[s][e]=xt(e,s)}}function xt(s,e){const t=Tt(s,e);let i="ground",n=!0,r=null;return t<.15?(i="crater",n=!1):t<.25?(i="rock",n=!1,Math.random()<.3&&(r="ironOre")):t>.85?(i="ice",r="ice"):t>.75&&(i="sand"),{x:s,y:e,type:i,buildable:n,resource:r}}function Tt(s,e){const i=Math.sin(s*12.9898+e*78.233+12345)*43758.5453;return i-Math.floor(i)}function Et(){if(!G)return;ke.clear();const s=Math.ceil(m.mapWidth/m.chunkSize),e=Math.ceil(m.mapHeight/m.chunkSize);for(let t=0;t<e;t++)for(let i=0;i<s;i++)Ct(i,t)}function Ct(s,e){var d;if(!G)return;const t=`${s},${e}`,i=ke.get(t);i&&i.destroy({children:!0});const n=new R;n.label=`chunk_${t}`;const r=s*m.chunkSize,o=e*m.chunkSize,a=Math.min(r+m.chunkSize,m.mapWidth),l=Math.min(o+m.chunkSize,m.mapHeight),u=new E;for(let h=o;h<l;h++)for(let f=r;f<a;f++){const v=(d=te[h])==null?void 0:d[f];if(!v)continue;const y=f*m.tileSize,F=h*m.tileSize,pe=Ae[v.type]||Ae.ground;u.rect(y,F,m.tileSize,m.tileSize).fill({color:pe}).stroke({width:1,color:0,alpha:.2}),v.resource&&Pt(n,y,F,v.resource)}n.addChild(u),G.addChild(n),ke.set(t,n)}function Pt(s,e,t,i){const n=new E,r=e+m.tileSize/2,o=t+m.tileSize/2;let a=16777215;i==="ironOre"&&(a=9127187),i==="iron"&&(a=8421504),i==="ice"&&(a=49151),n.circle(r,o,8).fill({color:a}).stroke({width:2,color:0,alpha:.5}),s.addChild(n)}function Ge(s,e){var t;return s<0||s>=m.mapWidth||e<0||e>=m.mapHeight?null:((t=te[e])==null?void 0:t[s])||null}function kt(s,e){return{x:Math.floor(s/m.tileSize),y:Math.floor(e/m.tileSize)}}function Mt(s,e){return{x:s*m.tileSize+m.tileSize/2,y:e*m.tileSize+m.tileSize/2}}function J(){return m.tileSize}function Bt(){return{width:m.mapWidth,height:m.mapHeight}}const D={dollars:{id:"dollars",category:"utility",nameKey:"resources.dollars.name",descKey:"resources.dollars.desc",icon:"💰",color:"#10B981",initialValue:100,maxValue:-1,canTrade:!1,basePrice:0,tags:["currency"]},energy:{id:"energy",category:"utility",nameKey:"resources.energy.name",descKey:"resources.energy.desc",icon:"⚡",color:"#FCD34D",initialValue:0,maxValue:100,canTrade:!1,basePrice:0,tags:["power"]},oxygen:{id:"oxygen",category:"utility",nameKey:"resources.oxygen.name",descKey:"resources.oxygen.desc",icon:"💨",color:"#60A5FA",initialValue:100,maxValue:200,canTrade:!1,basePrice:0,tags:["life-support"]},ironOre:{id:"ironOre",category:"raw",nameKey:"resources.ironOre.name",descKey:"resources.ironOre.desc",icon:"🪨",color:"#8B4513",initialValue:0,maxValue:1e3,canTrade:!0,basePrice:2,tags:["mineral","ore","raw"]},ironPlate:{id:"ironPlate",category:"processed",nameKey:"resources.ironPlate.name",descKey:"resources.ironPlate.desc",icon:"🔩",color:"#6B7280",initialValue:0,maxValue:500,canTrade:!0,basePrice:8,tags:["mineral","processed","construction"]},iron:{id:"iron",category:"raw",nameKey:"resources.iron.name",descKey:"resources.iron.desc",icon:"⚙️",color:"#6B7280",initialValue:0,maxValue:1e3,canTrade:!0,basePrice:5,tags:["mineral","construction","legacy"]},water:{id:"water",category:"raw",nameKey:"resources.water.name",descKey:"resources.water.desc",icon:"💧",color:"#3B82F6",initialValue:0,maxValue:500,canTrade:!0,basePrice:2,tags:["liquid","essential"]},salt:{id:"salt",category:"raw",nameKey:"resources.salt.name",descKey:"resources.salt.desc",icon:"🧂",color:"#F3F4F6",initialValue:0,maxValue:300,canTrade:!0,basePrice:3,tags:["mineral","seasoning"]},ice:{id:"ice",category:"raw",nameKey:"resources.ice.name",descKey:"resources.ice.desc",icon:"🧊",color:"#BAE6FD",initialValue:0,maxValue:500,canTrade:!0,basePrice:1,tags:["frozen","water-source"]},regolith:{id:"regolith",category:"raw",nameKey:"resources.regolith.name",descKey:"resources.regolith.desc",icon:"🪨",color:"#A16207",initialValue:0,maxValue:2e3,canTrade:!1,basePrice:0,tags:["soil","mars"]},sand:{id:"sand",category:"raw",nameKey:"resources.sand.name",descKey:"resources.sand.desc",icon:"⏳",color:"#FDE68A",initialValue:0,maxValue:1e3,canTrade:!0,basePrice:1,tags:["mineral","construction"]},cabbage:{id:"cabbage",category:"crop",nameKey:"resources.cabbage.name",descKey:"resources.cabbage.desc",icon:"🥬",color:"#34D399",initialValue:0,maxValue:500,canTrade:!0,basePrice:8,tags:["vegetable","kimchi-ingredient"]},radish:{id:"radish",category:"crop",nameKey:"resources.radish.name",descKey:"resources.radish.desc",icon:"🥕",color:"#F59E0B",initialValue:0,maxValue:500,canTrade:!0,basePrice:6,tags:["vegetable","kimchi-ingredient"]},garlic:{id:"garlic",category:"crop",nameKey:"resources.garlic.name",descKey:"resources.garlic.desc",icon:"🧄",color:"#F3F4F6",initialValue:0,maxValue:300,canTrade:!0,basePrice:4,tags:["spice","seasoning"]},ginger:{id:"ginger",category:"crop",nameKey:"resources.ginger.name",descKey:"resources.ginger.desc",icon:"🫚",color:"#D97706",initialValue:0,maxValue:300,canTrade:!0,basePrice:5,tags:["spice","seasoning"]},scallion:{id:"scallion",category:"crop",nameKey:"resources.scallion.name",descKey:"resources.scallion.desc",icon:"🧅",color:"#84CC16",initialValue:0,maxValue:400,canTrade:!0,basePrice:4,tags:["vegetable","kimchi-ingredient"]},cucumber:{id:"cucumber",category:"crop",nameKey:"resources.cucumber.name",descKey:"resources.cucumber.desc",icon:"🥒",color:"#10B981",initialValue:0,maxValue:400,canTrade:!0,basePrice:7,tags:["vegetable","kimchi-ingredient"]},chilliPowder:{id:"chilliPowder",category:"crop",nameKey:"resources.chilliPowder.name",descKey:"resources.chilliPowder.desc",icon:"🌶️",color:"#DC2626",initialValue:0,maxValue:200,canTrade:!0,basePrice:10,tags:["spice","seasoning","processed"]},kimchi:{id:"kimchi",category:"processed",nameKey:"resources.kimchi.name",descKey:"resources.kimchi.desc",icon:"🥬",color:"#DC2626",initialValue:0,maxValue:500,canTrade:!0,basePrice:50,tags:["fermented","export-goods","basic"]},kkakdugi:{id:"kkakdugi",category:"processed",nameKey:"resources.kkakdugi.name",descKey:"resources.kkakdugi.desc",icon:"🥕",color:"#F97316",initialValue:0,maxValue:500,canTrade:!0,basePrice:45,tags:["fermented","export-goods","basic"]},paKimchi:{id:"paKimchi",category:"processed",nameKey:"resources.paKimchi.name",descKey:"resources.paKimchi.desc",icon:"🧅",color:"#22C55E",initialValue:0,maxValue:400,canTrade:!0,basePrice:40,tags:["fermented","export-goods","fast-production"]},oiSobagi:{id:"oiSobagi",category:"processed",nameKey:"resources.oiSobagi.name",descKey:"resources.oiSobagi.desc",icon:"🥒",color:"#15803D",initialValue:0,maxValue:300,canTrade:!0,basePrice:80,tags:["fermented","export-goods","premium"]},premiumKimchi:{id:"premiumKimchi",category:"processed",nameKey:"resources.premiumKimchi.name",descKey:"resources.premiumKimchi.desc",icon:"⭐",color:"#FBBF24",initialValue:0,maxValue:200,canTrade:!0,basePrice:150,tags:["fermented","export-goods","premium","aged"]},omegaKimchi:{id:"omegaKimchi",category:"processed",nameKey:"resources.omegaKimchi.name",descKey:"resources.omegaKimchi.desc",icon:"💎",color:"#8B5CF6",initialValue:0,maxValue:100,canTrade:!0,basePrice:500,tags:["fermented","export-goods","ultra-premium","endgame"]},lactobacillusData:{id:"lactobacillusData",category:"research",nameKey:"resources.lactobacillusData.name",descKey:"resources.lactobacillusData.desc",icon:"🔬",color:"#6366F1",initialValue:0,maxValue:500,canTrade:!1,basePrice:0,tags:["science","tier1-2"]},fermentCulture:{id:"fermentCulture",category:"research",nameKey:"resources.fermentCulture.name",descKey:"resources.fermentCulture.desc",icon:"🧬",color:"#A855F7",initialValue:0,maxValue:300,canTrade:!1,basePrice:0,tags:["science","tier3-4"]},omegaStarter:{id:"omegaStarter",category:"research",nameKey:"resources.omegaStarter.name",descKey:"resources.omegaStarter.desc",icon:"🧫",color:"#EC4899",initialValue:0,maxValue:100,canTrade:!1,basePrice:0,tags:["science","tier5","endgame"]}};function Ke(s){var e;return((e=D[s])==null?void 0:e.color)??"#6B7280"}function Me(s){var e;return((e=D[s])==null?void 0:e.icon)??"❓"}class It extends R{constructor(e={}){super(),this.config={width:e.width??600,height:e.height??50,displayResources:e.displayResources??["dollars","energy","iron","ice"],padding:12,itemSpacing:120,fontSize:18,fontFamily:"monospace"},this.resourceTexts={},this.background=null,this.unsubscribe=null,this.label="ResourceBar",this.createBar(),this.subscribeToStore()}createBar(){this.background=new E,this.background.rect(0,0,this.config.width,this.config.height).fill({color:2042167,alpha:.95}),this.background.rect(0,0,this.config.width,this.config.height).stroke({width:2,color:3621201,alpha:.8}),this.addChild(this.background);const{displayResources:e,padding:t,itemSpacing:i,fontSize:n,fontFamily:r}=this.config;e.forEach((o,a)=>{if(!D[o]){console.warn(`[ResourceBar] Unknown resource: ${o}`);return}const u=new _({text:`${Me(o)} 0`,style:{fill:Ke(o),fontSize:n,fontFamily:r,fontWeight:"bold"}});u.x=t+a*i,u.y=(this.config.height-n)/2,this.addChild(u),this.resourceTexts[o]=u}),`${e.length}`}subscribeToStore(){this.unsubscribe=g.subscribe(e=>e.resources,e=>{this.updateDisplay(e)},{fireImmediately:!0})}updateDisplay(e){Object.entries(this.resourceTexts).forEach(([t,i])=>{const n=e[t]??0,r=Me(t);if(t==="energy"){const o=D.energy.maxValue;i.text=`${r} ${Math.floor(n)}/${o}`,n<o*.2?i.style.fill="#EF4444":i.style.fill=Ke(t)}else i.text=`${r} ${this.formatNumber(n)}`})}formatNumber(e){return e>=1e6?(e/1e6).toFixed(1)+"M":e>=1e3?(e/1e3).toFixed(1)+"K":Math.floor(e).toString()}destroy(e){this.unsubscribe&&(this.unsubscribe(),this.unsubscribe=null),super.destroy(e)}}function Rt(s,e={}){const t=new It(e),i=e.x??10,n=e.y??10;return t.position.set(i,n),s.addChild(t),`${i}${n}`,t}class Lt extends R{constructor(){super(),this.label="click-effects",this.activeEffects=[],this.textPool=[]}showFloating(e,t,i,n){const r=Mt(i,n),o=Me(e),a=this.getOrCreateText();a.text=`+${t} ${o}`,a.style={fill:"#FFFFFF",fontSize:20,fontWeight:"bold",dropShadow:{alpha:1,angle:Math.PI/6,blur:2,color:"#000000",distance:2},align:"center"},a.anchor.set(.5,.5),a.x=r.x,a.y=r.y,a.alpha=1,a.x+=(Math.random()-.5)*20,this.addChild(a),this.activeEffects.push({text:a,startY:r.y,elapsed:0,duration:.8})}update(e){for(let t=this.activeEffects.length-1;t>=0;t--){const i=this.activeEffects[t];i.elapsed+=e;const n=Math.min(i.elapsed/i.duration,1),r=1-Math.pow(1-n,3);i.text.y=i.startY-r*50,i.text.alpha=1-n,n>=1&&(this.removeChild(i.text),this.recycleText(i.text),this.activeEffects.splice(t,1))}}getOrCreateText(){return this.textPool.length>0?this.textPool.pop():new _}recycleText(e){this.textPool.length<50?(e.text="",e.alpha=1,this.textPool.push(e)):e.destroy()}cleanup(){this.activeEffects.forEach(e=>{this.removeChild(e.text),e.text.destroy()}),this.activeEffects=[],this.textPool.forEach(e=>e.destroy()),this.textPool=[]}}let ve=null;function $t(){return ve||(ve=new Lt),ve}class H{constructor(e=[]){this.requiredComponents=e,this.priority=0}update(e,t){throw new Error(`${this.constructor.name}.update() must be implemented`)}matches(e){return this.requiredComponents.every(t=>e.hasComponent(t))}init(){}cleanup(){}}class At extends H{constructor(){super([]),this.systemName="ResourceSystem",this.priority=10}init(){typeof window<"u"&&(window.resourceSystem=this)}update(e,t){}add(e,t){const i=D[e];if(!i)return console.warn(`[ResourceSystem] Unknown resource: ${e}`),0;const n=this.get(e),r=i.maxValue===-1?1/0:i.maxValue,a=Math.min(n+t,r)-n;return a>0&&g.getState().modifyResource(e,a),a}consume(e,t){return D[e]?this.get(e)<t?!1:(g.getState().modifyResource(e,-t),!0):(console.warn(`[ResourceSystem] Unknown resource: ${e}`),!1)}has(e,t){return this.get(e)>=t}get(e){return g.getState().resources[e]??0}set(e,t){const i=Math.max(0,Math.min(t,this.getMaxValue(e)));g.getState().modifyResource(e,i-this.get(e))}getMaxValue(e){const t=D[e];return t?t.maxValue===-1?1/0:t.maxValue:(console.warn(`[ResourceSystem] Unknown resource: ${e}`),0)}getDefinition(e){return D[e]??null}consumeMultiple(e){for(const[t,i]of Object.entries(e))if(!this.has(t,i))return!1;for(const[t,i]of Object.entries(e))this.consume(t,i);return!0}addMultiple(e){const t={};for(const[i,n]of Object.entries(e))t[i]=this.add(i,n);return t}upgradeCapacity(e,t){console.warn(`[ResourceSystem] upgradeCapacity not implemented yet: ${e} +${t}`)}debugPrintAll(){const e=g.getState().resources;for(const[t,i]of Object.entries(e)){const n=D[t],r=this.getMaxValue(t),o=r===1/0?"∞":r;`${(n==null?void 0:n.icon)??"?"}${t}${i}${o}`}}debugInfo(e){var r;const t=D[e];if(!t){console.error(`[ResourceSystem] Unknown resource: ${e}`);return}const i=this.get(e),n=this.getMaxValue(e);`${t.icon}${e}`,`${i}`,`${n===1/0?"∞":n}`,`${t.category}`,`${t.canTrade}`,t.canTrade&&`${t.basePrice}`,`${((r=t.tags)==null?void 0:r.join(", "))??"none"}`}}const p=new At,T={extractor:{id:"extractor",category:"extraction",nameKey:"buildings.extractor.name",descKey:"buildings.extractor.desc",icon:"⛏️",color:"#6B7280",cost:{ironPlate:30},input:{},output:{ironOre:.5},processTime:0,energyPerTick:1,size:{width:2,height:2},maxLevel:5,tags:["mining","auto","tier1"]},iceHarvester:{id:"iceHarvester",category:"extraction",nameKey:"buildings.iceHarvester.name",descKey:"buildings.iceHarvester.desc",icon:"🧊",color:"#BAE6FD",cost:{ironPlate:25},input:{},output:{ice:.3},processTime:0,energyPerTick:1,size:{width:2,height:2},maxLevel:5,tags:["mining","auto","water-source","tier1"]},greenhouse:{id:"greenhouse",category:"production",nameKey:"buildings.greenhouse.name",descKey:"buildings.greenhouse.desc",icon:"🏡",color:"#10B981",cost:{ironPlate:40,sand:20},input:{water:.1},output:{cabbage:.033},processTime:30,energyPerTick:2,size:{width:3,height:3},maxLevel:5,tags:["farming","crop-production","tier1"]},furnace:{id:"furnace",category:"production",nameKey:"buildings.furnace.name",descKey:"buildings.furnace.desc",icon:"🔥",color:"#F97316",cost:{ironPlate:60,regolith:20},input:{ironOre:2},output:{ironPlate:1},processTime:15,energyPerTick:5,size:{width:2,height:2},maxLevel:5,tags:["smelting","processing","tier1"]},brineStation:{id:"brineStation",category:"production",nameKey:"buildings.brineStation.name",descKey:"buildings.brineStation.desc",icon:"🧂",color:"#F3F4F6",cost:{ironPlate:35,sand:10},input:{water:10},output:{salt:1},processTime:20,energyPerTick:3,size:{width:2,height:2},maxLevel:5,tags:["processing","kimchi-ingredient","tier1"]},fermentationChamber:{id:"fermentationChamber",category:"production",nameKey:"buildings.fermentationChamber.name",descKey:"buildings.fermentationChamber.desc",icon:"🥬",color:"#DC2626",cost:{ironPlate:80,sand:30},input:{cabbage:1,salt:1,chilliPowder:1},output:{kimchi:1},processTime:60,energyPerTick:4,size:{width:3,height:3},maxLevel:5,tags:["fermentation","kimchi-production","tier2"]},coalPowerPlant:{id:"coalPowerPlant",category:"power",nameKey:"buildings.coalPowerPlant.name",descKey:"buildings.coalPowerPlant.desc",icon:"⚡",color:"#FCD34D",cost:{ironPlate:70,regolith:30},input:{regolith:.3},output:{energy:10},processTime:0,energyPerTick:-10,size:{width:3,height:3},maxLevel:5,tags:["power-generation","tier1"]},warehouse:{id:"warehouse",category:"utility",nameKey:"buildings.warehouse.name",descKey:"buildings.warehouse.desc",icon:"📦",color:"#8B5CF6",cost:{ironPlate:50,sand:15},input:{},output:{},processTime:0,energyPerTick:0,size:{width:3,height:3},maxLevel:10,tags:["storage","utility","tier1"],effect:{type:"storage",value:500}},conveyor:{id:"conveyor",category:"logistics",nameKey:"buildings.conveyor.name",descKey:"buildings.conveyor.desc",icon:"➡️",color:"#A16207",cost:{ironPlate:3},input:{},output:{},processTime:0,energyPerTick:.1,size:{width:1,height:1},maxLevel:3,tags:["logistics","transport","tier2"],effect:{type:"transport",speed:1}},inserter:{id:"inserter",category:"logistics",nameKey:"buildings.inserter.name",descKey:"buildings.inserter.desc",icon:"🦾",color:"#6B7280",cost:{ironPlate:8},input:{},output:{},processTime:0,energyPerTick:.2,size:{width:1,height:1},maxLevel:5,tags:["logistics","inserter","tier2"],effect:{type:"transfer",speed:.5}}};function Kt(s,e){const t=T[s];if(!t||e>=t.maxLevel)return null;const i=Math.pow(1.5,e),n={};for(const[r,o]of Object.entries(t.cost))n[r]=Math.ceil(o*i);return n}function Ot(s,e=1){const t=T[s];if(!t||!t.output)return{};const i=1+(e-1)*.2,n={};for(const[r,o]of Object.entries(t.output))n[r]=o*i;return n}function Ft(s="entity"){return`${s}_${Date.now()}_${Math.random().toString(36).substring(2,9)}`}function Nt(){return Ft("building")}const x=Ie(Ve((s,e)=>({activePanel:null,activeModal:null,modalData:null,selectedBuildingType:null,selectedBuildingId:null,tooltip:null,isLoading:!1,loadingMessage:null,notifications:[],isPaused:!1,currentView:"game",buildMode:{active:!1,type:null,valid:!1,previewX:0,previewY:0},camera:{x:0,y:0,zoom:1},openPanel:t=>{s({activePanel:t})},closePanel:()=>{s({activePanel:null})},togglePanel:t=>{s(i=>({activePanel:i.activePanel===t?null:t}))},openModal:(t,i=null)=>{s({activeModal:t,modalData:i,isPaused:!0})},closeModal:()=>{s({activeModal:null,modalData:null,isPaused:!1})},selectBuildingType:t=>{s({selectedBuildingType:t,buildMode:{active:!0,type:t,valid:!1,previewX:0,previewY:0}})},cancelBuildMode:()=>{s({selectedBuildingType:null,buildMode:{active:!1,type:null,valid:!1,previewX:0,previewY:0}})},updateBuildPreview:(t,i,n)=>{s(r=>({buildMode:{...r.buildMode,previewX:t,previewY:i,valid:n}}))},selectBuilding:t=>{s({selectedBuildingId:t,selectedBuildingType:null})},clearSelection:()=>{s({selectedBuildingId:null,selectedBuildingType:null,buildMode:{active:!1,type:null,valid:!1,previewX:0,previewY:0}})},showTooltip:t=>{s({tooltip:t})},hideTooltip:()=>{s({tooltip:null})},startLoading:(t=null)=>{s({isLoading:!0,loadingMessage:t})},stopLoading:()=>{s({isLoading:!1,loadingMessage:null})},updateLoadingMessage:t=>{s({loadingMessage:t})},addNotification:t=>{const i=t.id??`notif-${Date.now()}`;s(r=>({notifications:[...r.notifications,{...t,id:i}]}));const n=t.duration??3e3;return n>0&&setTimeout(()=>{e().removeNotification(i)},n),i},removeNotification:t=>{s(i=>({notifications:i.notifications.filter(n=>n.id!==t)}))},clearNotifications:()=>{s({notifications:[]})},pause:()=>{s({isPaused:!0})},resume:()=>{s({isPaused:!1})},togglePause:()=>{s(t=>({isPaused:!t.isPaused}))},setView:t=>{s({currentView:t})},updateCamera:t=>{s({camera:t})},reset:()=>{s({activePanel:null,activeModal:null,modalData:null,selectedBuildingType:null,selectedBuildingId:null,tooltip:null,isLoading:!1,loadingMessage:null,notifications:[],isPaused:!1,currentView:"game",buildMode:{active:!1,type:null,valid:!1,previewX:0,previewY:0}})}}))),He={title:"KIMCHI INVASION",subtitle:"The Red Planet Protocol",loading:{state:"게임 상태 초기화 중...",save:"저장된 게임 불러오는 중...",renderer:"렌더러 초기화 중...",systems:"게임 시스템 로딩 중...",ui:"인터페이스 설정 중...",input:"컨트롤 구성 중...",complete:"준비 완료!"},ui:{buttons:{start:"시작",continue:"계속하기",newGame:"새 게임",settings:"설정",save:"저장",load:"불러오기",close:"닫기",confirm:"확인",cancel:"취소",back:"뒤로",build:"건설",research:"연구",export:"수출"},tabs:{production:"생산",logistics:"물류",research:"연구",export:"수출",stats:"통계"}},resources:{categories:{utility:"유틸리티",raw:"원자재",crop:"농작물",processed:"가공품",research:"연구 자원"},dollars:{name:"달러",desc:"화성 경제의 기본 화폐. 지구 수출로 획득합니다."},energy:{name:"에너지",desc:"전력. 대부분의 건물 가동에 필요합니다."},oxygen:{name:"산소",desc:"생명 유지 장치. 자동 보충됩니다."},iron:{name:"철광석",desc:"화성의 기본 광물. 건설과 제작에 필수적입니다."},water:{name:"물",desc:"생명의 근원. 농업과 가공에 필수입니다."},salt:{name:"소금",desc:"김치 절임의 핵심 재료. 물에서 추출합니다."},ice:{name:"얼음",desc:"화성 극지의 얼음. 녹이면 물이 됩니다."},regolith:{name:"풍화토",desc:"화성 표면의 흙. 농업에 활용됩니다."},sand:{name:"모래",desc:"유리 제작과 건설에 사용됩니다."},cabbage:{name:"배추",desc:"김치의 주재료. 온실에서 재배합니다."},radish:{name:"무",desc:"깍두기의 주재료. 빠르게 자랍니다."},garlic:{name:"마늘",desc:"김치 양념의 필수 재료입니다."},ginger:{name:"생강",desc:"김치 양념. 독특한 향을 더합니다."},scallion:{name:"파",desc:"파김치의 주재료. 빠른 생산이 가능합니다."},cucumber:{name:"오이",desc:"오이소박이의 주재료. 프리미엄 김치용입니다."},chilliPowder:{name:"고춧가루",desc:"김치의 매운맛과 붉은색을 만듭니다."},kimchi:{name:"배추김치",desc:"기본 김치. 대량 생산에 최적화되어 있습니다."},kkakdugi:{name:"깍두기",desc:"무로 만든 김치. 빠른 생산이 가능합니다."},paKimchi:{name:"파김치",desc:"파로 만든 김치. 초고속 생산이 특징입니다."},oiSobagi:{name:"오이소박이",desc:"프리미엄 김치. 최고 가격으로 수출됩니다."},premiumKimchi:{name:"묵은지",desc:"장기 숙성 김치. 높은 가치를 지닙니다."},omegaKimchi:{name:"오메가 김치",desc:"오메가 종균으로 발효한 최고급 김치. 엔드게임 콘텐츠입니다."},lactobacillusData:{name:"유산균 데이터",desc:"Tier 1-2 기술 연구에 필요합니다. 김치 분석으로 획득합니다."},fermentCulture:{name:"발효 배양액",desc:"Tier 3-4 기술 연구에 필요합니다. 묵은지에서 추출합니다."},omegaStarter:{name:"오메가 종균",desc:"Tier 5 기술 연구에 필요합니다. 희귀 자원이 필요합니다."}},buildings:{categories:{mining:"채굴",agriculture:"농업",processing:"가공",storage:"저장",power:"발전",logistics:"물류"},names:{miner:"채굴기",iceExtractor:"얼음 추출기",greenhouse:"온실",fermentationTank:"발효 탱크",warehouse:"창고",solarPanel:"태양광 패널",conveyor:"컨베이어"}},research:{title:"연구",tier:"Tier {tier}",status:{locked:"잠김",available:"연구 가능",researching:"연구 중",completed:"완료"},actions:{start:"연구 시작",cancel:"취소"},cost:"비용",time:"연구 시간",effects:"효과",prerequisites:"선행 기술",progress:"진행률",remaining:"남은 시간",categories:{production:"생산 기술",efficiency:"효율성",automation:"자동화",quality:"품질"}},technologies:{efficientDrills:{name:"효율적 채굴",desc:"채굴 장비 최적화로 채굴 속도가 20% 증가합니다."},improvedFarming:{name:"개선된 농법",desc:"농업 기술 향상으로 작물 성장 속도가 20% 증가합니다."},advancedFermentation:{name:"고급 발효 기술",desc:"발효 공정 최적화로 발효 속도가 30% 증가합니다."},solarPanels:{name:"태양광 패널",desc:"태양광 패널 건설이 가능해집니다."},waterRecycling:{name:"물 재활용",desc:"물 소비량이 25% 감소합니다."},conveyorSpeed:{name:"컨베이어 속도 향상",desc:"컨베이어 속도가 50% 증가합니다."},automatedHarvest:{name:"자동 수확",desc:"자동 수확이 가능해지고 농업 효율이 30% 증가합니다."},batteryStorage:{name:"배터리 저장",desc:"에너지 저장 용량이 2배 증가합니다."},premiumFermentation:{name:"프리미엄 발효",desc:"묵은지(프리미엄 김치) 생산이 가능해집니다."},quantumStorage:{name:"양자 저장",desc:"저장 용량이 3배 증가합니다."},efficientPower:{name:"효율적 전력",desc:"전력 소비량이 40% 감소합니다."},omegaKimchi:{name:"오메가 김치",desc:"오메가 김치 생산이 가능해집니다."},massProduction:{name:"대량 생산",desc:"모든 생산량이 100% 증가합니다."},spaceLogistics:{name:"우주 물류",desc:"수출 효율이 200% 증가합니다."},basicAutomation:{name:"기본 자동화",desc:"가공 속도가 25% 증가합니다."}},prestige:{title:"성간 이주",subtitle:"새로운 행성으로 떠나세요",loadout:"Loadout 선택",slots:"{count}개 슬롯",planet:{preview:"행성 미리보기",regenerate:"다시 생성",depart:"출발!"},stats:{iron:"철광석",ice:"얼음",fertility:"비옥도",rare:"희귀 자원",terrain:"지형"},levels:{scarce:"희소",low:"낮음",normal:"보통",abundant:"풍부",rich:"매우 풍부"}},achievements:{title:"업적",unlocked:"해금됨!"},settings:{title:"설정",language:"언어",sound:"효과음",music:"배경음악",notifications:"알림",autoSave:"자동 저장",reset:"게임 초기화",resetConfirm:"정말로 모든 진행 상황을 삭제하시겠습니까?",graphics:"그래픽",pixelEffect:"픽셀화 효과",particles:"파티클",volume:"볼륨",master:"마스터",sfx:"효과음",bgm:"배경음",tutorialReplay:"튜토리얼 다시 보기"},tutorial:{skip:"건너뛰기",skip_confirm:"정말 튜토리얼을 건너뛰시겠습니까?",continue:"계속",start_game:"게임 시작",rewards:"보상",prologue:{title:"KIMCHI INVASION",text1:"2087년, 인류의 화성 정착 2년차.",text2:"당신은 한국생명공학연구원 소속 바이오 엔지니어.",text3:"대원들의 면역력 저하 문제를 해결하기 위해 화성 최초의 김치 생산 시설을 건설해야 합니다.",text4:"화성의 혹독한 환경에서 살아남고, 언젠가는 지구에 김치를 역수출하는 것이 당신의 미션입니다."},epilogue:{title:"튜토리얼 완료!",text1:"축하합니다! 화성에서 첫 김치 생산에 성공했습니다.",text2:"이제 자유롭게 생산 라인을 확장하고 화성 김치 제국을 건설하세요!"},step1:{title:"수동 자원 수집",desc:"화면을 클릭하여 얼음 5개, 레골리스 5개를 수집하세요."},step2:{title:"첫 건물 배치",desc:"채굴기와 해동기를 각각 1개씩 배치하세요."},step3:{title:"첫 작물 재배",desc:"온실을 배치하고 배추 5개를 재배하세요."},step4:{title:"물류 시스템",desc:"컨베이어 벨트로 건물을 연결하세요."},step5:{title:"첫 김치 생산!",desc:"배추 → 절임소 → 발효탱크를 연결하여 김치를 생산하세요."},welcome:"화성에 오신 것을 환영합니다, 엔지니어님!",firstMiner:"채굴기를 설치하여 철광석을 수집하세요.",firstGreenhouse:"온실을 건설하여 배추를 재배하세요.",firstKimchi:"첫 번째 김치를 생산했습니다!",firstExport:"지구로 첫 수출을 시작하세요."},errors:{saveFailed:"저장에 실패했습니다.",loadFailed:"불러오기에 실패했습니다.",unsupportedBrowser:"이 게임은 최신 브라우저에서 플레이해주세요.",notEnoughResources:"자원이 부족합니다.",cannotBuildHere:"여기에 건설할 수 없습니다."},notifications:{saved:"게임이 저장되었습니다.",achieved:"업적 달성: {name}",levelUp:"레벨 업!"}},Dt={title:"KIMCHI INVASION",subtitle:"The Red Planet Protocol",loading:{state:"Initializing game state...",save:"Loading saved game...",renderer:"Initializing renderer...",systems:"Loading game systems...",ui:"Setting up interface...",input:"Configuring controls...",complete:"Ready!"},ui:{buttons:{start:"Start",continue:"Continue",newGame:"New Game",settings:"Settings",save:"Save",load:"Load",close:"Close",confirm:"Confirm",cancel:"Cancel",back:"Back",build:"Build",research:"Research",export:"Export"},tabs:{production:"Production",logistics:"Logistics",research:"Research",export:"Export",stats:"Stats"}},resources:{categories:{utility:"Utility",raw:"Raw Materials",crop:"Crops",processed:"Processed",research:"Research Resources"},dollars:{name:"Dollars",desc:"Basic currency of Mars economy. Earned through exports to Earth."},energy:{name:"Energy",desc:"Power. Required for most building operations."},oxygen:{name:"Oxygen",desc:"Life support. Auto-replenished."},iron:{name:"Iron Ore",desc:"Basic mineral of Mars. Essential for construction and crafting."},water:{name:"Water",desc:"Source of life. Essential for agriculture and processing."},salt:{name:"Salt",desc:"Key ingredient for kimchi brining. Extracted from water."},ice:{name:"Ice",desc:"Ice from Mars poles. Melts into water."},regolith:{name:"Regolith",desc:"Mars surface soil. Used in agriculture."},sand:{name:"Sand",desc:"Used for glass production and construction."},cabbage:{name:"Cabbage",desc:"Main ingredient of kimchi. Grown in greenhouse."},radish:{name:"Radish",desc:"Main ingredient of kkakdugi. Grows quickly."},garlic:{name:"Garlic",desc:"Essential kimchi seasoning ingredient."},ginger:{name:"Ginger",desc:"Kimchi seasoning. Adds unique aroma."},scallion:{name:"Scallion",desc:"Main ingredient for pa-kimchi. Quick production."},cucumber:{name:"Cucumber",desc:"Main ingredient for oi-sobagi. For premium kimchi."},chilliPowder:{name:"Chilli Powder",desc:"Creates the spicy taste and red color of kimchi."},kimchi:{name:"Kimchi",desc:"Basic kimchi. Optimized for mass production."},kkakdugi:{name:"Kkakdugi",desc:"Radish kimchi. Fast production possible."},paKimchi:{name:"Pa-Kimchi",desc:"Scallion kimchi. Ultra-fast production."},oiSobagi:{name:"Oi-Sobagi",desc:"Premium kimchi. Exported at highest price."},premiumKimchi:{name:"Aged Kimchi",desc:"Long-fermented kimchi. High value."},omegaKimchi:{name:"Omega Kimchi",desc:"Premium kimchi fermented with Omega starter. Endgame content."},lactobacillusData:{name:"Lactobacillus Data",desc:"Required for Tier 1-2 research. Obtained from kimchi analysis."},fermentCulture:{name:"Ferment Culture",desc:"Required for Tier 3-4 research. Extracted from aged kimchi."},omegaStarter:{name:"Omega Starter",desc:"Required for Tier 5 research. Rare resources needed."}},buildings:{categories:{mining:"Mining",agriculture:"Agriculture",processing:"Processing",storage:"Storage",power:"Power",logistics:"Logistics"},names:{miner:"Miner",iceExtractor:"Ice Extractor",greenhouse:"Greenhouse",fermentationTank:"Fermentation Tank",warehouse:"Warehouse",solarPanel:"Solar Panel",conveyor:"Conveyor"}},research:{title:"Research",tier:"Tier {tier}",status:{locked:"Locked",available:"Available",researching:"Researching",completed:"Completed"},actions:{start:"Start Research",cancel:"Cancel"},cost:"Cost",time:"Research Time",effects:"Effects",prerequisites:"Prerequisites",progress:"Progress",remaining:"Remaining",categories:{production:"Production Tech",efficiency:"Efficiency",automation:"Automation",quality:"Quality"}},technologies:{efficientDrills:{name:"Efficient Drills",desc:"Mining equipment optimization increases mining speed by 20%."},improvedFarming:{name:"Improved Farming",desc:"Agricultural technology advancement increases crop growth by 20%."},advancedFermentation:{name:"Advanced Fermentation",desc:"Fermentation process optimization increases fermentation speed by 30%."},solarPanels:{name:"Solar Panels",desc:"Unlocks solar panel construction."},waterRecycling:{name:"Water Recycling",desc:"Reduces water consumption by 25%."},conveyorSpeed:{name:"Conveyor Speed",desc:"Increases conveyor speed by 50%."},automatedHarvest:{name:"Automated Harvest",desc:"Enables automated harvesting and increases farming efficiency by 30%."},batteryStorage:{name:"Battery Storage",desc:"Doubles energy storage capacity."},premiumFermentation:{name:"Premium Fermentation",desc:"Unlocks premium kimchi (aged kimchi) production."},quantumStorage:{name:"Quantum Storage",desc:"Triples storage capacity."},efficientPower:{name:"Efficient Power",desc:"Reduces power consumption by 40%."},omegaKimchi:{name:"Omega Kimchi",desc:"Unlocks omega kimchi production."},massProduction:{name:"Mass Production",desc:"Increases all production by 100%."},spaceLogistics:{name:"Space Logistics",desc:"Increases export efficiency by 200%."},basicAutomation:{name:"Basic Automation",desc:"Increases processing speed by 25%."}},prestige:{title:"Interstellar Migration",subtitle:"Travel to a new planet",loadout:"Select Loadout",slots:"{count} slots",planet:{preview:"Planet Preview",regenerate:"Regenerate",depart:"Depart!"},stats:{iron:"Iron",ice:"Ice",fertility:"Fertility",rare:"Rare Resources",terrain:"Terrain"},levels:{scarce:"Scarce",low:"Low",normal:"Normal",abundant:"Abundant",rich:"Very Rich"}},achievements:{title:"Achievements",unlocked:"Unlocked!"},settings:{title:"Settings",language:"Language",sound:"Sound Effects",music:"Background Music",notifications:"Notifications",autoSave:"Auto Save",reset:"Reset Game",resetConfirm:"Are you sure you want to delete all progress?",graphics:"Graphics",pixelEffect:"Pixel Effect",particles:"Particles",volume:"Volume",master:"Master",sfx:"SFX",bgm:"BGM",tutorialReplay:"Replay Tutorial"},tutorial:{skip:"Skip",skip_confirm:"Are you sure you want to skip the tutorial?",continue:"Continue",start_game:"Start Game",rewards:"Rewards",prologue:{title:"KIMCHI INVASION",text1:"2087, Year 2 of human Mars settlement.",text2:"You are a bio-engineer from Korea Biotechnology Research Institute.",text3:"To solve the crew's declining immunity, you must build Mars' first kimchi production facility.",text4:"Survive the harsh Martian environment and eventually export kimchi back to Earth - that is your mission."},epilogue:{title:"Tutorial Complete!",text1:"Congratulations! You have successfully produced your first kimchi on Mars.",text2:"Now freely expand your production lines and build your Mars Kimchi Empire!"},step1:{title:"Manual Resource Collection",desc:"Click the screen to collect 5 Ice and 5 Regolith."},step2:{title:"First Building Placement",desc:"Place 1 Miner and 1 Ice Melter each."},step3:{title:"First Crop Cultivation",desc:"Place a Greenhouse and grow 5 Cabbage."},step4:{title:"Logistics System",desc:"Connect buildings with Conveyor Belts."},step5:{title:"First Kimchi Production!",desc:"Connect Cabbage -> Brining Station -> Fermentation Tank to produce kimchi."},welcome:"Welcome to Mars, Engineer!",firstMiner:"Place a miner to collect iron ore.",firstGreenhouse:"Build a greenhouse to grow cabbage.",firstKimchi:"You produced your first kimchi!",firstExport:"Start your first export to Earth."},errors:{saveFailed:"Failed to save.",loadFailed:"Failed to load.",unsupportedBrowser:"Please use a modern browser to play this game.",notEnoughResources:"Not enough resources.",cannotBuildHere:"Cannot build here."},notifications:{saved:"Game saved.",achieved:"Achievement unlocked: {name}",levelUp:"Level Up!"}},Be={ko:He,en:Dt},Ue=["ko","en"],X="ko",qe="clicksurvivor_lang";let Re=X,je=He;async function _t(){var r;const e=new URLSearchParams(window.location.search).get("lang"),t=localStorage.getItem(qe),i=(r=navigator.language)==null?void 0:r.split("-")[0],n=e||t||(Ue.includes(i)?i:X);We(n),`${Re}`}function We(s){Ue.includes(s)||(console.warn(`[i18n] Unsupported language: ${s}, falling back to ${X}`),s=X),Re=s,je=Be[s]||Be[X],localStorage.setItem(qe,s),document.documentElement.lang=s,window.dispatchEvent(new CustomEvent("languagechange",{detail:{language:s}}))}function Vt(){return Re}const N=Vt;function c(s,e={}){if(!s)return"";const t=s.split(".");let i=je;for(const n of t)if(i&&typeof i=="object"&&n in i)i=i[n];else{i=zt(s);break}return typeof i!="string"?(console.warn(`[i18n] Translation not found: ${s}`),s):Gt(i,e)}function zt(s){const e=s.split(".");let t=Be[X];for(const i of e)if(t&&typeof t=="object"&&i in t)t=t[i];else return null;return typeof t=="string"?t:null}function Gt(s,e){return s.replace(/\{(\w+)\}/g,(t,i)=>e[i]!==void 0?e[i]:t)}class Ht{constructor(){this.modalContainer=null,this.goalPanel=null,this.speechBubble=null,this.spotlightOverlay=null,this.init()}init(){this.createModalContainer(),this.createGoalPanel(),this.createSpeechBubble(),this.createSpotlightOverlay(),this.bindEvents()}createModalContainer(){this.modalContainer=document.createElement("div"),this.modalContainer.id="tutorial-modal",this.modalContainer.className="tutorial-modal hidden",this.modalContainer.innerHTML=`
+      <div class="tutorial-modal-backdrop"></div>
+      <div class="tutorial-modal-content">
+        <div class="tutorial-modal-header">
+          <h2 id="tutorial-modal-title"></h2>
+          <button id="tutorial-skip-btn" class="tutorial-skip-btn">
+            ${c("tutorial.skip")||"건너뛰기"}
+          </button>
+        </div>
+        <div class="tutorial-modal-body" id="tutorial-modal-body">
+          <!-- Content will be injected here -->
+        </div>
+        <div class="tutorial-modal-footer">
+          <button id="tutorial-continue-btn" class="btn-primary">
+            ${c("tutorial.continue")||"계속"}
+          </button>
+        </div>
+      </div>
+    `,document.body.appendChild(this.modalContainer)}createGoalPanel(){this.goalPanel=document.createElement("div"),this.goalPanel.id="tutorial-goal-panel",this.goalPanel.className="tutorial-goal-panel hidden",this.goalPanel.innerHTML=`
+      <div class="tutorial-goal-header">
+        <span class="tutorial-goal-icon">🎯</span>
+        <h3 id="tutorial-goal-title"></h3>
+      </div>
+      <p id="tutorial-goal-description"></p>
+      <div id="tutorial-goal-objectives"></div>
+    `,document.body.appendChild(this.goalPanel)}createSpeechBubble(){this.speechBubble=document.createElement("div"),this.speechBubble.id="tutorial-speech-bubble",this.speechBubble.className="tutorial-speech-bubble hidden",this.speechBubble.innerHTML=`
+      <div class="speech-bubble-avatar">
+        <img id="speech-bubble-avatar-img" src="" alt="NPC" />
+      </div>
+      <div class="speech-bubble-content">
+        <div class="speech-bubble-name" id="speech-bubble-name"></div>
+        <div class="speech-bubble-text" id="speech-bubble-text"></div>
+      </div>
+      <button class="speech-bubble-close" id="speech-bubble-close">✕</button>
+    `,document.body.appendChild(this.speechBubble)}createSpotlightOverlay(){this.spotlightOverlay=document.createElement("div"),this.spotlightOverlay.id="tutorial-spotlight",this.spotlightOverlay.className="tutorial-spotlight hidden",document.body.appendChild(this.spotlightOverlay)}bindEvents(){const e=document.getElementById("tutorial-skip-btn");e&&e.addEventListener("click",()=>{this.showSkipConfirmation()});const t=document.getElementById("tutorial-continue-btn");t&&t.addEventListener("click",()=>{this.handleContinue()});const i=document.getElementById("speech-bubble-close");i&&i.addEventListener("click",()=>{this.hideSpeechBubble()}),x.subscribe(r=>[r.activeModal,r.modalData],([r,o])=>{r!=null&&r.startsWith("tutorial-")?this.showModal(r):this.hideModal()});const n=x.getState().activeModal;n!=null&&n.startsWith("tutorial-")&&(`${n}`,this.showModal(n))}showModal(e){const t=x.getState().modalData||{};switch(e){case"tutorial-prologue":this.showPrologue(t);break;case"tutorial-epilogue":this.showEpilogue(t);break;case"tutorial-step-goal":this.showStepGoal(t);break;default:console.warn(`[TutorialUI] Unknown modal: ${e}`)}}hideModal(){this.modalContainer&&this.modalContainer.classList.add("hidden")}showPrologue(e){var r;const t=document.getElementById("tutorial-modal-title"),i=document.getElementById("tutorial-modal-body"),n=document.getElementById("tutorial-continue-btn");t&&(t.textContent=c("tutorial.prologue.title")||"KIMCHI INVASION"),i&&(i.innerHTML=`
+        <div class="tutorial-prologue">
+          <div class="prologue-animation">
+            <div class="mars-landing">
+              <div class="stars"></div>
+              <div class="rocket">🚀</div>
+              <div class="mars-surface"></div>
+            </div>
+          </div>
+          <div class="prologue-text">
+            <p>${c("tutorial.prologue.text1")||"2087년, 인류의 화성 정착 2년차."}</p>
+            <p>${c("tutorial.prologue.text2")||"당신은 한국생명공학연구원 소속 바이오 엔지니어."}</p>
+            <p>${c("tutorial.prologue.text3")||"대원들의 면역력 저하 문제를 해결하기 위해 화성 최초의 김치 생산 시설을 건설해야 합니다."}</p>
+            <p>${c("tutorial.prologue.text4")||"화성의 혹독한 환경에서 살아남고, 언젠가는 지구에 김치를 역수출하는 것이 당신의 미션입니다."}</p>
+          </div>
+        </div>
+      `),n&&(n.onclick=()=>{e.onContinue&&e.onContinue(),this.hideModal()}),(r=this.modalContainer)==null||r.classList.remove("hidden")}showEpilogue(e){var r;const t=document.getElementById("tutorial-modal-title"),i=document.getElementById("tutorial-modal-body"),n=document.getElementById("tutorial-continue-btn");t&&(t.textContent=c("tutorial.epilogue.title")||"튜토리얼 완료!"),i&&(i.innerHTML=`
+        <div class="tutorial-epilogue">
+          <div class="epilogue-icon">🎉</div>
+          <p>${c("tutorial.epilogue.text1")||"축하합니다! 화성에서 첫 김치 생산에 성공했습니다."}</p>
+          <p>${c("tutorial.epilogue.text2")||"이제 자유롭게 생산 라인을 확장하고 화성 김치 제국을 건설하세요!"}</p>
+          <div class="epilogue-rewards">
+            <h4>${c("tutorial.rewards")||"보상"}</h4>
+            <ul>
+              <li>💰 $1,000</li>
+              <li>🔩 철판 ×50</li>
+              <li>🏆 업적: "화성 김치 마스터"</li>
+            </ul>
+          </div>
+        </div>
+      `),n&&(n.textContent=c("tutorial.start_game")||"게임 시작",n.onclick=()=>{e.onClose&&e.onClose(),this.hideModal()}),(r=this.modalContainer)==null||r.classList.remove("hidden")}showStepGoal(e){var r;const t=document.getElementById("tutorial-goal-title"),i=document.getElementById("tutorial-goal-description"),n=document.getElementById("tutorial-goal-objectives");t&&(t.textContent=e.title||""),i&&(i.textContent=e.description||""),n&&e.objectives&&(n.innerHTML=e.objectives.map(o=>{const a=Math.min(o.current/o.target*100,100);return`
+          <div class="tutorial-objective">
+            <div class="objective-label">
+              <span>${o.label}</span>
+              <span class="objective-counter">${o.current} / ${o.target}</span>
+            </div>
+            <div class="objective-progress">
+              <div class="objective-progress-bar" style="width: ${a}%"></div>
+            </div>
+          </div>
+        `}).join("")),(r=this.goalPanel)==null||r.classList.remove("hidden")}updateGoalProgress(e){const t=document.getElementById("tutorial-goal-objectives");!t||!e||(t.innerHTML=e.map(i=>{const n=Math.min(i.current/i.target*100,100);return`
+        <div class="tutorial-objective">
+          <div class="objective-label">
+            <span>${i.label}</span>
+            <span class="objective-counter">${i.current} / ${i.target}</span>
+          </div>
+          <div class="objective-progress">
+            <div class="objective-progress-bar" style="width: ${n}%"></div>
+          </div>
+        </div>
+      `}).join(""))}hideGoalPanel(){var e;(e=this.goalPanel)==null||e.classList.add("hidden")}showSpeechBubble(e){const t=document.getElementById("speech-bubble-name"),i=document.getElementById("speech-bubble-text"),n=document.getElementById("speech-bubble-avatar-img");t&&(t.textContent=e.name||"NPC"),i&&(i.textContent=e.text||""),n&&e.avatar&&(n.src=e.avatar),this.speechBubble&&(e.x!==void 0&&e.y!==void 0&&(this.speechBubble.style.left=`${e.x}px`,this.speechBubble.style.top=`${e.y}px`),this.speechBubble.classList.remove("hidden")),setTimeout(()=>{this.hideSpeechBubble()},1e4)}hideSpeechBubble(){var e;(e=this.speechBubble)==null||e.classList.add("hidden")}showSpotlight(e){const t=document.querySelector(e);if(!t){console.warn(`[TutorialUI] Spotlight target not found: ${e}`);return}const i=t.getBoundingClientRect();this.spotlightOverlay&&(this.spotlightOverlay.innerHTML=`
+        <svg width="100%" height="100%">
+          <defs>
+            <mask id="spotlight-mask">
+              <rect x="0" y="0" width="100%" height="100%" fill="white"/>
+              <rect x="${i.left-10}" y="${i.top-10}"
+                    width="${i.width+20}" height="${i.height+20}"
+                    fill="black" rx="8"/>
+            </mask>
+          </defs>
+          <rect x="0" y="0" width="100%" height="100%"
+                fill="rgba(0,0,0,0.7)" mask="url(#spotlight-mask)"/>
+        </svg>
+      `,this.spotlightOverlay.classList.remove("hidden")),t.classList.add("tutorial-spotlight-target")}hideSpotlight(){var e;(e=this.spotlightOverlay)==null||e.classList.add("hidden"),document.querySelectorAll(".tutorial-spotlight-target").forEach(t=>{t.classList.remove("tutorial-spotlight-target")})}showSkipConfirmation(){confirm(c("tutorial.skip_confirm")||"정말 튜토리얼을 건너뛰시겠습니까?")&&(Q.skip(),this.hideModal(),this.hideGoalPanel(),this.hideSpotlight())}handleContinue(){x.getState().activeModal;const e=x.getState().modalData||{};e.onContinue&&e.onContinue(),this.hideModal()}destroy(){var e,t,i,n;(e=this.modalContainer)==null||e.remove(),(t=this.goalPanel)==null||t.remove(),(i=this.speechBubble)==null||i.remove(),(n=this.spotlightOverlay)==null||n.remove(),this.modalContainer=null,this.goalPanel=null,this.speechBubble=null,this.spotlightOverlay=null}}let Se=null;function Ye(){return Se||(Se=new Ht),Se}function Ut(){return Ye()}const b={STEP_0_PROLOGUE:"step0_prologue",STEP_1_MINING:"step1_mining",STEP_2_SMELTING:"step2_smelting",STEP_3_EXTRACTOR:"step3_extractor",STEP_4_GREENHOUSE:"step4_greenhouse",STEP_5_KIMCHI:"step5_kimchi",EPILOGUE:"epilogue",COMPLETED:"completed"},I={NOT_STARTED:"not_started",IN_PROGRESS:"in_progress",PAUSED:"paused",SKIPPED:"skipped",COMPLETED:"completed"},qt={extractor:{ironPlate:5},greenhouse:{ironPlate:10},fermentationChamber:{ironPlate:15}},jt={furnace:3,greenhouse:10,fermentationChamber:10},we="kimchi_tutorial_state";class Wt extends H{constructor(){super(),this.label="TutorialSystem",this.currentStep=b.STEP_0_PROLOGUE,this.state=I.NOT_STARTED,this.stepProgress={},this.startTime=0,this.highlightedElements=new Set,this.unsubscribers=[],this.isFirstRun=!0,this.pixiHighlightLayer=null,this.pixiHighlights=new Map,this.loadState()}update(e,t){if(this.state===I.IN_PROGRESS){this.checkStepCompletion();for(const[i,{animation:n}]of this.pixiHighlights.entries())n&&n(t)}}start(){this.state===I.COMPLETED&&this.reset(),this.state=I.IN_PROGRESS,this.startTime=Date.now(),this.currentStep=this.isFirstRun?b.STEP_0_PROLOGUE:b.STEP_1_MINING,g.getState().enterTutorialMode(),`${this.currentStep}`,this.isFirstRun?(x.getState().pause(),this.showPrologue()):this.advanceToStep(b.STEP_1_MINING),this.saveState()}pause(){this.state=I.PAUSED,this.saveState()}resume(){this.state===I.PAUSED&&(this.state=I.IN_PROGRESS)}skip(){this.state=I.SKIPPED,this.currentStep=b.COMPLETED,this.clearAllHighlights(),this.cleanup(),g.getState().exitTutorialMode(),x.getState().resume(),x.getState().closeModal(),this.saveState(),this.grantSkipRewards()}complete(){this.state=I.COMPLETED,this.currentStep=b.COMPLETED,this.clearAllHighlights(),g.getState().exitTutorialMode(),`${((Date.now()-this.startTime)/1e3).toFixed(1)}`,this.saveState(),this.showEpilogue(),this.grantCompletionRewards()}reset(){this.state=I.NOT_STARTED,this.currentStep=b.STEP_0_PROLOGUE,this.stepProgress={},this.highlightedElements.clear(),this.isFirstRun=!0,this.cleanup(),localStorage.removeItem(we)}advanceToStep(e){switch(this.unsubscribers.forEach(t=>t()),this.unsubscribers=[],this.clearAllHighlights(),this.currentStep=e,`${e}`,e){case b.STEP_1_MINING:this.setupStep1Mining();break;case b.STEP_2_SMELTING:this.setupStep2Smelting();break;case b.STEP_3_EXTRACTOR:this.setupStep3Extractor();break;case b.STEP_4_GREENHOUSE:this.setupStep4Greenhouse();break;case b.STEP_5_KIMCHI:this.setupStep5Kimchi();break;case b.EPILOGUE:this.complete();break;default:console.warn(`[Tutorial] Unknown step: ${e}`)}this.saveState()}checkStepCompletion(){var t;const e=g.getState();switch(this.currentStep){case b.STEP_1_MINING:{(e.resources.ironOre??0)>=10&&this.advanceToStep(b.STEP_2_SMELTING);break}case b.STEP_2_SMELTING:{(e.resources.ironPlate??0)>=5&&this.advanceToStep(b.STEP_3_EXTRACTOR);break}case b.STEP_3_EXTRACTOR:{e.buildings.filter(n=>n.type==="extractor").length>=1&&((t=this.stepProgress.step3)!=null&&t.waitStart||(this.stepProgress.step3={waitStart:Date.now()}),Date.now()-this.stepProgress.step3.waitStart>=3e3&&this.advanceToStep(b.STEP_4_GREENHOUSE));break}case b.STEP_4_GREENHOUSE:{(e.resources.cabbage??0)>=1&&this.advanceToStep(b.STEP_5_KIMCHI);break}case b.STEP_5_KIMCHI:{(e.resources.kimchi??0)>=1&&this.advanceToStep(b.EPILOGUE);break}}}placeInitialFurnace(){const e=g.getState();if(e.tutorialFurnacePlaced)return;const t=5,i=5,n={id:`tutorial_furnace_${Date.now()}`,type:"furnace",x:t,y:i,level:1,inventory:{},progress:0,isTutorialBuilding:!0};e.addBuilding(n),e.setTutorialFurnacePlaced(),`${t}${i}`}setupStep1Mining(){this.stepProgress.step1={ironOre:0},this.placeInitialFurnace(),this.showStepGoal({title:c("tutorial.step1.title")||"첫 채굴",description:c("tutorial.step1.desc")||"바위 타일을 클릭해서 철광석 10개를 수집하세요.",objectives:[{id:"ironOre",label:"철광석",target:10,current:0}],stepNumber:1,totalSteps:5}),this.highlightElement("tilemap-rock");const e=g.subscribe(t=>t.resources,t=>{const i=t.ironOre??0;this.stepProgress.step1={ironOre:i},this.updateStepGoal({objectives:[{id:"ironOre",label:"철광석",target:10,current:i}]})});this.unsubscribers.push(e)}setupStep2Smelting(){this.stepProgress.step2={ironPlate:0},this.showStepGoal({title:c("tutorial.step2.title")||"첫 제련",description:c("tutorial.step2.desc")||`철광석을 용광로에 넣어 철판 5개를 만드세요.
+(용광로를 클릭하고 철광석을 투입)`,objectives:[{id:"ironPlate",label:"철판",target:5,current:0}],stepNumber:2,totalSteps:5}),this.highlightElement("building-furnace");const e=g.subscribe(t=>t.resources,t=>{const i=t.ironPlate??0;this.stepProgress.step2={ironPlate:i},this.updateStepGoal({objectives:[{id:"ironPlate",label:"철판",target:5,current:i}]})});this.unsubscribers.push(e)}setupStep3Extractor(){this.stepProgress.step3={extractor:0},this.showStepGoal({title:c("tutorial.step3.title")||"첫 건물",description:c("tutorial.step3.desc")||`건물 메뉴에서 채굴기를 선택하고 바위 근처에 배치하세요.
+(튜토리얼 할인: 철판 5개)`,objectives:[{id:"extractor",label:"채굴기",target:1,current:0}],stepNumber:3,totalSteps:5}),this.highlightElement("build-menu");const e=g.subscribe(t=>t.buildings,t=>{const i=t.filter(n=>n.type==="extractor").length;this.stepProgress.step3={...this.stepProgress.step3,extractor:i},this.updateStepGoal({objectives:[{id:"extractor",label:"채굴기",target:1,current:i}]})});this.unsubscribers.push(e)}setupStep4Greenhouse(){this.stepProgress.step4={cabbage:0},this.showStepGoal({title:c("tutorial.step4.title")||"온실 건설",description:c("tutorial.step4.desc")||`얼음 타일을 클릭해 얼음을 모으고, 온실을 건설하여 배추를 재배하세요.
+(튜토리얼 할인: 철판 10개)`,objectives:[{id:"cabbage",label:"배추",target:1,current:0}],stepNumber:4,totalSteps:5}),this.highlightElement("tilemap-ice");const e=g.subscribe(t=>t.resources,t=>{const i=t.cabbage??0;this.stepProgress.step4={cabbage:i},this.updateStepGoal({objectives:[{id:"cabbage",label:"배추",target:1,current:i}]})});this.unsubscribers.push(e)}setupStep5Kimchi(){this.stepProgress.step5={kimchi:0},g.getState().modifyResource("chilliPowder",1),g.getState().modifyResource("salt",2),this.showStepGoal({title:c("tutorial.step5.title")||"첫 김치!",description:c("tutorial.step5.desc")||`발효실을 건설하고 배추, 양념, 고춧가루로 김치를 만드세요!
+(튜토리얼 할인: 철판 15개)`,objectives:[{id:"kimchi",label:"김치",target:1,current:0}],stepNumber:5,totalSteps:5}),this.highlightElement("build-menu-fermenter");const e=g.subscribe(t=>t.resources,t=>{const i=t.kimchi??0;this.stepProgress.step5={kimchi:i},this.updateStepGoal({objectives:[{id:"kimchi",label:"김치",target:1,current:i}]})});this.unsubscribers.push(e)}showPrologue(){x.getState().openModal("tutorial-prologue",{onContinue:()=>{this.isFirstRun=!1,x.getState().closeModal(),x.getState().resume(),this.advanceToStep(b.STEP_1_MINING)},onSkip:()=>{this.skip()}})}showEpilogue(){x.getState().openModal("tutorial-epilogue",{onClose:()=>{x.getState().closeModal()}})}showStepGoal(e){x.getState().openModal("tutorial-step-goal",e)}updateStepGoal(e){e.objectives&&Ye().updateGoalProgress(e.objectives)}highlightElement(e){this.highlightedElements.add(e);const t=document.getElementById(e);if(t){t.classList.add("tutorial-highlight");return}e.startsWith("tilemap-")?this.highlightTilemapArea(e):e.startsWith("building-")?this.highlightBuilding(e):`${e}`}highlightTilemapArea(e){if(!this.pixiHighlightLayer){const d=ie();if(!d){console.warn("[Tutorial] Game container not found for PixiJS highlight");return}this.pixiHighlightLayer=new R,this.pixiHighlightLayer.label="tutorialHighlights",this.pixiHighlightLayer.zIndex=9999,d.addChild(this.pixiHighlightLayer)}this.pixiHighlights.has(e)&&this.removeHighlight(e);const t=J(),i=5*t,n=5*t,r=3*t,o=3*t,a=new E;a.label=`highlight_${e}`,a.x=i,a.y=n,this.drawHighlightBox(a,r,o,1),this.pixiHighlightLayer.addChild(a);let l=0;const u=d=>{l+=d;const h=.5+Math.sin(l*3)*.3,f=1+Math.sin(l*2)*.05;a.scale.set(f),a.alpha=h,a.clear(),this.drawHighlightBox(a,r/f,o/f,h)};this.pixiHighlights.set(e,{graphics:a,animation:u})}highlightBuilding(e){`${e.replace("building-","")}`}drawHighlightBox(e,t,i,n){e.rect(0,0,t,i).fill({color:13840175,alpha:n*.2}),e.rect(0,0,t,i).stroke({color:13840175,width:4,alpha:Math.min(n*1.5,1)})}removeHighlight(e){this.highlightedElements.delete(e);const t=document.getElementById(e);if(t&&t.classList.remove("tutorial-highlight"),this.pixiHighlights.has(e)){const{graphics:i}=this.pixiHighlights.get(e);this.pixiHighlightLayer&&this.pixiHighlightLayer.removeChild(i),i.destroy(),this.pixiHighlights.delete(e)}}clearAllHighlights(){this.highlightedElements.forEach(e=>this.removeHighlight(e)),this.highlightedElements.clear(),this.pixiHighlightLayer&&(this.pixiHighlightLayer.removeChildren(),this.pixiHighlightLayer.destroy({children:!0}),this.pixiHighlightLayer=null),this.pixiHighlights.clear()}grantSkipRewards(){const e=g.getState();e.modifyResource("ironPlate",100),e.modifyResource("ironOre",50),e.modifyResource("sand",50),e.modifyResource("water",30)}grantCompletionRewards(){}saveState(){const e={state:this.state,currentStep:this.currentStep,stepProgress:this.stepProgress,isFirstRun:this.isFirstRun,startTime:this.startTime};localStorage.setItem(we,JSON.stringify(e))}loadState(){const e=localStorage.getItem(we);if(e)try{const t=JSON.parse(e);this.state=t.state??I.NOT_STARTED,this.currentStep=t.currentStep??b.STEP_0_PROLOGUE,this.stepProgress=t.stepProgress??{},this.isFirstRun=t.isFirstRun??!0,this.startTime=t.startTime??0,`${this.state}${this.currentStep}`}catch(t){console.error("[Tutorial] Failed to load state:",t)}}cleanup(){this.unsubscribers.forEach(e=>e()),this.unsubscribers=[]}getDebugInfo(){return{state:this.state,currentStep:this.currentStep,stepProgress:this.stepProgress,highlightedElements:Array.from(this.highlightedElements),isTutorialMode:g.getState().isTutorialMode}}}const Q=new Wt;function Yt(){return Q.state===I.NOT_STARTED||Q.state===I.IN_PROGRESS?(Q.start(),!0):!1}function Oe(s){return g.getState().isTutorialMode?qt[s]??null:null}function Xt(s){return g.getState().isTutorialMode?jt[s]??null:null}class Qt extends H{constructor(){super([]),this.systemName="BuildingSystem",this.priority=20,this.buildingMap=new Map,this.occupancyMap=new Map,this.eventBus=new EventTarget}init(){typeof window<"u"&&(window.buildingSystem=this),this.loadBuildings()}loadBuildings(){const e=g.getState().buildings;this.buildingMap.clear(),this.occupancyMap.clear();for(const t of e)this.buildingMap.set(t.id,t),this.markOccupied(t)}update(e,t){for(const i of this.buildingMap.values())this.updateBuildingProduction(i,t)}updateBuildingProduction(e,t){const i=T[e.type];if(!i)return;if(i.input&&Object.keys(i.input).length>0){const r={};for(const[o,a]of Object.entries(i.input))r[o]=a*t;for(const[o,a]of Object.entries(r))if(!p.has(o,a))return;for(const[o,a]of Object.entries(r))p.consume(o,a)}if(i.energyPerTick>0){const r=i.energyPerTick*t;if(!p.has("energy",r))return;p.consume("energy",r)}else if(i.energyPerTick<0){const r=Math.abs(i.energyPerTick)*t;p.add("energy",r)}const n=Ot(e.type,e.level);for(const[r,o]of Object.entries(n))r==="energy"&&i.energyPerTick<0||p.add(r,o*t);i.processTime>0&&(e.progress=(e.progress||0)+t/i.processTime,e.progress>=1&&(e.progress=0,this.emit("productionComplete",{buildingId:e.id,building:e})),g.getState().updateBuilding(e.id,{progress:e.progress}))}place(e,t,i){const n=T[e];if(!n)return console.warn(`[BuildingSystem] Unknown building type: ${e}`),null;if(!this.canPlace(e,t,i))return null;const r=Oe(e)??n.cost;if(!p.consumeMultiple(r))return null;const o={id:Nt(),type:e,x:t,y:i,level:1,progress:0,inventory:{}};return this.buildingMap.set(o.id,o),this.markOccupied(o),g.getState().addBuilding(o),this.emit("placed",{building:o,x:t,y:i}),o}canPlace(e,t,i){const n=T[e];if(!n)return console.warn(`[BuildingSystem] canPlace: Unknown building type: ${e}`),!1;const{width:r,height:o}=n.size;for(let d=0;d<r;d++)for(let h=0;h<o;h++){const f=t+d,v=i+h;if(this.isOccupied(f,v))return`${f}${v}`,!1;const y=Ge(f,v);if(!y)return`${f}${v}`,!1;if(!y.buildable)return`${f}${v}${y.type}`,!1}const a=Oe(e)??n.cost,l={};for(const d of Object.keys(a))l[d]=p.get(d);let u=!0;for(const[d,h]of Object.entries(a))if((l[d]??0)<h){u=!1;break}return u||`${e}`,u}isOccupied(e,t){const i=`${e},${t}`;return this.occupancyMap.has(i)&&this.occupancyMap.get(i).size>0}markOccupied(e){const t=T[e.type];if(!t)return;const{width:i,height:n}=t.size;for(let r=0;r<i;r++)for(let o=0;o<n;o++){const a=`${e.x+r},${e.y+o}`;this.occupancyMap.has(a)||this.occupancyMap.set(a,new Set),this.occupancyMap.get(a).add(e.id)}}unmarkOccupied(e){const t=T[e.type];if(!t)return;const{width:i,height:n}=t.size;for(let r=0;r<i;r++)for(let o=0;o<n;o++){const a=`${e.x+r},${e.y+o}`;this.occupancyMap.has(a)&&(this.occupancyMap.get(a).delete(e.id),this.occupancyMap.get(a).size===0&&this.occupancyMap.delete(a))}}remove(e){const t=this.buildingMap.get(e);if(!t)return console.warn(`[BuildingSystem] Building not found: ${e}`),!1;const i=this.calculateRefund(t);return p.addMultiple(i),this.unmarkOccupied(t),this.buildingMap.delete(e),g.getState().removeBuilding(e),this.emit("removed",{buildingId:e,refund:i}),!0}calculateRefund(e){const t=T[e.type];if(!t)return{};const i={};for(const[n,r]of Object.entries(t.cost))i[n]=Math.floor(r*.5);return i}upgrade(e){const t=this.buildingMap.get(e);if(!t)return console.warn(`[BuildingSystem] Building not found: ${e}`),!1;const i=T[t.type];if(!i||t.level>=i.maxLevel)return!1;const n=Kt(t.type,t.level);return!n||!p.consumeMultiple(n)?!1:(t.level++,g.getState().updateBuilding(e,{level:t.level}),this.emit("upgraded",{buildingId:e,newLevel:t.level}),!0)}getBuilding(e){return this.buildingMap.get(e)}getAllBuildings(){return Array.from(this.buildingMap.values())}getBuildingsByType(e){return Array.from(this.buildingMap.values()).filter(t=>t.type===e)}getBuildingAt(e,t){const i=`${e},${t}`,n=this.occupancyMap.get(i);if(!n||n.size===0)return null;const r=n.values().next().value;return this.buildingMap.get(r)}emit(e,t){const i=new CustomEvent(e,{detail:t});this.eventBus.dispatchEvent(i)}on(e,t){this.eventBus.addEventListener(e,i=>t(i.detail))}off(e,t){this.eventBus.removeEventListener(e,t)}}const C=new Qt;class Jt extends H{constructor(){super([]),this.systemName="ClickMiningSystem",this.priority=20,this.listeners={},this.unsubscribeInput=null,this.baseMiningAmount=1,this.defaultResource="ironOre"}init(){typeof window<"u"&&(window.clickMiningSystem=this),this.setupClickHandler()}setupClickHandler(){this.unsubscribeInput=ae("click",e=>{e.type==="click"&&this.handleClick(e.x,e.y)})}handleClick(e,t){if(x.getState().buildMode.active)return;const n=ze(e,t),r=kt(n.x,n.y);if(C.isOccupied(r.x,r.y))return;const o=Ge(r.x,r.y);o&&this.canMine(o)&&this.mine(o,r.x,r.y)}canMine(e){return e.resource!==null||e.type==="ground"||e.type==="rock"||e.type==="ice"}mine(e,t,i){const n=this.getResourceId(e),r=this.getMiningAmount(),o=p.add(n,r);o>0&&this.emit("mined",{resourceId:n,amount:o,tileX:t,tileY:i})}getResourceId(e){return e.resource?e.resource:{rock:"ironOre",ice:"ice",ground:"regolith",sand:"sand"}[e.type]||this.defaultResource}getMiningAmount(){return this.baseMiningAmount}on(e,t){return this.listeners[e]||(this.listeners[e]=[]),this.listeners[e].push(t),()=>{const i=this.listeners[e].indexOf(t);i>-1&&this.listeners[e].splice(i,1)}}emit(e,t){var i;(i=this.listeners[e])==null||i.forEach(n=>{try{n(t)}catch(r){console.error(`[ClickMiningSystem] Event '${e}' listener error:`,r)}})}update(e,t){}cleanup(){this.unsubscribeInput&&(this.unsubscribeInput(),this.unsubscribeInput=null),this.listeners={}}setBaseMiningAmount(e){this.baseMiningAmount=Math.max(1,e),`${this.baseMiningAmount}`}increaseMiningAmount(e){this.baseMiningAmount+=e,`${this.baseMiningAmount}`}}const Xe=new Jt;function Fe(s,e){const t=J(),i=ze(s,e);return{tileX:Math.floor(i.x/t),tileY:Math.floor(i.y/t)}}function Zt(s,e){const t=J();return{x:s*t,y:e*t}}class ei extends R{constructor(){super(),this.label="buildMenu",this.buttons=[],this.buttonMap=new Map,this.selectedBuilding=null,this.ghostSprite=null,this.lastTileX=-1,this.lastTileY=-1,this.lastValid=!1,this.keyboardListener=null,this.createMenuBar(),this.setupKeyboardListeners()}createMenuBar(){const i=window.innerWidth,n=window.innerHeight,r=new E;r.rect(0,0,600,60),r.fill({color:2042167,alpha:.95}),r.stroke({color:3621201,width:2}),this.addChild(r),this.x=(i-600)/2,this.y=n-60-10,["extractor","iceHarvester","greenhouse","furnace","coalPowerPlant","conveyor"].forEach((a,l)=>{const u=this.createButton(a,l);this.addChild(u),this.buttons.push(u),this.buttonMap.set(a,u)})}createButton(e,t){const i=T[e];if(!i)return console.warn(`[BuildMenu] Unknown building: ${e}`),new R;const n=new R;n.label=`btn-${e}`;const r=new E;r.rect(0,0,80,50),r.fill({color:3621201}),r.stroke({color:4937059,width:1}),n.addChild(r);const o=new _({text:i.icon,style:{fontSize:24,align:"center"}});o.anchor.set(.5),o.x=40,o.y=15,n.addChild(o);const l=`⚙️${i.cost.iron??0}`,u=new _({text:l,style:{fontSize:10,fill:"#9CA3AF",align:"center"}});return u.anchor.set(.5),u.x=40,u.y=40,n.addChild(u),n.x=10+t*90,n.y=5,n.eventMode="static",n.cursor="pointer",n.on("pointerover",()=>{r.clear(),r.rect(0,0,80,50),r.fill({color:4937059}),r.stroke({color:7041664,width:2})}),n.on("pointerout",()=>{r.clear(),r.rect(0,0,80,50),r.fill({color:3621201}),r.stroke({color:4937059,width:1})}),n.on("pointerdown",()=>this.selectBuilding(e)),n}selectBuilding(e){if(this.selectedBuilding===e){this.cancelBuild();return}this.selectedBuilding=e,x.getState().selectBuildingType(e),this.buttonMap.forEach(i=>{const n=i.children[0];n&&n instanceof E&&(n.clear(),n.rect(0,0,80,50),n.fill({color:3621201}),n.stroke({color:4937059,width:1}))});const t=this.buttonMap.get(e);if(t){const i=t.children[0];i&&i instanceof E&&(i.clear(),i.rect(0,0,80,50),i.fill({color:1096065}),i.stroke({color:366185,width:2}))}`${e}`}cancelBuild(){this.selectedBuilding=null,x.getState().cancelBuildMode(),this.buttonMap.forEach(e=>{const t=e.children[0];t&&t instanceof E&&(t.clear(),t.rect(0,0,80,50),t.fill({color:3621201}),t.stroke({color:4937059,width:1}))}),this.ghostSprite&&(this.ghostSprite.destroy(),this.ghostSprite=null),this.lastTileX=-1,this.lastTileY=-1}updateGhost(e,t){var y;if(!this.selectedBuilding)return;const i=T[this.selectedBuilding];if(!i)return;const n=C.canPlace(this.selectedBuilding,e,t);if(x.getState().updateBuildPreview(e,t,n),this.ghostSprite&&this.lastTileX===e&&this.lastTileY===t&&this.lastValid===n)return;this.lastTileX=e,this.lastTileY=t,this.lastValid=n,this.ghostSprite&&this.ghostSprite.destroy(),this.ghostSprite=new E,this.ghostSprite.label="ghost";const r=J(),{width:o,height:a}=i.size,l=n?1096065:15680580,u=.5;this.ghostSprite.rect(0,0,o*r,a*r),this.ghostSprite.fill({color:l,alpha:u}),this.ghostSprite.stroke({color:l,width:2,alpha:.8});const d=new _({text:i.icon,style:{fontSize:20,align:"center"}});d.anchor.set(.5),d.x=o*r/2,d.y=a*r/2,d.alpha=.8,this.ghostSprite.addChild(d);const{x:h,y:f}=Zt(e,t);this.ghostSprite.x=h,this.ghostSprite.y=f;const v=(y=this.parent)==null?void 0:y.parent;if(v){const F=v.children.find(pe=>pe.label==="game");F&&F.addChild(this.ghostSprite)}}handleMouseMove(e,t){if(!this.selectedBuilding)return;const{tileX:i,tileY:n}=Fe(e,t);this.updateGhost(i,n)}handleClick(e,t){if(!this.selectedBuilding)return;const{tileX:i,tileY:n}=Fe(e,t);C.place(this.selectedBuilding,i,n)?(`${this.selectedBuilding}${i}${n}`,this.cancelBuild()):`${this.selectedBuilding}${i}${n}`}setupKeyboardListeners(){this.keyboardListener=e=>{if(e.key==="Escape"&&this.selectedBuilding&&(this.cancelBuild(),e.preventDefault()),e.key>="1"&&e.key<="6"){const t=["extractor","iceHarvester","greenhouse","furnace","coalPowerPlant","conveyor"],i=parseInt(e.key)-1;i>=0&&i<t.length&&(this.selectBuilding(t[i]),e.preventDefault())}},window.addEventListener("keydown",this.keyboardListener)}destroy(e){this.keyboardListener&&(window.removeEventListener("keydown",this.keyboardListener),this.keyboardListener=null),this.ghostSprite&&(this.ghostSprite.destroy(),this.ghostSprite=null),super.destroy(e)}}function ti(s,e){const t=new ei;return s.addChild(t),e.eventMode="static",e.on("pointermove",i=>{const n=i.global;t.handleMouseMove(n.x,n.y)}),e.on("pointerdown",i=>{const n=i.global;t.handleClick(n.x,n.y)}),t}const ii={extractor:9127187,iceHarvester:8900331,greenhouse:5025616,furnace:16733986,brineStation:2201331,fermentationChamber:16007990,coalPowerPlant:16771899,warehouse:10233776,conveyor:10395294,inserter:6323595},xe=new Map;let A=64;function si(){A=J(),`${A}`}function ni(s,e=1){const t=T[s];if(!t)return console.warn(`[BuildingSprites] Unknown building type: ${s}`),ri();const i=ii[s]||6710886,n=new R;n.label=`sprite_${s}_lv${e}`;const r=t.size.width*A,o=t.size.height*A,a=new E;a.rect(0,0,r,o).fill({color:i,alpha:.9}),a.rect(0,0,r,o).stroke({color:16777215,width:2}),n.addChild(a);const l=new _({text:t.icon,style:{fontSize:Math.min(r,o)*.4,fill:"#FFFFFF"}});if(l.anchor.set(.5),l.x=r/2,l.y=o/2,n.addChild(l),e>1){const u=new E;u.roundRect(2,2,40,20,4).fill({color:0,alpha:.7}),n.addChild(u);const d=new _({text:`Lv${e}`,style:{fontSize:12,fill:"#FFFFFF",fontWeight:"bold"}});d.x=6,d.y=4,n.addChild(d)}return n}function ri(){const s=new R,e=new E;e.rect(0,0,A,A).fill({color:16711935,alpha:.5}),e.rect(0,0,A,A).stroke({color:16711680,width:2}),s.addChild(e);const t=new _({text:"❌",style:{fontSize:20,fill:"#FFFFFF"}});return t.anchor.set(.5),t.x=A/2,t.y=A/2,s.addChild(t),s}function Qe(s,e=1){var r;const t=`${s}_${e}`;if(!xe.has(t)){const o=ni(s,e);xe.set(t,o)}const i=xe.get(t),n=new R;n.label=i.label;for(const o of i.children)if(o instanceof E){const a=new E;a.context=o.context.clone(),n.addChild(a)}else if(o instanceof _){const a=new _({text:o.text,style:o.style});a.x=o.x,a.y=o.y,a.anchor.copyFrom(o.anchor),n.addChild(a)}else n.addChild(((r=o.clone)==null?void 0:r.call(o))||o);return n}function Je(s,e,t,i){const n=Qe(s.type,s.level);return n.x=e*A,n.y=t*A,n.label=`building_${s.id}`,n.buildingId=s.id,i.addChild(n),n}function oi(s,e){const t=e.children.find(i=>i.label===`building_${s}`);return t?(e.removeChild(t),t.destroy({children:!0}),!0):(console.warn(`[BuildingSprites] Building sprite not found: ${s}`),!1)}function ai(s,e,t,i){const n=i.children.find(l=>l.label===`building_${s}`);if(!n)return console.warn(`[BuildingSprites] Building sprite not found: ${s}`),!1;const r=n.x,o=n.y;i.removeChild(n),n.destroy({children:!0});const a=Qe(e,t);return a.x=r,a.y=o,a.label=`building_${s}`,a.buildingId=s,i.addChild(a),!0}function Ze(s,e,t){const i=t.children.find(u=>u.label===`building_${s}`);if(!i)return;let n=i.children.find(u=>u.label==="progressBar");n||(n=new E,n.label="progressBar",i.addChild(n));const r=i.width-4,o=4,a=2,l=i.height-6;n.clear(),n.rect(a,l,r,o).fill({color:3355443,alpha:.8}),n.rect(a,l,r*Math.max(0,Math.min(1,e)),o).fill({color:65280,alpha:1}),n.rect(a,l,r,o).stroke({color:0,width:1})}function Ne(s,e,t=!0){const i=e.children.find(r=>r.label===`building_${s}`);if(!i)return;let n=i.children.find(r=>r.label==="noPowerWarning");t?(n||(n=new E,n.label="noPowerWarning",i.addChildAt(n,0)),n.clear(),n.rect(0,0,i.width,i.height).stroke({color:16711680,width:3,alpha:.8})):n&&(i.removeChild(n),n.destroy())}class ci extends H{constructor(){super([]),this.systemName="PowerSystem",this.priority=25,this.powerWarning=!1,this.eventBus=new EventTarget}init(){typeof window<"u"&&(window.powerSystem=this)}update(e,t){const i=this.calculateTotalConsumption();this.checkPowerStatus(i,t)}produceEnergy(e){var i;const t=C.getBuildingsByType("coalPowerPlant");for(const n of t){const r=T.coalPowerPlant;if(!r)continue;const o=((i=r.input)==null?void 0:i.regolith)*e;if(!p.has("regolith",o)||!p.consume("regolith",o))continue;const a=Math.abs(r.energyPerTick),l=1+(n.level-1)*.2,u=a*l*e;p.add("energy",u)}}calculateTotalConsumption(){let e=0;const t=C.getAllBuildings();for(const i of t){const n=T[i.type];n&&n.energyPerTick>0&&(e+=n.energyPerTick)}return e}checkPowerStatus(e,t){const i=p.get("energy"),n=this.powerWarning;this.powerWarning=i<e*5,this.powerWarning&&!n&&(this.emit("powerWarning",{current:i,consumption:e}),console.warn(`[PowerSystem] ⚡ Power Warning! Energy: ${i.toFixed(1)}`)),!this.powerWarning&&n&&(this.emit("powerRestored",{current:i}),console.warn(`[PowerSystem] ⚡ Power Restored! Energy: ${i.toFixed(1)}`))}canOperate(e){const t=T[e.type];return!t||t.energyPerTick<=0?!0:p.has("energy",t.energyPerTick)}getPowerBalance(){let e=0,t=0;const i=C.getAllBuildings();for(const n of i){const r=T[n.type];if(r)if(r.energyPerTick<0){const o=Math.abs(r.energyPerTick),a=1+(n.level-1)*.2;e+=o*a}else r.energyPerTick>0&&(t+=r.energyPerTick)}return{production:e,consumption:t,balance:e-t}}emit(e,t){const i=new CustomEvent(e,{detail:t});this.eventBus.dispatchEvent(i)}on(e,t){this.eventBus.addEventListener(e,i=>t(i.detail))}off(e,t){this.eventBus.removeEventListener(e,t)}}const et=new ci;let K=null,Z=null;function li(){si();const s=ie();if(!s){console.error("[BuildingRenderer] Game container not found");return}K=new R,K.label="buildings",K.sortableChildren=!0,s.addChild(K),di(),ui()}function ui(){const s=C.getAllBuildings();for(const e of s)Je(e,e.x,e.y,K);`${s.length}`}function di(){Z={placed:({building:s,x:e,y:t})=>{Je(s,e,t,K)},removed:({buildingId:s})=>{oi(s,K)},upgraded:({buildingId:s,newLevel:e})=>{const t=C.getBuilding(s);t&&ai(s,t.type,e,K)},productionComplete:({buildingId:s})=>{Ze(s,0,K)}},C.on("placed",Z.placed),C.on("removed",Z.removed),C.on("upgraded",Z.upgraded),C.on("productionComplete",Z.productionComplete)}function hi(s){const e=C.getAllBuildings();for(const t of e){t.progress>0&&Ze(t.id,t.progress,K);const i=T[t.type];if(i&&i.energyPerTick>0){const n=et.canOperate(t);Ne(t.id,K,!n)}if(i&&i.input){let n=!0;for(const[r,o]of Object.entries(i.input))if(!p.has(r,o)){n=!1;break}n||Ne(t.id,K,!0)}}}const M={efficientDrills:{id:"efficientDrills",tier:1,nameKey:"technologies.efficientDrills.name",descKey:"technologies.efficientDrills.desc",icon:"⛏️",cost:{lactobacillusData:10},time:30,prerequisites:[],effects:[{type:"multiplier",target:"mining",value:1.2}]},improvedFarming:{id:"improvedFarming",tier:1,nameKey:"technologies.improvedFarming.name",descKey:"technologies.improvedFarming.desc",icon:"🌱",cost:{lactobacillusData:10},time:30,prerequisites:[],effects:[{type:"multiplier",target:"farming",value:1.2}]},advancedFermentation:{id:"advancedFermentation",tier:2,nameKey:"technologies.advancedFermentation.name",descKey:"technologies.advancedFermentation.desc",icon:"🧪",cost:{lactobacillusData:30},time:60,prerequisites:["improvedFarming"],effects:[{type:"multiplier",target:"fermentation",value:1.3}]},solarPanels:{id:"solarPanels",tier:2,nameKey:"technologies.solarPanels.name",descKey:"technologies.solarPanels.desc",icon:"☀️",cost:{lactobacillusData:25},time:45,prerequisites:["efficientDrills"],effects:[{type:"unlock",target:"solarPanels",value:1}]},waterRecycling:{id:"waterRecycling",tier:2,nameKey:"technologies.waterRecycling.name",descKey:"technologies.waterRecycling.desc",icon:"💧",cost:{lactobacillusData:20},time:50,prerequisites:["improvedFarming"],effects:[{type:"bonus",target:"waterConsumption",value:-.25}]},conveyorSpeed:{id:"conveyorSpeed",tier:3,nameKey:"technologies.conveyorSpeed.name",descKey:"technologies.conveyorSpeed.desc",icon:"🚚",cost:{lactobacillusData:50,fermentCulture:10},time:90,prerequisites:["advancedFermentation"],effects:[{type:"multiplier",target:"conveyor",value:1.5}]},automatedHarvest:{id:"automatedHarvest",tier:3,nameKey:"technologies.automatedHarvest.name",descKey:"technologies.automatedHarvest.desc",icon:"🤖",cost:{lactobacillusData:60,fermentCulture:15},time:120,prerequisites:["advancedFermentation","waterRecycling"],effects:[{type:"unlock",target:"automatedHarvest",value:1},{type:"multiplier",target:"farming",value:1.3}]},batteryStorage:{id:"batteryStorage",tier:3,nameKey:"technologies.batteryStorage.name",descKey:"technologies.batteryStorage.desc",icon:"🔋",cost:{lactobacillusData:40,fermentCulture:8},time:80,prerequisites:["solarPanels"],effects:[{type:"multiplier",target:"energyStorage",value:2}]},premiumFermentation:{id:"premiumFermentation",tier:4,nameKey:"technologies.premiumFermentation.name",descKey:"technologies.premiumFermentation.desc",icon:"⭐",cost:{lactobacillusData:100,fermentCulture:30},time:180,prerequisites:["automatedHarvest"],effects:[{type:"unlock",target:"premiumKimchi",value:1}]},quantumStorage:{id:"quantumStorage",tier:4,nameKey:"technologies.quantumStorage.name",descKey:"technologies.quantumStorage.desc",icon:"📦",cost:{lactobacillusData:120,fermentCulture:40},time:200,prerequisites:["conveyorSpeed","batteryStorage"],effects:[{type:"multiplier",target:"storageCapacity",value:3}]},efficientPower:{id:"efficientPower",tier:4,nameKey:"technologies.efficientPower.name",descKey:"technologies.efficientPower.desc",icon:"⚡",cost:{lactobacillusData:80,fermentCulture:25},time:150,prerequisites:["batteryStorage"],effects:[{type:"bonus",target:"powerConsumption",value:-.4}]},omegaKimchi:{id:"omegaKimchi",tier:5,nameKey:"technologies.omegaKimchi.name",descKey:"technologies.omegaKimchi.desc",icon:"💎",cost:{lactobacillusData:200,fermentCulture:80,omegaStarter:10},time:300,prerequisites:["premiumFermentation"],effects:[{type:"unlock",target:"omegaKimchi",value:1}]},massProduction:{id:"massProduction",tier:5,nameKey:"technologies.massProduction.name",descKey:"technologies.massProduction.desc",icon:"🏭",cost:{lactobacillusData:250,fermentCulture:100,omegaStarter:15},time:360,prerequisites:["quantumStorage","efficientPower"],effects:[{type:"multiplier",target:"allProduction",value:2}]},spaceLogistics:{id:"spaceLogistics",tier:5,nameKey:"technologies.spaceLogistics.name",descKey:"technologies.spaceLogistics.desc",icon:"🚀",cost:{lactobacillusData:300,fermentCulture:120,omegaStarter:20},time:400,prerequisites:["quantumStorage","premiumFermentation"],effects:[{type:"multiplier",target:"exportEfficiency",value:3}]},basicAutomation:{id:"basicAutomation",tier:2,nameKey:"technologies.basicAutomation.name",descKey:"technologies.basicAutomation.desc",icon:"🔧",cost:{lactobacillusData:30},time:60,prerequisites:["efficientDrills"],effects:[{type:"multiplier",target:"processing",value:1.25}]}};function gi(s){return Object.values(M).filter(e=>e.tier===s)}function mi(s){return M[s]??null}function tt(s,e){const t=M[s];return t?t.prerequisites.length===0?!0:t.prerequisites.every(i=>e.includes(i)):!1}function pi(s){return Object.values(M).filter(e=>!s.includes(e.id)&&tt(e.id,s))}function fi(s){var e;return((e=M[s])==null?void 0:e.cost)??null}class yi extends H{constructor(){super([]),this.systemName="ResearchSystem",this.priority=5,this.currentResearch=null,this.researchProgress=0,this.completedTechs=new Set,this.multiplierCache=new Map,this.unlockedFeatures=new Set,this.bonusCache=new Map,this.eventBus=new EventTarget}init(){typeof window<"u"&&(window.researchSystem=this),this.loadResearch()}loadResearch(){const e=g.getState().research;this.completedTechs=new Set(e.completed),this.currentResearch=e.current,this.researchProgress=e.progress??0,this.rebuildCache()}rebuildCache(){this.multiplierCache.clear(),this.unlockedFeatures.clear(),this.bonusCache.clear();for(const e of this.completedTechs){const t=M[e];if(t){for(const i of t.effects)if(i.type==="multiplier"){const n=this.multiplierCache.get(i.target)??1;this.multiplierCache.set(i.target,n*i.value)}else if(i.type==="unlock")this.unlockedFeatures.add(i.target);else if(i.type==="bonus"){const n=this.bonusCache.get(i.target)??0;this.bonusCache.set(i.target,n+i.value)}}}}update(e,t){if(!this.currentResearch)return;const i=M[this.currentResearch];if(!i){console.warn(`[ResearchSystem] Invalid tech in progress: ${this.currentResearch}`),this.currentResearch=null;return}this.researchProgress+=t;const n=Math.min(this.researchProgress/i.time*100,100);Math.floor(this.researchProgress)%10===0&&this.emit("researchProgress",{techId:this.currentResearch,progress:this.researchProgress,totalTime:i.time,percent:n}),this.researchProgress>=i.time&&this.completeResearch(),g.getState().setResearchProgress(this.currentResearch,this.researchProgress)}startResearch(e){const t=mi(e);if(!t)return console.warn(`[ResearchSystem] Unknown technology: ${e}`),!1;if(this.currentResearch||this.completedTechs.has(e)||!tt(e,Array.from(this.completedTechs)))return!1;const i=fi(e);return p.consumeMultiple(i)?(this.currentResearch=e,this.researchProgress=0,g.getState().startResearch(e),this.emit("researchStarted",{techId:e,tech:t}),!0):!1}completeResearch(){if(!this.currentResearch)return;const e=this.currentResearch,t=M[e];if(t){this.completedTechs.add(e);for(const i of t.effects)if(i.type==="multiplier"){const n=this.multiplierCache.get(i.target)??1;this.multiplierCache.set(i.target,n*i.value)}else if(i.type==="unlock")this.unlockedFeatures.add(i.target);else if(i.type==="bonus"){const n=this.bonusCache.get(i.target)??0;this.bonusCache.set(i.target,n+i.value)}g.getState().completeResearch(e),this.emit("researchCompleted",{techId:e,tech:t,effects:t.effects}),this.emit("techUnlocked",{techId:e,tech:t}),this.currentResearch=null,this.researchProgress=0}}cancelResearch(){if(!this.currentResearch)return!1;const e=this.currentResearch;return this.currentResearch=null,this.researchProgress=0,g.getState().cancelResearch(),this.emit("researchCancelled",{techId:e}),!0}getMultiplier(e){return this.multiplierCache.get(e)??1}isUnlocked(e){return this.unlockedFeatures.has(e)}getBonus(e){return this.bonusCache.get(e)??0}getAvailableTechnologies(){return pi(Array.from(this.completedTechs))}getCurrentResearchStatus(){if(!this.currentResearch)return null;const e=M[this.currentResearch];return e?{techId:this.currentResearch,progress:this.researchProgress,totalTime:e.time,percent:Math.min(this.researchProgress/e.time*100,100)}:null}isResearched(e){return this.completedTechs.has(e)}getCompletedTechs(){return Array.from(this.completedTechs)}getResearchProgress(){if(!this.currentResearch)return 0;const e=M[this.currentResearch];return e?Math.min(this.researchProgress/e.time,1):0}emit(e,t){const i=new CustomEvent(e,{detail:t});this.eventBus.dispatchEvent(i)}on(e,t){this.eventBus.addEventListener(e,i=>t(i.detail))}off(e,t){this.eventBus.removeEventListener(e,t)}}const k=new yi;class bi{constructor(){this.panel=null,this.techTreeContainer=null,this.detailContainer=null,this.selectedTechId=null,this.techNodes=new Map,this.updateTimer=null,this.createPanel(),this.attachListeners(),this.startUpdateLoop()}createPanel(){const e=document.getElementById("side-panel");if(!e){console.error("[ResearchUI] Side panel not found");return}e.innerHTML="",this.panel=e;const t=document.createElement("div");t.className="research-header",t.innerHTML=`
+      <h2 class="research-title">🔬 ${c("research.title")}</h2>
+      <button class="close-btn" id="close-research-panel" aria-label="Close">✕</button>
+    `,this.panel.appendChild(t),this.techTreeContainer=document.createElement("div"),this.techTreeContainer.className="tech-tree",this.panel.appendChild(this.techTreeContainer),this.detailContainer=document.createElement("div"),this.detailContainer.className="tech-detail hidden",this.panel.appendChild(this.detailContainer),this.renderTechTree(),this.injectStyles()}renderTechTree(){if(this.techTreeContainer){this.techTreeContainer.innerHTML="";for(let e=1;e<=5;e++){const t=this.createTierGroup(e);this.techTreeContainer.appendChild(t)}}}createTierGroup(e){const t=document.createElement("div");t.className="tier-group",t.setAttribute("data-tier",e);const i=document.createElement("h3");i.className="tier-header",i.textContent=c("research.tier",{tier:e}),t.appendChild(i);const n=document.createElement("div");return n.className="tier-techs",gi(e).forEach(o=>{const a=this.createTechNode(o);n.appendChild(a),this.techNodes.set(o.id,a)}),t.appendChild(n),t}createTechNode(e){const t=document.createElement("div");t.className="tech-node",t.setAttribute("data-tech-id",e.id);const i=this.getTechStatus(e.id);t.classList.add(`status-${i}`);const n=document.createElement("div");n.className="tech-icon",n.textContent=e.icon,t.appendChild(n);const r=document.createElement("div");r.className="tech-name",r.textContent=c(e.nameKey),t.appendChild(r);const o=document.createElement("div");if(o.className="tech-status",o.textContent=c(`research.status.${i}`),t.appendChild(o),i==="researching"){const a=document.createElement("div");a.className="tech-progress-bar";const l=document.createElement("div");l.className="tech-progress-fill",a.appendChild(l),t.appendChild(a)}return t.addEventListener("click",()=>this.selectTech(e.id)),t}getTechStatus(e){const t=M[e];if(!t)return"locked";if(k.isResearched(e))return"completed";if(k.currentResearch===e)return"researching";const i=k.getCompletedTechs();return t.prerequisites.every(o=>i.includes(o))&&Object.entries(t.cost).every(([o,a])=>p.get(o)>=a)?"available":"locked"}selectTech(e){this.selectedTechId=e,this.renderTechDetail(e),this.techNodes.forEach(i=>i.classList.remove("selected"));const t=this.techNodes.get(e);t&&t.classList.add("selected")}renderTechDetail(e){if(!this.detailContainer)return;const t=M[e];if(!t){this.detailContainer.classList.add("hidden");return}const i=this.getTechStatus(e);let n=`
+      <div class="tech-detail-header">
+        <div class="tech-detail-icon">${t.icon}</div>
+        <h3 class="tech-detail-name">${c(t.nameKey)}</h3>
+      </div>
+      <p class="tech-detail-desc">${c(t.descKey)}</p>
+    `;n+=`<div class="tech-detail-section">
+      <h4>${c("research.cost")}</h4>
+      <ul class="tech-cost-list">
+    `;for(const[a,l]of Object.entries(t.cost)){const u=p.get(a),h=u>=l?"cost-sufficient":"cost-insufficient";n+=`<li class="${h}">
+        ${c(`resources.${a}.name`)}: ${u.toLocaleString()} / ${l.toLocaleString()}
+      </li>`}if(n+="</ul></div>",n+=`<div class="tech-detail-section">
+      <h4>${c("research.time")}</h4>
+      <p>${this.formatTime(t.time)}</p>
+    </div>`,t.prerequisites.length>0){n+=`<div class="tech-detail-section">
+        <h4>${c("research.prerequisites")}</h4>
+        <ul class="tech-prereq-list">
+      `;for(const a of t.prerequisites){const l=M[a];if(!l)continue;const d=k.isResearched(a)?"prereq-completed":"prereq-missing";n+=`<li class="${d}">
+          ${l.icon} ${c(l.nameKey)}
+        </li>`}n+="</ul></div>"}n+=`<div class="tech-detail-section">
+      <h4>${c("research.effects")}</h4>
+      <ul class="tech-effect-list">
+    `;for(const a of t.effects)n+=`<li>${this.formatEffect(a)}</li>`;if(n+="</ul></div>",n+='<div class="tech-detail-actions">',i==="available")n+=`<button class="btn-research-start" id="btn-start-research">${c("research.actions.start")}</button>`;else if(i==="researching"){const a=k.getCurrentResearchStatus();n+=`
+        <div class="research-progress-info">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${a.percent}%"></div>
+          </div>
+          <p>${c("research.progress")}: ${a.percent.toFixed(1)}%</p>
+          <p>${c("research.remaining")}: ${this.formatTime(a.totalTime-a.progress)}</p>
+        </div>
+        <button class="btn-research-cancel" id="btn-cancel-research">${c("research.actions.cancel")}</button>
+      `}else i==="completed"?n+=`<p class="research-completed">✅ ${c("research.status.completed")}</p>`:n+=`<p class="research-locked">🔒 ${c("research.status.locked")}</p>`;n+="</div>",this.detailContainer.innerHTML=n,this.detailContainer.classList.remove("hidden");const r=document.getElementById("btn-start-research");r&&r.addEventListener("click",()=>this.startResearch(e));const o=document.getElementById("btn-cancel-research");o&&o.addEventListener("click",()=>this.cancelResearch())}startResearch(e){k.startResearch(e)?(`${e}`,this.updateTechNode(e),this.renderTechDetail(e)):`${e}`}cancelResearch(){const e=k.currentResearch;if(!e)return;k.cancelResearch()&&(`${e}`,this.updateTechNode(e),this.renderTechDetail(e))}updateTechNode(e){const t=this.techNodes.get(e);if(!t||!M[e])return;t.classList.remove("status-locked","status-available","status-researching","status-completed");const n=this.getTechStatus(e);t.classList.add(`status-${n}`);const r=t.querySelector(".tech-status");r&&(r.textContent=c(`research.status.${n}`));let o=t.querySelector(".tech-progress-bar");if(n==="researching"){if(!o){o=document.createElement("div"),o.className="tech-progress-bar";const l=document.createElement("div");l.className="tech-progress-fill",o.appendChild(l),t.appendChild(o)}const a=k.getCurrentResearchStatus();if(a){const l=o.querySelector(".tech-progress-fill");l&&(l.style.width=`${a.percent}%`)}}else o&&o.remove()}formatEffect(e){if(e.type==="multiplier"){const t=((e.value-1)*100).toFixed(0);return`${e.target}: +${t}%`}else{if(e.type==="unlock")return`🔓 ${e.target} 해금`;if(e.type==="bonus"){const t=(e.value*100).toFixed(0);return`${e.target}: ${t}%`}}return`${e.type}: ${e.target}`}formatTime(e){const t=Math.floor(e/60),i=Math.floor(e%60);return t>0?`${t}분 ${i}초`:`${i}초`}attachListeners(){const e=document.getElementById("close-research-panel");e&&e.addEventListener("click",()=>this.hide()),k.on("researchStarted",()=>{this.updateAll()}),k.on("researchCompleted",t=>{this.updateAll(),t.techId}),k.on("researchCancelled",()=>{this.updateAll()}),window.addEventListener("languageChanged",()=>{this.renderTechTree(),this.selectedTechId&&this.renderTechDetail(this.selectedTechId)})}updateAll(){this.techNodes.forEach((e,t)=>{this.updateTechNode(t)}),this.selectedTechId&&this.renderTechDetail(this.selectedTechId)}startUpdateLoop(){this.updateTimer=setInterval(()=>{k.currentResearch&&(this.updateTechNode(k.currentResearch),this.selectedTechId===k.currentResearch&&this.renderTechDetail(this.selectedTechId)),this.techNodes.forEach((e,t)=>{var o;if(!M[t])return;const n=(o=Array.from(e.classList).find(a=>a.startsWith("status-")))==null?void 0:o.replace("status-",""),r=this.getTechStatus(t);n!==r&&this.updateTechNode(t)})},1e3)}show(){this.panel&&(this.panel.classList.remove("hidden"),this.updateAll())}hide(){this.panel&&this.panel.classList.add("hidden")}toggle(){this.panel&&(this.panel.classList.toggle("hidden"),this.panel.classList.contains("hidden")||this.updateAll())}injectStyles(){const e="research-ui-styles";if(document.getElementById(e))return;const t=document.createElement("style");t.id=e,t.textContent=`
+      /* Research Panel Styles */
+      .research-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--color-ui-border);
+        background: var(--color-space-mid);
+      }
+
+      .research-title {
+        font-size: 1.5rem;
+        margin: 0;
+        color: var(--color-tech-blue);
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-text);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        transition: color var(--transition-fast);
+      }
+
+      .close-btn:hover {
+        color: var(--color-danger);
+      }
+
+      /* Tech Tree */
+      .tech-tree {
+        padding: var(--spacing-md);
+        overflow-y: auto;
+        max-height: calc(100vh - 200px);
+      }
+
+      .tier-group {
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .tier-header {
+        font-size: 1rem;
+        color: var(--color-mars-orange);
+        margin-bottom: var(--spacing-sm);
+        padding-bottom: var(--spacing-xs);
+        border-bottom: 2px solid var(--color-ui-border);
+      }
+
+      .tier-techs {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: var(--spacing-sm);
+      }
+
+      /* Tech Node */
+      .tech-node {
+        background: var(--color-space-mid);
+        border: 2px solid var(--color-ui-border);
+        border-radius: 8px;
+        padding: var(--spacing-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        position: relative;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-xs);
+      }
+
+      .tech-node:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .tech-node.selected {
+        border-color: var(--color-tech-blue);
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
+      }
+
+      .tech-icon {
+        font-size: 2rem;
+      }
+
+      .tech-name {
+        font-size: 0.75rem;
+        text-align: center;
+        color: var(--color-text);
+        line-height: 1.2;
+      }
+
+      .tech-status {
+        font-size: 0.625rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+
+      /* Status Colors */
+      .status-locked {
+        opacity: 0.5;
+        filter: grayscale(1);
+      }
+
+      .status-locked .tech-status {
+        background: var(--color-text-dim);
+        color: var(--color-space-dark);
+      }
+
+      .status-available .tech-status {
+        background: var(--color-success);
+        color: var(--color-space-dark);
+      }
+
+      .status-researching {
+        border-color: var(--color-warning);
+        box-shadow: 0 0 12px rgba(255, 190, 11, 0.5);
+      }
+
+      .status-researching .tech-status {
+        background: var(--color-warning);
+        color: var(--color-space-dark);
+      }
+
+      .status-completed {
+        border-color: var(--color-tech-green);
+      }
+
+      .status-completed .tech-status {
+        background: var(--color-tech-green);
+        color: var(--color-space-dark);
+      }
+
+      /* Progress Bar */
+      .tech-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: auto;
+      }
+
+      .tech-progress-fill {
+        height: 100%;
+        background: var(--color-warning);
+        transition: width 0.3s ease;
+      }
+
+      /* Tech Detail */
+      .tech-detail {
+        position: sticky;
+        bottom: 0;
+        background: var(--color-space-dark);
+        border-top: 2px solid var(--color-ui-border);
+        padding: var(--spacing-md);
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      .tech-detail-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .tech-detail-icon {
+        font-size: 2.5rem;
+      }
+
+      .tech-detail-name {
+        font-size: 1.25rem;
+        color: var(--color-tech-blue);
+        margin: 0;
+      }
+
+      .tech-detail-desc {
+        color: var(--color-text-dim);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.5;
+      }
+
+      .tech-detail-section {
+        margin-bottom: var(--spacing-md);
+      }
+
+      .tech-detail-section h4 {
+        font-size: 0.875rem;
+        color: var(--color-mars-orange);
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .tech-cost-list,
+      .tech-prereq-list,
+      .tech-effect-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .tech-cost-list li,
+      .tech-prereq-list li,
+      .tech-effect-list li {
+        padding: var(--spacing-xs);
+        margin-bottom: var(--spacing-xs);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      .cost-insufficient {
+        color: var(--color-danger);
+      }
+
+      .cost-sufficient {
+        color: var(--color-success);
+      }
+
+      .prereq-missing {
+        color: var(--color-text-dim);
+        text-decoration: line-through;
+      }
+
+      .prereq-completed {
+        color: var(--color-success);
+      }
+
+      /* Actions */
+      .tech-detail-actions {
+        margin-top: var(--spacing-md);
+      }
+
+      .btn-research-start,
+      .btn-research-cancel {
+        width: 100%;
+        padding: var(--spacing-sm);
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+
+      .btn-research-start {
+        background: var(--color-success);
+        color: var(--color-space-dark);
+      }
+
+      .btn-research-start:hover {
+        background: #05c296;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(6, 214, 160, 0.3);
+      }
+
+      .btn-research-cancel {
+        background: var(--color-danger);
+        color: white;
+      }
+
+      .btn-research-cancel:hover {
+        background: #e6005c;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(255, 0, 110, 0.3);
+      }
+
+      .research-progress-info {
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--color-tech-blue), var(--color-tech-green));
+        transition: width 0.3s ease;
+      }
+
+      .research-completed,
+      .research-locked {
+        text-align: center;
+        padding: var(--spacing-sm);
+        border-radius: 6px;
+        font-weight: 600;
+      }
+
+      .research-completed {
+        background: rgba(0, 255, 136, 0.1);
+        color: var(--color-tech-green);
+      }
+
+      .research-locked {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--color-text-dim);
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        .tier-techs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .tech-detail {
+          max-height: 40vh;
+        }
+      }
+    `,document.head.appendChild(t)}destroy(){this.updateTimer&&(clearInterval(this.updateTimer),this.updateTimer=null),this.panel&&(this.panel.innerHTML="",this.panel=null),this.techNodes.clear()}}function vi(){return new bi}const Te={language:"ko",soundEnabled:!0,musicEnabled:!0,soundVolume:.7,musicVolume:.5,notificationsEnabled:!0,autoSaveEnabled:!0,autoSaveInterval:3e4,graphicsQuality:"medium",showFPS:!1,showGrid:!0,reducedMotion:!1,highContrast:!1,tooltipDelay:500,confirmDestructiveActions:!0},z=Ie(at((s,e)=>({...Te,setLanguage:t=>{s({language:t}),document.documentElement.lang=t;try{localStorage.setItem("clicksurvivor_lang",t)}catch{}},toggleSound:()=>{s(t=>({soundEnabled:!t.soundEnabled}))},toggleMusic:()=>{s(t=>({musicEnabled:!t.musicEnabled}))},setSoundVolume:t=>{s({soundVolume:Math.max(0,Math.min(1,t))})},setMusicVolume:t=>{s({musicVolume:Math.max(0,Math.min(1,t))})},muteAll:()=>{s({soundEnabled:!1,musicEnabled:!1})},unmuteAll:()=>{s({soundEnabled:!0,musicEnabled:!0})},setGraphicsQuality:t=>{s({graphicsQuality:t})},toggleFPS:()=>{s(t=>({showFPS:!t.showFPS}))},toggleGrid:()=>{s(t=>({showGrid:!t.showGrid}))},toggleReducedMotion:()=>{s(t=>({reducedMotion:!t.reducedMotion}))},toggleHighContrast:()=>{s(t=>{const i=!t.highContrast;return document.body.classList.toggle("high-contrast",i),{highContrast:i}})},toggleAutoSave:()=>{s(t=>({autoSaveEnabled:!t.autoSaveEnabled}))},setAutoSaveInterval:t=>{s({autoSaveInterval:Math.max(1e4,t)})},toggleNotifications:()=>{s(t=>({notificationsEnabled:!t.notificationsEnabled}))},toggleConfirmDestructive:()=>{s(t=>({confirmDestructiveActions:!t.confirmDestructiveActions}))},updateSettings:t=>{s(t)},resetToDefaults:()=>{s(Te)},exportSettings:()=>{const t=e();return{language:t.language,soundEnabled:t.soundEnabled,musicEnabled:t.musicEnabled,soundVolume:t.soundVolume,musicVolume:t.musicVolume,notificationsEnabled:t.notificationsEnabled,autoSaveEnabled:t.autoSaveEnabled,autoSaveInterval:t.autoSaveInterval,graphicsQuality:t.graphicsQuality,showFPS:t.showFPS,showGrid:t.showGrid,reducedMotion:t.reducedMotion,highContrast:t.highContrast,tooltipDelay:t.tooltipDelay,confirmDestructiveActions:t.confirmDestructiveActions}},importSettings:t=>{if(!t||typeof t!="object")return;const i={};for(const[n,r]of Object.entries(t))n in Te&&(i[n]=r);s(i)}}),{name:"kimchi-invasion-settings",version:1,partialize:s=>({language:s.language,soundEnabled:s.soundEnabled,musicEnabled:s.musicEnabled,soundVolume:s.soundVolume,musicVolume:s.musicVolume,notificationsEnabled:s.notificationsEnabled,autoSaveEnabled:s.autoSaveEnabled,autoSaveInterval:s.autoSaveInterval,graphicsQuality:s.graphicsQuality,showFPS:s.showFPS,showGrid:s.showGrid,reducedMotion:s.reducedMotion,highContrast:s.highContrast,tooltipDelay:s.tooltipDelay,confirmDestructiveActions:s.confirmDestructiveActions})}));class Si{constructor(){this.modalContainer=null,this.isOpen=!1,this.init()}init(){this.createModal(),this.bindEvents(),this.subscribeToStore()}createModal(){this.modalContainer=document.createElement("div"),this.modalContainer.id="settings-modal",this.modalContainer.className="settings-modal hidden",this.modalContainer.innerHTML=`
+      <div class="settings-modal-backdrop"></div>
+      <div class="settings-modal-content">
+        <div class="settings-modal-header">
+          <h2 id="settings-modal-title">${c("settings.title")}</h2>
+          <button id="settings-close-btn" class="settings-close-btn" aria-label="Close">✕</button>
+        </div>
+        <div class="settings-modal-body">
+          <!-- Volume Section -->
+          <section class="settings-section">
+            <h3 class="settings-section-title">${c("settings.volume")}</h3>
+
+            <!-- Master Volume -->
+            <div class="settings-row">
+              <label for="master-volume-slider" class="settings-label">
+                <span class="settings-label-text">${c("settings.master")}</span>
+                <span id="master-volume-value" class="settings-value">70%</span>
+              </label>
+              <div class="settings-slider-container">
+                <input
+                  type="range"
+                  id="master-volume-slider"
+                  class="settings-slider"
+                  min="0"
+                  max="100"
+                  value="70"
+                  aria-label="Master Volume"
+                />
+              </div>
+            </div>
+
+            <!-- Sound Effects Volume -->
+            <div class="settings-row">
+              <label for="sfx-volume-slider" class="settings-label">
+                <span class="settings-label-text">${c("settings.sfx")}</span>
+                <span id="sfx-volume-value" class="settings-value">70%</span>
+              </label>
+              <div class="settings-slider-container">
+                <input
+                  type="range"
+                  id="sfx-volume-slider"
+                  class="settings-slider"
+                  min="0"
+                  max="100"
+                  value="70"
+                  aria-label="Sound Effects Volume"
+                />
+              </div>
+            </div>
+
+            <!-- Music Volume -->
+            <div class="settings-row">
+              <label for="bgm-volume-slider" class="settings-label">
+                <span class="settings-label-text">${c("settings.bgm")}</span>
+                <span id="bgm-volume-value" class="settings-value">50%</span>
+              </label>
+              <div class="settings-slider-container">
+                <input
+                  type="range"
+                  id="bgm-volume-slider"
+                  class="settings-slider"
+                  min="0"
+                  max="100"
+                  value="50"
+                  aria-label="Background Music Volume"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Language Section -->
+          <section class="settings-section">
+            <h3 class="settings-section-title">${c("settings.language")}</h3>
+            <div class="settings-row">
+              <div class="settings-button-group" role="radiogroup" aria-label="Language">
+                <button
+                  id="lang-ko-btn"
+                  class="settings-btn settings-btn-active"
+                  data-lang="ko"
+                  role="radio"
+                  aria-checked="true"
+                >
+                  한국어
+                </button>
+                <button
+                  id="lang-en-btn"
+                  class="settings-btn"
+                  data-lang="en"
+                  role="radio"
+                  aria-checked="false"
+                >
+                  English
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Graphics Section -->
+          <section class="settings-section">
+            <h3 class="settings-section-title">${c("settings.graphics")}</h3>
+
+            <!-- Pixel Effect -->
+            <div class="settings-row">
+              <label for="pixel-effect-toggle" class="settings-label">
+                <span class="settings-label-text">${c("settings.pixelEffect")}</span>
+              </label>
+              <button
+                id="pixel-effect-toggle"
+                class="settings-toggle"
+                role="switch"
+                aria-checked="false"
+                aria-label="Pixel Effect"
+              >
+                <span class="settings-toggle-slider"></span>
+              </button>
+            </div>
+
+            <!-- Particle Quality -->
+            <div class="settings-row">
+              <label class="settings-label">
+                <span class="settings-label-text">${c("settings.particles")}</span>
+              </label>
+              <div class="settings-button-group" role="radiogroup" aria-label="Particle Quality">
+                <button
+                  class="settings-btn settings-btn-sm"
+                  data-quality="low"
+                  role="radio"
+                >
+                  ${N()==="ko"?"낮음":"Low"}
+                </button>
+                <button
+                  class="settings-btn settings-btn-sm settings-btn-active"
+                  data-quality="medium"
+                  role="radio"
+                  aria-checked="true"
+                >
+                  ${N()==="ko"?"중간":"Medium"}
+                </button>
+                <button
+                  class="settings-btn settings-btn-sm"
+                  data-quality="high"
+                  role="radio"
+                >
+                  ${N()==="ko"?"높음":"High"}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Other Section -->
+          <section class="settings-section">
+            <h3 class="settings-section-title">${N()==="ko"?"기타":"Other"}</h3>
+
+            <!-- Tutorial Replay -->
+            <div class="settings-row">
+              <button id="tutorial-replay-btn" class="settings-action-btn">
+                <span>🎓</span>
+                <span>${c("settings.tutorialReplay")}</span>
+              </button>
+            </div>
+
+            <!-- Reset Game -->
+            <div class="settings-row">
+              <button id="reset-game-btn" class="settings-action-btn settings-action-btn-danger">
+                <span>⚠️</span>
+                <span>${c("settings.reset")}</span>
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    `,document.body.appendChild(this.modalContainer)}bindEvents(){var l,u,d;const e=document.getElementById("settings-close-btn");e&&e.addEventListener("click",()=>this.close());const t=(l=this.modalContainer)==null?void 0:l.querySelector(".settings-modal-backdrop");t&&t.addEventListener("click",()=>this.close()),document.addEventListener("keydown",h=>{h.key==="Escape"&&this.isOpen&&this.close()}),this.bindVolumeSlider("master-volume-slider","master-volume-value",h=>{const f=z.getState();f.setSoundVolume(h/100),f.setMusicVolume(h/100)}),this.bindVolumeSlider("sfx-volume-slider","sfx-volume-value",h=>{z.getState().setSoundVolume(h/100)}),this.bindVolumeSlider("bgm-volume-slider","bgm-volume-value",h=>{z.getState().setMusicVolume(h/100)});const i=(u=this.modalContainer)==null?void 0:u.querySelectorAll("[data-lang]");i==null||i.forEach(h=>{h.addEventListener("click",f=>{const v=f.currentTarget.dataset.lang;this.changeLanguage(v)})});const n=document.getElementById("pixel-effect-toggle");n&&n.addEventListener("click",()=>{const h=n.getAttribute("aria-checked")==="true";n.setAttribute("aria-checked",!h)});const r=(d=this.modalContainer)==null?void 0:d.querySelectorAll("[data-quality]");r==null||r.forEach(h=>{h.addEventListener("click",f=>{const v=f.currentTarget.dataset.quality;this.changeParticleQuality(v)})});const o=document.getElementById("tutorial-replay-btn");o&&o.addEventListener("click",()=>{this.replayTutorial()});const a=document.getElementById("reset-game-btn");a&&a.addEventListener("click",()=>{this.resetGame()})}bindVolumeSlider(e,t,i){const n=document.getElementById(e),r=document.getElementById(t);n&&r&&n.addEventListener("input",o=>{const a=parseInt(o.target.value,10);r.textContent=`${a}%`,i(a)})}subscribeToStore(){z.subscribe(e=>e.soundVolume,e=>{const t=document.getElementById("sfx-volume-slider"),i=document.getElementById("sfx-volume-value");if(t&&i){const n=Math.round(e*100);t.value=n,i.textContent=`${n}%`}}),z.subscribe(e=>e.musicVolume,e=>{const t=document.getElementById("bgm-volume-slider"),i=document.getElementById("bgm-volume-value");if(t&&i){const n=Math.round(e*100);t.value=n,i.textContent=`${n}%`}}),z.subscribe(e=>e.graphicsQuality,e=>{var i;const t=(i=this.modalContainer)==null?void 0:i.querySelectorAll("[data-quality]");t==null||t.forEach(n=>{const r=n.dataset.quality===e;n.classList.toggle("settings-btn-active",r),n.setAttribute("aria-checked",r)})})}changeLanguage(e){var i;We(e),z.getState().setLanguage(e);const t=(i=this.modalContainer)==null?void 0:i.querySelectorAll("[data-lang]");t==null||t.forEach(n=>{const r=n.dataset.lang===e;n.classList.toggle("settings-btn-active",r),n.setAttribute("aria-checked",r)}),this.updateText()}changeParticleQuality(e){var i;z.getState().setGraphicsQuality(e);const t=(i=this.modalContainer)==null?void 0:i.querySelectorAll("[data-quality]");t==null||t.forEach(n=>{const r=n.dataset.quality===e;n.classList.toggle("settings-btn-active",r),n.setAttribute("aria-checked",r)})}replayTutorial(){confirm(N()==="ko"?"튜토리얼을 다시 시작하시겠습니까?":"Restart the tutorial?")&&(localStorage.removeItem("kimchi-invasion-tutorial-progress"),localStorage.removeItem("kimchi-invasion-tutorial-completed"),window.location.reload())}resetGame(){confirm(c("settings.resetConfirm"))&&confirm(N()==="ko"?"정말로 모든 진행 상황을 삭제하시겠습니까? (되돌릴 수 없습니다)":"Are you absolutely sure? This action cannot be undone.")&&(localStorage.removeItem("kimchi-invasion-game"),localStorage.removeItem("kimchi-invasion-tutorial-progress"),g.getState().reset(),window.location.reload())}updateText(){var a,l,u;const e=document.getElementById("settings-modal-title");e&&(e.textContent=c("settings.title"));const t=(a=this.modalContainer)==null?void 0:a.querySelectorAll(".settings-section-title");t&&(t[0].textContent=c("settings.volume"),t[1].textContent=c("settings.language"),t[2].textContent=c("settings.graphics"),t[3].textContent=N()==="ko"?"기타":"Other");const i=(l=this.modalContainer)==null?void 0:l.querySelectorAll(".settings-label-text");i&&(i[0].textContent=c("settings.master"),i[1].textContent=c("settings.sfx"),i[2].textContent=c("settings.bgm"),i[3].textContent=c("settings.pixelEffect"),i[4].textContent=c("settings.particles"));const n=(u=this.modalContainer)==null?void 0:u.querySelectorAll("[data-quality]");n&&(n[0].textContent=N()==="ko"?"낮음":"Low",n[1].textContent=N()==="ko"?"중간":"Medium",n[2].textContent=N()==="ko"?"높음":"High");const r=document.getElementById("tutorial-replay-btn");if(r){const d=r.querySelector("span:last-child");d&&(d.textContent=c("settings.tutorialReplay"))}const o=document.getElementById("reset-game-btn");if(o){const d=o.querySelector("span:last-child");d&&(d.textContent=c("settings.reset"))}}open(){var e;this.isOpen||(this.syncUIWithState(),(e=this.modalContainer)==null||e.classList.remove("hidden"),this.isOpen=!0)}close(){var e;this.isOpen&&((e=this.modalContainer)==null||e.classList.add("hidden"),this.isOpen=!1)}syncUIWithState(){var f,v;const e=z.getState(),t=document.getElementById("sfx-volume-slider"),i=document.getElementById("sfx-volume-value");if(t&&i){const y=Math.round(e.soundVolume*100);t.value=y,i.textContent=`${y}%`}const n=document.getElementById("bgm-volume-slider"),r=document.getElementById("bgm-volume-value");if(n&&r){const y=Math.round(e.musicVolume*100);n.value=y,r.textContent=`${y}%`}const o=document.getElementById("master-volume-slider"),a=document.getElementById("master-volume-value");if(o&&a){const y=Math.round((e.soundVolume+e.musicVolume)/2*100);o.value=y,a.textContent=`${y}%`}const l=e.language,u=(f=this.modalContainer)==null?void 0:f.querySelectorAll("[data-lang]");u==null||u.forEach(y=>{const F=y.dataset.lang===l;y.classList.toggle("settings-btn-active",F),y.setAttribute("aria-checked",F)});const d=e.graphicsQuality,h=(v=this.modalContainer)==null?void 0:v.querySelectorAll("[data-quality]");h==null||h.forEach(y=>{const F=y.dataset.quality===d;y.classList.toggle("settings-btn-active",F),y.setAttribute("aria-checked",F)})}toggle(){this.isOpen?this.close():this.open()}destroy(){var e;(e=this.modalContainer)==null||e.remove(),this.modalContainer=null,this.isOpen=!1}}let Ee=null;function Le(){return Ee||(Ee=new Si),Ee}function wi(){return Le()}function xi(){Le().close()}function Ti(){Le().toggle()}let Y=null,U=null;async function Ei(){const s=ut();if(!s)throw new Error("[UI] PixiJS UI container not found");const e=ie();if(!e)throw new Error("[UI] PixiJS game container not found");Rt(s,{x:10,y:10}),Y=$t(),e.addChild(Y),Xe.on("mined",({resourceId:t,amount:i,tileX:n,tileY:r})=>{Y&&Y.showFloating(t,i,n,r)}),ti(s,e),li();try{U=vi(),U.hide()}catch(t){console.warn("[UI] Failed to initialize Research UI:",t.message),U=null}try{Ut()}catch(t){console.warn("[UI] Failed to initialize Tutorial UI:",t.message)}try{wi()}catch(t){console.warn("[UI] Failed to initialize Settings menu:",t.message)}}function Ci(s){Y&&Y.update(s),hi()}function Pi(){U&&U.toggle()}function ki(){U&&U.hide()}const P={mouse:{x:0,y:0,down:!1,button:-1},touch:{active:!1,touches:[]},keys:new Set,modifiers:{shift:!1,ctrl:!1,alt:!1}},ee={click:[],drag:[],zoom:[],keydown:[],keyup:[]};let ue=0,S=null;function Mi(){const s=document.getElementById("game-container"),e=document.getElementById("game-canvas");if(!s||!e){console.warn("[Input] Game container or canvas not found");return}e.addEventListener("mousedown",Bi),e.addEventListener("mouseup",Ii),e.addEventListener("mousemove",Ri),e.addEventListener("wheel",Li,{passive:!1}),e.addEventListener("contextmenu",t=>t.preventDefault()),e.addEventListener("touchstart",$i,{passive:!1}),e.addEventListener("touchend",Ai),e.addEventListener("touchmove",Ki,{passive:!1}),window.addEventListener("keydown",Fi),window.addEventListener("keyup",_i),e.addEventListener("dragstart",t=>t.preventDefault())}function ae(s,e){return ee[s]?(ee[s].push(e),()=>{const t=ee[s].indexOf(e);t>-1&&ee[s].splice(t,1)}):()=>{}}function O(s,e){var t;(t=ee[s])==null||t.forEach(i=>{try{i(e)}catch(n){console.error(`[Input] ${s} listener error:`,n)}})}function j(s){const e=document.getElementById("game-canvas");if(!e)return{x:0,y:0};const t=e.getBoundingClientRect(),i=s.touches?s.touches[0].clientX:s.clientX,n=s.touches?s.touches[0].clientY:s.clientY;return{x:i-t.left,y:n-t.top}}function Bi(s){const e=j(s);P.mouse={...e,down:!0,button:s.button},S={...e},s.button===0&&O("click",{...e,type:"start"})}function Ii(s){const e=j(s);s.button===0&&S&&(Math.hypot(e.x-S.x,e.y-S.y)<5?O("click",{...e,type:"click"}):O("drag",{start:S,end:e,type:"end"})),P.mouse={...e,down:!1,button:-1},S=null}function Ri(s){const e=j(s);P.mouse={...P.mouse,...e},P.mouse.down&&S&&O("drag",{start:S,current:e,delta:{x:e.x-S.x,y:e.y-S.y},type:"move"})}function Li(s){s.preventDefault();const e=j(s),t=s.deltaY>0?-1:1;O("zoom",{...e,delta:t})}function $i(s){if(s.preventDefault(),P.touch.active=!0,P.touch.touches=Array.from(s.touches),s.touches.length===1){const e=j(s);S={...e},O("click",{...e,type:"start"})}else s.touches.length===2&&(ue=it(s.touches))}function Ai(s){if(s.touches.length===0){if(P.touch.active=!1,S){const e=j({touches:s.changedTouches});Math.hypot(e.x-S.x,e.y-S.y)<10?O("click",{...e,type:"click"}):O("drag",{start:S,end:e,type:"end"})}S=null,ue=0}P.touch.touches=Array.from(s.touches)}function Ki(s){if(s.preventDefault(),P.touch.touches=Array.from(s.touches),s.touches.length===1&&S){const e=j(s);O("drag",{start:S,current:e,delta:{x:e.x-S.x,y:e.y-S.y},type:"move"})}else if(s.touches.length===2){const e=it(s.touches),t=(e-ue)/100;if(Math.abs(t)>.01){const i=Oi(s.touches);O("zoom",{...i,delta:t}),ue=e}}}function it(s){if(s.length<2)return 0;const e=s[0].clientX-s[1].clientX,t=s[0].clientY-s[1].clientY;return Math.hypot(e,t)}function Oi(s){if(s.length<2)return{x:0,y:0};const e=document.getElementById("game-canvas"),t=(e==null?void 0:e.getBoundingClientRect())??{left:0,top:0};return{x:(s[0].clientX+s[1].clientX)/2-t.left,y:(s[0].clientY+s[1].clientY)/2-t.top}}function Fi(s){if(s.target.tagName==="INPUT"||s.target.tagName==="TEXTAREA")return;const e=s.key.toLowerCase();P.keys.add(e),P.modifiers={shift:s.shiftKey,ctrl:s.ctrlKey||s.metaKey,alt:s.altKey},Ni(e,P.modifiers),O("keydown",{key:e,...P.modifiers})}function Ni(s,e){s==="r"&&!e.ctrl&&!e.alt&&Pi(),s==="s"&&!e.ctrl&&!e.alt&&Ti(),s==="escape"&&Di()}function Di(){if(document.querySelector(".settings-modal:not(.hidden)")){xi();return}const e=document.querySelector(".tutorial-modal:not(.hidden)");if(e){if(Q.state!==I.IN_PROGRESS){const t=e.querySelector(".tutorial-skip-btn");t&&t.click()}return}ki()}function _i(s){const e=s.key.toLowerCase();P.keys.delete(e),P.modifiers={shift:s.shiftKey,ctrl:s.ctrlKey||s.metaKey,alt:s.altKey},O("keyup",{key:e,...P.modifiers})}function Vi(){ae("drag",s=>{s.type==="move"?(vt()||(ft(s.start.x,s.start.y),s.start),yt(s.current.x,s.current.y),s.current):s.type==="end"&&bt()}),ae("zoom",s=>{pt(s.delta,s.x,s.y)}),ae("keydown",s=>{const e=s.shift?50:20;switch(s.key){case"w":case"arrowup":ne(0,-e);break;case"s":case"arrowdown":ne(0,e);break;case"a":case"arrowleft":ne(-e,0);break;case"d":case"arrowright":ne(e,0);break}})}const st={furnace:{input:{ironOre:2},output:{ironPlate:1},time:15,description:"철광석 제련"},brineStation:{input:{water:10},output:{salt:1},time:20,description:"소금 증발"},fermentationVat:{input:{cabbage:5,salt:2,water:3},output:{kimchi:1},time:60,description:"김치 발효"},waterPurifier:{input:{ice:5},output:{water:4},time:10,description:"얼음 정화"},greenhouse:{input:{water:2,energy:5},output:{cabbage:1},time:30,description:"배추 재배"}};function zi(s){return st[s]??null}class Gi extends H{constructor(){super([]),this.systemName="ProcessingSystem",this.priority=30,this.eventBus=new EventTarget,this.recipes=st}init(){typeof window<"u"&&(window.processingSystem=this)}update(e,t){for(const[i,n]of Object.entries(this.recipes)){const r=C.getBuildingsByType(i);for(const o of r)this.processBuilding(o,n,t)}}processBuilding(e,t,i){const n=Xt(e.type)??t.time;if(e.processing){typeof e.progress!="number"&&(e.progress=0),e.progress+=i/n,e.progress>=1&&(p.addMultiple(t.output),e.progress=0,e.processing=!1,this.emit("processed",{buildingId:e.id,building:e,output:t.output}),`${JSON.stringify(t.output)}${e.id}`);return}this.canStartProcessing(t)&&p.consumeMultiple(t.input)&&(e.processing=!0,e.progress=0,this.emit("processingStarted",{buildingId:e.id,building:e,input:t.input}),`${JSON.stringify(t.input)}${e.id}`)}canStartProcessing(e){for(const[t,i]of Object.entries(e.input))if(!p.has(t,i))return!1;return!0}getRecipe(e){return zi(e)}setRecipe(e,t){return!t.input||!t.output||!t.time?(console.warn("[ProcessingSystem] Invalid recipe format"),!1):(this.recipes[e]=t,`${e}`,!0)}emit(e,t){const i=new CustomEvent(e,{detail:t});this.eventBus.dispatchEvent(i)}on(e,t){this.eventBus.addEventListener(e,i=>t(i.detail))}off(e,t){this.eventBus.removeEventListener(e,t)}debugPrintAll(){for(const[e,t]of Object.entries(this.recipes)){const i=C.getBuildingsByType(e);`${e}${i.length}`,`${JSON.stringify(t.input)}${JSON.stringify(t.output)}`,`${t.time}`;for(const n of i){const r=n.processing?"Processing":"Idle",o=n.processing?(n.progress||0)*100:0;`${n.id}${n.x}${n.y}${n.level}${r}${o.toFixed(1)}`}}}}const Hi=new Gi;class Ui extends H{constructor(){super([]),this.systemName="FermentationSystem",this.priority=40,this.eventBus=new EventTarget,this.recipe={input:{cabbage:1,salt:1,chilliPowder:1},output:{kimchi:1},time:60,description:"배추김치 발효"}}init(){typeof window<"u"&&(window.fermentationSystem=this)}update(e,t){const i=C.getBuildingsByType("fermentationChamber");for(const n of i)this.processFermentation(n,t)}processFermentation(e,t){if(e.fermenting){typeof e.progress!="number"&&(e.progress=0);const n=T.fermentationChamber.energyPerTick*t;if(!p.has("energy",n))return;p.consume("energy",n),e.progress+=t/this.recipe.time,e.progress>=1&&(p.addMultiple(this.recipe.output),e.progress=0,e.fermenting=!1,this.emit("fermented",{buildingId:e.id,building:e,output:this.recipe.output}));return}this.canStartFermentation()&&p.consumeMultiple(this.recipe.input)&&(e.fermenting=!0,e.progress=0,this.emit("fermentationStarted",{buildingId:e.id,building:e,input:this.recipe.input}))}canStartFermentation(){for(const[e,t]of Object.entries(this.recipe.input))if(!p.has(e,t))return!1;return!0}getRecipe(){return this.recipe}setRecipe(e){return!e.input||!e.output||!e.time?(console.warn("[FermentationSystem] Invalid recipe format"),!1):(this.recipe=e,!0)}emit(e,t){const i=new CustomEvent(e,{detail:t});this.eventBus.dispatchEvent(i)}on(e,t){this.eventBus.addEventListener(e,i=>t(i.detail))}off(e,t){this.eventBus.removeEventListener(e,t)}}const qi=new Ui;function ji(){return[p,C,Hi,qi,et,Xe,Q]}async function Wi(s){const e=ji();for(const t of e)s.addSystem(t),`${t.constructor.name}`;Vi()}const nt="kimchi_invasion_save",Yi=1;let Ce=null,De=!1;const Xi=()=>{document.hidden&&$e()},Qi=()=>{$e()};function $e(){try{const s=g.getState().serialize();if(!s)return console.warn("[Storage] No game state to save"),!1;const e={version:Yi,timestamp:Date.now(),state:s};return localStorage.setItem(nt,JSON.stringify(e)),!0}catch(s){return console.error("[Storage] Save failed:",s),!1}}async function Ji(){try{const s=localStorage.getItem(nt);if(!s)return!1;const e=JSON.parse(s),t=es(e.state,e.version);return g.getState().deserialize(t),!0}catch(s){return console.error("[Storage] Load failed:",s),!1}}function Zi(s=3e4){Ce&&clearInterval(Ce),Ce=setInterval(()=>{$e()},s),De||(document.addEventListener("visibilitychange",Xi),window.addEventListener("beforeunload",Qi),De=!0),s/1e3}function es(s,e){return s}class ts{constructor(){this.entities=new Map,this.systems=[]}addEntity(e){return this.entities.set(e.id,e),this}removeEntity(e){return this.entities.delete(e)}getEntity(e){return this.entities.get(e)}getEntitiesByType(e){return[...this.entities.values()].filter(t=>t.type===e)}getAllEntities(){return[...this.entities.values()]}addSystem(e){return this.systems.push(e),this.systems.sort((t,i)=>t.priority-i.priority),typeof e.init=="function"&&e.init(),this}removeSystem(e){const t=this.systems.indexOf(e);return t!==-1?(typeof e.cleanup=="function"&&e.cleanup(),this.systems.splice(t,1),!0):!1}update(e){for(const t of this.systems){const i=[...this.entities.values()].filter(n=>n.active&&t.matches(n));t.update(i,e)}}clear(){for(const e of this.systems)typeof e.cleanup=="function"&&e.cleanup();this.systems=[],this.entities.clear()}}let V=null,de=null;const Pe={targetFPS:60,autoSaveInterval:3e4,version:"1.2.2"},is={frameCount:0,lastTime:0,fps:0,element:null,updateInterval:500,init(){},update(s){},destroy(){this.element&&(this.element.remove(),this.element=null)}};function $(s,e){const t=document.getElementById("loading-progress"),i=document.getElementById("loading-status");t&&(t.style.width=`${s}%`),i&&(i.textContent=e)}function ss(){const s=document.getElementById("loading-screen");s&&(s.classList.add("hidden"),setTimeout(()=>{s.remove()},400))}function ns(){const e=Object.entries({webgl2:()=>!!document.createElement("canvas").getContext("webgl2"),localStorage:()=>{try{return localStorage.setItem("test","1"),localStorage.removeItem("test"),!0}catch{return!1}},es2020:()=>{try{return new Function('const a = 1n; a?.b ?? "c";'),!0}catch{return!1}}}).filter(([,t])=>!t()).map(([t])=>t);if(e.length>0)throw new Error(`Browser missing required features: ${e.join(", ")}`);return!0}async function _e(){try{`${Pe.version}`,$(5,"Checking browser compatibility..."),ns(),$(15,"Loading translations..."),await _t(),$(25,c("loading.state")||"Initializing game state..."),g.getState().reset(),$(35,c("loading.save")||"Loading saved game...");const s=await Ji();$(50,c("loading.renderer")||"Initializing renderer...");const e=document.getElementById("game-canvas");await lt({canvas:e}),$(55,c("loading.world")||"Generating world..."),dt(),St();const t=Bt(),i=J();gt(t.width*i/2,t.height*i/2),$(65,"Initializing ECS World..."),de=new ts,$(70,c("loading.systems")||"Loading game systems..."),await Wi(de),$(85,c("loading.ui")||"Setting up interface..."),await Ei(),$(95,c("loading.input")||"Configuring controls..."),Mi(),Zi(Pe.autoSaveInterval),$(100,c("loading.complete")||"Ready!"),V={config:Pe,state:g.getState(),running:!1,lastTime:0},await new Promise(n=>setTimeout(n,300)),ss(),is.init(),Yt(),ot()}catch(s){console.error("[KIMCHI INVASION] Initialization failed:",s),$(0,`Error: ${s.message}`),os(s)}}function rt(s){if(!V.running)return;const e=(s-V.lastTime)/1e3;V.lastTime=s,de&&de.update(e),Ci(e),requestAnimationFrame(rt)}function ot(){V.running||(V.running=!0,V.lastTime=performance.now(),requestAnimationFrame(rt))}function rs(){V&&(V.running=!1)}function os(s){const e=document.querySelector(".loading-content");e&&(e.innerHTML=`
+      <h1 style="color: var(--color-danger);">Error</h1>
+      <p style="color: var(--color-text-dim); margin: 16px 0;">${s.message}</p>
+      <p style="font-size: 0.875rem; color: var(--color-text-dim);">
+        Please refresh the page or try a different browser.
+      </p>
+      <button onclick="location.reload()" style="
+        margin-top: 24px;
+        padding: 12px 24px;
+        background: var(--color-kimchi-red);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+      ">Refresh</button>
+    `)}document.addEventListener("visibilitychange",()=>{document.hidden?rs():V&&ot()});document.readyState==="loading"?document.addEventListener("DOMContentLoaded",_e):_e();

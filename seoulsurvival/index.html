@@ -15,6 +15,12 @@
   </script>
   <link rel="canonical" href="https://clicksurvivor.com/seoulsurvival/" />
   <meta name="description" content="노동 → 투자 → 자동화. 클릭으로 월급을 자본으로 바꾸고 서울에서 살아남아라. (설치 없이 웹에서 플레이)" />
+  <meta name="description" lang="en" content="Click to earn wages, invest in stocks and real estate, and prestige your way to wealth in Seoul. A free browser-based incremental idle clicker game with cloud save and leaderboards." />
+
+  <!-- hreflang -->
+  <link rel="alternate" hreflang="ko" href="https://clicksurvivor.com/seoulsurvival/" />
+  <link rel="alternate" hreflang="en" href="https://clicksurvivor.com/seoulsurvival/" />
+  <link rel="alternate" hreflang="x-default" href="https://clicksurvivor.com/seoulsurvival/" />
 
   <meta property="og:site_name" content="ClickSurvivor" />
   <meta property="og:type" content="website" />
@@ -24,6 +30,8 @@
   <meta property="og:image" content="https://clicksurvivor.com/og/seoulsurvivor-1200x630.png?v=2025-12-21" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale:alternate" content="en_US" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="서울 생존기 : 흙수저 탈출 — Seoul Survival" />
@@ -39,6 +47,9 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="../assets/manifest-Cf8mF3cd.json" />
 
+  <!-- Mobile Web App -->
+  <meta name="mobile-web-app-capable" content="yes" />
+
   <!-- Apple Mobile Web App -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -49,19 +60,55 @@
   <meta name="msapplication-TileImage" content="assets/icons/icon-144x144.png" />
 
   <title>서울 생존기 : 흙수저 탈출</title>
-  <script type="module" crossorigin src="../assets/seoulsurvival-BWQ-kWZT.js"></script>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["VideoGame", "WebApplication"],
+    "name": "서울 생존기 : 흙수저 탈출",
+    "alternateName": ["Seoul Survival", "Seoul Survival: Escape Poverty"],
+    "description": "Click to earn wages, invest in stocks and real estate, and prestige your way to wealth in Seoul. A free browser-based incremental idle clicker game.",
+    "url": "https://clicksurvivor.com/seoulsurvival/",
+    "image": "https://clicksurvivor.com/seoulsurvival/icons/icon-512x512.png",
+    "genre": ["Incremental", "Idle", "Clicker", "Simulation", "Economy"],
+    "gamePlatform": "Web Browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "isAccessibleForFree": true,
+    "inLanguage": ["ko", "en"],
+    "author": {
+      "@type": "Organization",
+      "name": "ClickSurvivor",
+      "url": "https://clicksurvivor.com/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "ClickSurvivor",
+      "url": "https://clicksurvivor.com/"
+    }
+  }
+  </script>
+  <script type="module" crossorigin src="../assets/seoulsurvival-DmVKQJky.js"></script>
   <link rel="modulepreload" crossorigin href="../assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-i18n-CFcB2WGI.js">
-  <link rel="modulepreload" crossorigin href="../assets/shared-auth-BaZ6Nda7.js">
-  <link rel="modulepreload" crossorigin href="../assets/shared-common-P0-icqZ5.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-utils-CSxo2RCp.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-systems-B66jylQo.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-core-CVAlHGxq.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-ui-DTgQ_gwj.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-i18n-CHedcszT.js">
+  <link rel="modulepreload" crossorigin href="../assets/shared-auth-B18utKuL.js">
+  <link rel="modulepreload" crossorigin href="../assets/shared-common-By_9TMSh.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-utils-COeNJCxP.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-systems-Dy1hr9p8.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-core-5CwqGnVc.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-ui-ClKjcY8k.js">
   <link rel="modulepreload" crossorigin href="../assets/vendor-sentry-GDmcRtJk.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-monitoring-CRmvr7vr.js">
-  <link rel="stylesheet" crossorigin href="../assets/shared-common-D3Uet6lW.css">
-  <link rel="stylesheet" crossorigin href="../assets/seoulsurvival-BjeBl31-.css">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-monitoring-D4kQQFSG.js">
+  <link rel="stylesheet" crossorigin href="../assets/shared-common-CWv3kcCD.css">
+  <link rel="stylesheet" crossorigin href="../assets/seoulsurvival-HbL6L545.css">
 </head>
 <body data-theme="seoulsurvival">
   <!-- Skip Navigation 링크 (접근성) -->
@@ -761,7 +808,7 @@
         <div class="stats-section">
           <h3><span data-i18n="settings.display.title">🎨 디스플레이</span></h3>
           <div>
-            <div class="settings-subsection">
+            <div class="settings-subsection settings-subsection-spacing">
               <div class="settings-subsection__title" data-i18n="settings.graphics.title">그래픽</div>
               <div class="stat-grid">
                 <div class="stat-item settings-toggle-container stat-item-full">
@@ -790,7 +837,7 @@
                 </div>
               </div>
             </div>
-            <div class="settings-subsection">
+            <div class="settings-subsection settings-subsection-spacing">
               <div class="settings-subsection__title" data-i18n="settings.display.format">숫자 형식</div>
               <div class="stat-grid">
                 <div class="stat-item settings-toggle-container stat-item-full">
@@ -807,7 +854,25 @@
                 </div>
               </div>
             </div>
-            <div class="settings-subsection">
+            <div class="settings-subsection settings-subsection-spacing">
+              <div class="settings-subsection__title" data-i18n="settings.notifications.title">알림</div>
+              <div class="stat-grid">
+                <div class="stat-item settings-toggle-container stat-item-full">
+                  <div class="settings-toggle-info">
+                    <label for="toggleBrowserNotifications" class="stat-label" data-i18n="settings.notifications.enable">브라우저 알림 사용</label>
+                    <div class="settings-toggle-desc" data-i18n="settings.notifications.enableDesc">
+                      오프라인 수익 등을 브라우저 알림으로 받습니다
+                    </div>
+                    <div id="notificationStatus" class="settings-toggle-desc settings-desc-spacing" style="font-size: 11px;"></div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggleBrowserNotifications">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="settings-subsection settings-subsection-spacing">
               <div class="settings-subsection__title" data-i18n="settings.language">언어</div>
               <div class="settings-select-group">
                 <select id="languageSelect" class="settings-select">
@@ -825,10 +890,10 @@
           <div>
             <div class="stat-grid">
               <!-- 상태 + 로그아웃 버튼 -->
-              <div class="stat-item settings-toggle-container" style="grid-column: 1 / 3;">
+              <div class="stat-item settings-toggle-container grid-col-full">
                 <div class="settings-toggle-info">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="status-indicator" id="authStatusIndicator" style="width: 10px; height: 10px; border-radius: 50%; background: #666; flex-shrink: 0;"></span>
+                  <div class="flex-row-center">
+                    <span class="status-indicator status-indicator--offline" id="authStatusIndicator"></span>
                     <span class="stat-label" data-i18n="settings.status">상태</span>:
                     <span id="authStatusLabel" data-i18n="settings.guestMode">게스트 모드</span>
                   </div>
@@ -839,9 +904,9 @@
               </div>
 
               <!-- 닉네임 + 변경 버튼 -->
-              <div class="stat-item settings-toggle-container" id="nicknameInfoItem" style="grid-column: 1 / 3; display: none;">
+              <div class="stat-item settings-toggle-container grid-col-full" id="nicknameInfoItem" style="display: none;">
                 <div class="settings-toggle-info">
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                  <div class="flex-row-center">
                     <span class="stat-label" data-i18n="settings.nickname">닉네임</span>:
                     <span id="playerNicknameLabel">-</span>
                   </div>
@@ -851,12 +916,12 @@
             </div>
 
             <!-- 닉네임 중복 안내 배너 (마이그레이션 충돌 시 표시) -->
-            <div class="warning-box" id="nicknameConflictBanner" style="display: none; margin-top: 12px;">
+            <div class="warning-box settings-item-spacing" id="nicknameConflictBanner" style="display: none;">
               <span data-i18n="settings.nickname.change.needRename">닉네임이 중복되어 변경이 필요합니다.</span>
               <button
                 id="nicknameConflictChangeBtn"
                 class="btn settings-btn"
-                style="margin-left: 8px; background: var(--primary); color: white; padding: 4px 12px; font-size: 12px;"
+                style="margin-left: 8px; padding: 4px 12px; font-size: 12px;"
                 data-i18n="settings.nickname.change.button"
               >
                 지금 변경
@@ -864,24 +929,24 @@
             </div>
 
             <!-- 로그인 버튼 (비로그인 시만 표시) -->
-            <div class="settings-btn-group" style="margin-top: 12px;">
-              <div id="authProviderButtons" style="display:flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn settings-btn" data-auth-provider="google" style="background: var(--primary); color: white; min-width: 160px;" data-i18n="settings.loginGoogle">🔐 Google로 로그인</button>
+            <div class="settings-btn-group settings-item-spacing">
+              <div id="authProviderButtons" class="flex-row-wrap">
+                <button class="btn settings-btn" data-auth-provider="google" data-i18n="settings.loginGoogle">🔐 Google로 로그인</button>
               </div>
             </div>
 
             <!-- 클라우드 저장 (로그인 사용자만, 펼치기) -->
-            <div class="stats-section collapsible collapsed" id="cloudSaveSection" style="display: none; margin-top: 16px;">
+            <div class="stats-section collapsible collapsed settings-section-spacing" id="cloudSaveSection" style="display: none;">
               <h3 class="stats-toggle" aria-expanded="false" role="button" tabindex="0">
                 <span data-i18n="settings.cloudSave.title">☁️ 클라우드 저장</span>
                 <span class="toggle-icon" aria-hidden="true">▼</span>
               </h3>
               <div class="stats-content">
-                <div class="settings-btn-group" style="margin-bottom: 10px;">
-                  <button class="btn settings-btn" id="cloudUploadBtn" style="background: var(--info); color: white; flex: 1;" data-i18n="settings.saveManagement.cloudSaveBtn">
+                <div class="settings-btn-group settings-desc-spacing">
+                  <button class="btn settings-btn" id="cloudUploadBtn" data-i18n="settings.saveManagement.cloudSaveBtn">
                     ☁️ 클라우드 저장
                   </button>
-                  <button class="btn settings-btn" id="cloudDownloadBtn" style="background: var(--btn2); color: var(--text); flex: 1;" data-i18n="settings.saveManagement.cloudLoadBtn">
+                  <button class="btn settings-btn" id="cloudDownloadBtn" data-i18n="settings.saveManagement.cloudLoadBtn">
                     ☁️ 클라우드 불러오기
                   </button>
                 </div>
@@ -891,19 +956,69 @@
               </div>
             </div>
 
+            <!-- 친구 초대 (로그인 사용자만) -->
+            <div class="stats-section collapsible settings-section-spacing" id="referralSection">
+              <h3 class="stats-toggle" aria-expanded="false" role="button" tabindex="0">
+                <span data-i18n="referral.title">🎁 친구 초대</span>
+                <span class="toggle-icon" aria-hidden="true">▼</span>
+              </h3>
+              <div class="stats-content">
+                <!-- 초대 링크 -->
+                <div class="stat-grid">
+                  <div class="stat-item stat-item-full">
+                    <span class="stat-label" data-i18n="referral.myCode">내 초대 코드</span>
+                    <div class="settings-input-group">
+                      <input
+                        type="text"
+                        id="referralLinkInput"
+                        readonly
+                        value="Loading..."
+                        class="settings-input"
+                      />
+                      <button
+                        id="copyReferralLinkBtn"
+                        class="btn-secondary btn-sm"
+                      >
+                        📋 <span data-i18n="common.copy">복사</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 추천 통계 -->
+                <div class="stat-grid settings-section-spacing">
+                  <div class="stat-item">
+                    <span class="stat-label" data-i18n="referral.rewards.invited">초대받은 친구</span>
+                    <span class="stat-value" id="referralCount">0명</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label" data-i18n="referral.rewards.bonus">보너스</span>
+                    <span class="stat-value" id="referralReward">+0%</span>
+                  </div>
+                </div>
+
+                <!-- 보상 설명 -->
+                <div class="settings-desc settings-item-spacing" data-i18n="referral.rewardsDesc">
+                  친구가 가입하면 양쪽 모두 보너스를 받습니다.
+                  초대받은 친구: 시작 자금 +500만원
+                  초대한 친구: 영구 수익 +2%
+                </div>
+              </div>
+            </div>
+
             <!-- 비로그인 상태 안내 -->
-            <div id="guestSaveInfo" class="settings-desc" style="margin-top: 16px;" data-i18n="settings.saveManagement.guestSaveInfo">
+            <div id="guestSaveInfo" class="settings-desc settings-section-spacing" data-i18n="settings.saveManagement.guestSaveInfo">
               게스트 모드에서는 브라우저 LocalStorage에만 저장됩니다. 여러 기기에서 진행 상황을 동기화하려면 로그인이 필요합니다.
             </div>
 
             <!-- 저장 내보내기/가져오기 (숨김) -->
-            <button class="btn settings-btn" id="exportSaveBtn" style="background: var(--primary); color: white; min-width: 160px; display: none;">
+            <button class="btn settings-btn" id="exportSaveBtn" style="display: none;">
               📤 저장 내보내기
             </button>
             <div class="settings-desc hidden">
               저장 내용을 백업하거나 다른 컴퓨터로 전송
             </div>
-            <button class="btn settings-btn" id="importSaveBtn" style="background: var(--secondary); color: white; min-width: 160px; display: none;">
+            <button class="btn settings-btn" id="importSaveBtn" style="display: none;">
               📥 저장 가져오기
             </button>
             <div class="settings-desc hidden">
@@ -928,17 +1043,17 @@
                 🔄 게임 초기화
               </button>
             </div>
-            <div class="settings-desc" style="margin-top: 8px;" data-i18n="settings.resetWarning">
+            <div class="settings-desc settings-desc-spacing" data-i18n="settings.resetWarning">
               이번 런을 초기화합니다. 누적 기록(🗼 타워, CP)과 플레이 시간은 유지됩니다.
             </div>
 
             <!-- 완전 초기화 (모든 데이터 삭제) -->
-            <div class="settings-btn-group" style="margin-top: 16px;">
+            <div class="settings-btn-group settings-section-spacing">
               <button class="reset-btn settings-btn settings-btn--danger" id="hardResetBtn" data-i18n="settings.hardReset.title">
                 💀 완전 초기화
               </button>
             </div>
-            <div class="settings-desc" style="margin-top: 8px;" data-i18n="settings.hardResetWarning">
+            <div class="settings-desc settings-desc-spacing" data-i18n="settings.hardResetWarning">
               모든 데이터를 삭제합니다. 누적 타워, CP, 플레이 시간 등 모두 사라집니다.
             </div>
           </div>
@@ -1046,12 +1161,12 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then((registration) => {
-          console.log('[PWA] Service Worker registered successfully:', registration)
-
-          // Check for updates periodically
-          setInterval(() => {
-            registration.update()
-          }, 60000) // Check every minute
+          // Update SW when tab becomes visible (no polling)
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              registration.update()
+            }
+          })
         }).catch((error) => {
           console.warn('[PWA] Service Worker registration failed:', error)
         })

@@ -4,10 +4,25 @@
  * Network-first strategy for API calls
  */
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `seoulsurvival-static-${CACHE_VERSION}`
 const DYNAMIC_CACHE = `seoulsurvival-dynamic-${CACHE_VERSION}`
 const API_CACHE = `seoulsurvival-api-${CACHE_VERSION}`
+
+const MAX_DYNAMIC_ENTRIES = 50
+const MAX_API_ENTRIES = 30
+
+/**
+ * Trim cache to max entries (LRU-style: delete oldest first)
+ */
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName)
+  const keys = await cache.keys()
+  if (keys.length > maxEntries) {
+    await cache.delete(keys[0])
+    return trimCache(cacheName, maxEntries)
+  }
+}
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -79,9 +94,9 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // Static assets - Cache first, fallback to network
+  // Static assets - Stale-while-revalidate (serve cache, update in background)
   if (isStaticAsset(url)) {
-    event.respondWith(cacheFirstStrategy(request))
+    event.respondWith(staleWhileRevalidate(request))
     return
   }
 
@@ -91,8 +106,8 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // Default: Cache first with network fallback
-  event.respondWith(cacheFirstStrategy(request))
+  // Default: Stale-while-revalidate (serve cache, update in background)
+  event.respondWith(staleWhileRevalidate(request))
 })
 
 /**
@@ -136,6 +151,8 @@ async function networkFirstStrategy(request) {
     // Cache successful responses
     if (response.ok) {
       cache.put(request, response.clone())
+      const isApi = isApiRequest(new URL(request.url))
+      trimCache(isApi ? API_CACHE : DYNAMIC_CACHE, isApi ? MAX_API_ENTRIES : MAX_DYNAMIC_ENTRIES)
     }
 
     return response
@@ -149,6 +166,41 @@ async function networkFirstStrategy(request) {
 
     return getOfflineFallback(request)
   }
+}
+
+/**
+ * Stale-while-revalidate strategy: serve from cache immediately,
+ * then update the cache in the background from the network
+ */
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(STATIC_CACHE)
+  const cached = await cache.match(request)
+
+  const fetchPromise = fetch(request)
+    .then(response => {
+      if (response.ok) {
+        cache.put(request, response.clone())
+        trimCache(STATIC_CACHE, MAX_DYNAMIC_ENTRIES)
+      }
+      return response
+    })
+    .catch(error => {
+      console.warn('[SW] Background revalidation failed:', error)
+      return null
+    })
+
+  if (cached) {
+    return cached
+  }
+
+  try {
+    const response = await fetchPromise
+    if (response) return response
+  } catch {
+    // fall through to offline fallback
+  }
+
+  return getOfflineFallback(request)
 }
 
 /**
@@ -215,4 +267,19 @@ self.addEventListener('message', event => {
       Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)))
     })
   }
+})
+
+// Notification click handler - 알림 클릭 시 게임 탭 포커스
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(clientList => {
+      for (const client of clientList) {
+        if (client.url.includes('/seoulsurvival/') && 'focus' in client) {
+          return client.focus()
+        }
+      }
+      return clients.openWindow('/seoulsurvival/')
+    })
+  )
 })
