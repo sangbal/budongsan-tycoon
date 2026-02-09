@@ -84,7 +84,7 @@ export default {
   'hub.footer.support.faq': 'FAQ',
   'hub.footer.legal.title': 'Legal',
   'hub.toast.loginSoon': 'SSO is coming soon',
-  'hub.toast.langEn': 'Language: English',
+  'hub.toast.languageChanged': 'Language changed to {language}',
   'hub.drawer.title': 'Menu',
   'hub.drawer.language': 'Language',
   'hub.drawer.account': 'Account',
@@ -181,4 +181,24 @@ export default {
   'guide.synergy.title': 'Synergy Bonuses',
   'guide.tips.title': 'Strategy Tips',
   'guide.cta': 'Play Seoul Survival Now',
+
+  // Auth - Data deletion
+  'auth.data.delete.confirm1':
+    'Delete all cloud data (saves, leaderboard) and local game saves?\n\n⚠️ This action cannot be undone and you will be logged out after deletion.\n\nLanguage settings will be preserved.',
+  'auth.data.delete.confirm2':
+    'Are you sure you want to delete?\n\nData to be deleted:\n• Cloud saves\n• Leaderboard records\n• Local game saves\n\nYou will be logged out and the page will refresh after deletion.',
+  'auth.data.delete.error.network':
+    'An error occurred while deleting data. Please check your network connection and try again.',
+  'auth.data.delete.error.notConfigured': 'Data deletion feature is not configured.',
+  'auth.data.delete.error.unknown': 'An unknown error occurred while deleting data.',
+
+  // Auth - Account deletion
+  'auth.account.delete.confirm1':
+    'Permanently delete your account and all data?\n\n⚠️ This action cannot be undone.',
+  'auth.account.delete.confirm2':
+    'Are you sure you want to delete your account?\n\nItems to be deleted:\n• Account information\n• All cloud saves\n• Leaderboard records',
+  'auth.account.delete.error.network':
+    'An error occurred while deleting account. Please check your network connection and try again.',
+  'auth.account.delete.error.notConfigured': 'Account deletion feature is not configured.',
+  'auth.account.delete.error.unknown': 'An unknown error occurred while deleting account.',
 }

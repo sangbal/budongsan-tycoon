@@ -160,7 +160,7 @@ export function createSettingsTabManager(deps) {
 
     if (!user) {
       if (referralLinkInput) {
-        referralLinkInput.value = '로그인이 필요합니다'
+        referralLinkInput.value = t('referral.loginRequired')
       }
       if (referralCountEl) referralCountEl.textContent = '-'
       if (referralRewardEl) referralRewardEl.textContent = '-'
@@ -175,7 +175,7 @@ export function createSettingsTabManager(deps) {
     } catch (err) {
       console.error('[Referral] 추천 코드 조회 실패:', err)
       if (referralLinkInput) {
-        referralLinkInput.value = '추천 코드 로드 실패'
+        referralLinkInput.value = t('referral.codeLoadFailed')
       }
       return
     }
@@ -193,7 +193,7 @@ export function createSettingsTabManager(deps) {
         newBtn.addEventListener('click', async () => {
           try {
             await navigator.clipboard.writeText(referralLink)
-            const successMsg = t('referral.copySuccess') || '복사됨!'
+            const successMsg = t('referral.copySuccess')
             if (notificationManager?.toastSuccess) {
               notificationManager.toastSuccess(successMsg)
             } else if (window.toast?.success) {
@@ -203,7 +203,7 @@ export function createSettingsTabManager(deps) {
             }
           } catch (err) {
             console.error('[Referral] 클립보드 복사 실패:', err)
-            const failMsg = t('referral.copyFailed') || '복사 실패'
+            const failMsg = t('referral.copyFailed')
             if (notificationManager?.toastError) {
               notificationManager.toastError(failMsg)
             } else if (window.toast?.error) {
@@ -216,7 +216,7 @@ export function createSettingsTabManager(deps) {
       }
     } else {
       if (referralLinkInput) {
-        referralLinkInput.value = '추천 코드 생성 실패'
+        referralLinkInput.value = t('referral.codeGenerateFailed')
       }
     }
 
@@ -230,7 +230,7 @@ export function createSettingsTabManager(deps) {
         const milestoneCount = statsResult.milestoneCount || 0
 
         if (referralCountEl) {
-          referralCountEl.textContent = `${refereeCount}명`
+          referralCountEl.textContent = t('referral.refereeCount', { count: refereeCount })
         }
 
         // 보너스 계산: 마일스톤당 +2%

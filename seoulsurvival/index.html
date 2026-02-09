@@ -120,8 +120,6 @@
           class="chip favorite-btn"
           id="favoriteBtn"
           type="button"
-          title="즐겨찾기 / 홈 화면에 추가 안내"
-          aria-label="즐겨찾기 / 홈 화면에 추가 안내"
           data-i18n-title="header.favorite_btn.title"
           data-i18n-aria-label="header.favorite_btn.title"
         >
@@ -161,14 +159,14 @@
         <div class="work">
           <button id="workBtn" class="btn btn-lg" aria-label="노동하기 버튼, 클릭당 수익" aria-describedby="clickIncomeButton" data-i18n-aria-label="work.button.ariaLabel"><span data-i18n="work.button">🛠️ 노동</span> +<span id="clickIncomeButton" aria-label="클릭당 수익 금액" data-i18n-aria-label="work.clickIncome.ariaLabel">1만</span><span data-i18n="ui.currencyShort">원</span></button>
           <div class="auto-work-indicator" id="autoWorkIndicator">
-            <span>🤖 AI 업무 처리 중...</span>
+            <span data-i18n="work.autoWork.indicator">🤖 AI 업무 처리 중...</span>
           </div>
         </div>
         <!-- 승진 진행 카드 -->
         <div class="career-progress-card">
           <div class="career-meta-row">
             <div class="career-badge">💼 <span id="currentCareer" aria-live="polite">알바</span></div>
-            <span class="desc" id="careerRemaining" style="font-size: 12px; color: var(--accent);" aria-live="polite">다음 승진까지 40클릭 남음</span>
+            <span class="desc" id="careerRemaining" style="font-size: 12px; color: var(--accent);" aria-live="polite" data-i18n="ui.careerRemainingInitial">다음 승진까지 40클릭 남음</span>
           </div>
           <div class="progress-container" style="margin-bottom: 6px;">
             <div class="progress-bar" id="careerProgress" style="width: 0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" data-i18n-aria-label="ui.careerProgress"></div>
@@ -181,7 +179,7 @@
         <div class="card diary-card">
           <h2>
             <span class="diary-title" data-i18n="ui.diary">📓 일기장</span>
-            <span class="diary-header-meta" id="diaryHeaderMeta">----.--.--(--일차)</span>
+            <span class="diary-header-meta" id="diaryHeaderMeta" data-i18n="ui.diaryHeaderInitial">----.--.--(--일차)</span>
           </h2>
           <div id="log" class="log diary-log" data-i18n-aria-label="ui.diary"></div>
         </div>

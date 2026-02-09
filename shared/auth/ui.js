@@ -231,7 +231,9 @@ export async function initAuthUI(opts) {
   if (deleteDataBtn) {
     deleteDataBtn.addEventListener('click', async e => {
       e.preventDefault()
-      await handleDeleteData(scope, t, doLogout)
+      // 동적 import로 deleteUserData 로드
+      const { deleteUserData } = await import('./deleteUserData.js')
+      await handleDeleteData(scope, t, doLogout, deleteUserData)
     })
   }
 

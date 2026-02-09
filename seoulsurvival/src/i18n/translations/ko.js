@@ -13,6 +13,7 @@ export default {
   'tab.stats': '통계',
   'tab.ranking': '랭킹',
   'tab.settings': '설정',
+  'tab.career': '경력',
 
   // 직급 이름
   'career.alba': '알바',
@@ -57,6 +58,7 @@ export default {
   'button.yes': '예',
   'button.no': '아니오',
   'button.load': '불러오기',
+  'button.later': '나중에',
   'button.newStart': '새로운 시작',
 
   // 공통
@@ -88,6 +90,7 @@ export default {
   'msg.manualSave': '💾 수동 저장 완료!',
   'msg.cloudSaved': '☁️ 클라우드에 저장했습니다.',
   'msg.cloudApplied': '☁️ 클라우드 세이브를 적용했습니다. 페이지를 새로고침합니다...',
+  'msg.cloudProgressLoaded': '☁️ 다른 기기의 진행 상황을 불러왔습니다. 페이지를 새로고침합니다...',
   'msg.unlocked': '🔓 {product}이(가) 해금되었습니다!',
   'msg.prestigeComplete': '🗼 새로운 시작. 다시 한 번.',
   'msg.synergyActivated': '🔗 시너지 활성화: {name} - {desc}',
@@ -146,6 +149,9 @@ export default {
   'modal.error.noCloudSave.message': '이 계정에 저장된 클라우드 세이브가 없습니다.',
   'modal.error.cloudApplyFailed.title': '오류',
   'modal.error.cloudApplyFailed.message': '클라우드 세이브 적용에 실패했습니다.\n{error}',
+  'modal.error.cloudTableMissing.title': '클라우드 테이블 없음',
+  'modal.error.cloudTableMissing.message':
+    '게임 저장 테이블이 아직 Supabase에 없습니다. 관리자에게 문의하세요.',
   'modal.confirm.cloudRestore.title': '클라우드 세이브 복구',
   'modal.confirm.cloudRestore.message':
     '클라우드 세이브가 있습니다.\n\n저장 시간: {time}\n\n불러오시겠습니까?',
@@ -164,6 +170,8 @@ export default {
   // 설정 탭
   'settings.language.title': '🌐 언어',
   'settings.language': '언어',
+  'settings.language.korean': '한국어',
+  'settings.language.english': 'English',
   'settings.modal.close': '설정 닫기',
   'settings.gameInfo.title': '📋 게임 정보',
   'settings.visualEffects.title': '🎨 시각 효과',
@@ -204,6 +212,7 @@ export default {
   'work.button': '🛠️ 노동',
   'work.button.ariaLabel': '노동하기 버튼, 클릭당 수익',
   'work.clickIncome.ariaLabel': '클릭당 수익 금액',
+  'work.autoWork.indicator': '🤖 AI 업무 처리 중...',
 
   // 기타 UI 텍스트
   'ui.work': '노동',
@@ -246,6 +255,10 @@ export default {
   // 단위
   'ui.unit.count': '개',
   'ui.unit.property': '채',
+
+  // 초기 UI 텍스트
+  'ui.careerRemainingInitial': '다음 승진까지 40클릭 남음',
+  'ui.diaryHeaderInitial': '----.--.--(--일차)',
 
   // 상품 설명 템플릿
   'product.desc.perUnit': '각 {product}이 초당 {amount} 생산',
@@ -756,6 +769,7 @@ export default {
   // ===== CP 시스템 (경력 포인트) =====
   'cp.title': '경력 포인트',
   'cp.total': '누적',
+  'cp.cost': '비용',
   'cp.purchased': '구매완료',
   'cp.needCp': '{cost} CP 필요',
   'cp.requires': '선행 필요',
@@ -862,8 +876,6 @@ export default {
   'cp.permSlots.hint': '리셋 시에도 유지되는 업그레이드',
   'cp.emptySlot': '빈 슬롯',
   'cp.removeSlot': '제거',
-  // CP 탭
-  'tab.career': '경력',
 
   // 시장 이벤트
   'event.gangnamBoom.name': '강남 아파트 대박',
@@ -963,13 +975,16 @@ export default {
   'referral.rewards.bonus': '보너스',
   'referral.rewardsDesc':
     '친구가 가입하면 양쪽 모두 보너스를 받습니다.\n초대받은 친구: 시작 자금 +500만원 (즉시)\n초대한 친구: 피추천인이 10분 플레이 시 +1 CP (영구 수익 +2%, 최대 10명)',
-  'referral.loginRequired': '로그인 후 초대 코드를 확인할 수 있습니다.',
+  'referral.loginRequired': '로그인이 필요합니다',
+  'referral.codeLoadFailed': '추천 코드 로드 실패',
+  'referral.copySuccess': '복사됨!',
+  'referral.copyFailed': '복사 실패',
+  'referral.codeGenerateFailed': '추천 코드 생성 실패',
+  'referral.refereeCount': '{count}명',
   'referral.codeApplied': '✅ 초대 코드가 적용되었습니다! 시작 자금 +500만원',
   'referral.invalidCode': '❌ 유효하지 않은 초대 코드입니다.',
   'referral.alreadyUsed': '❌ 이미 초대 코드를 사용했습니다.',
   'referral.cannotUseSelf': '❌ 자신의 초대 코드는 사용할 수 없습니다.',
-  'referral.copySuccess': '✅ 초대 코드가 복사되었습니다!',
-  'referral.copyFailed': '❌ 복사에 실패했습니다.',
   'referral.copyLink': '링크 복사',
   'referral.copied': '복사됨!',
   'referral.bonusReceived': '초대 보너스! +500만원 시작금 💰',

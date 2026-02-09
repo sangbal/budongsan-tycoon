@@ -85,7 +85,7 @@ export default {
   'hub.footer.support.faq': '자주 묻는 질문',
   'hub.footer.legal.title': '법적 고지',
   'hub.toast.loginSoon': '로그인(SSO) 준비 중',
-  'hub.toast.langKo': '언어: 한국어',
+  'hub.toast.languageChanged': '언어가 {language}(으)로 변경되었습니다',
   'hub.drawer.title': '메뉴',
   'hub.drawer.language': '언어',
   'hub.drawer.account': '계정',
@@ -182,4 +182,24 @@ export default {
   'guide.synergy.title': '시너지 보너스',
   'guide.tips.title': '전략 팁',
   'guide.cta': '서울 생존기 지금 플레이',
+
+  // Auth - Data deletion
+  'auth.data.delete.confirm1':
+    '모든 클라우드 데이터(저장, 리더보드)와 로컬 게임 저장을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.',
+  'auth.data.delete.confirm2':
+    '정말로 삭제하시겠습니까?\n\n삭제될 데이터:\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.',
+  'auth.data.delete.error.network':
+    '데이터 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
+  'auth.data.delete.error.notConfigured': '데이터 삭제 기능이 설정되지 않았습니다.',
+  'auth.data.delete.error.unknown': '데이터 삭제 중 알 수 없는 오류가 발생했습니다.',
+
+  // Auth - Account deletion
+  'auth.account.delete.confirm1':
+    '계정과 모든 데이터를 영구적으로 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.',
+  'auth.account.delete.confirm2':
+    '정말로 계정을 삭제하시겠습니까?\n\n삭제될 항목:\n• 계정 정보\n• 모든 클라우드 저장\n• 리더보드 기록',
+  'auth.account.delete.error.network':
+    '계정 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
+  'auth.account.delete.error.notConfigured': '계정 삭제 기능이 설정되지 않았습니다.',
+  'auth.account.delete.error.unknown': '계정 삭제 중 알 수 없는 오류가 발생했습니다.',
 }

@@ -13,6 +13,7 @@ export default {
   'tab.stats': 'Stats',
   'tab.ranking': 'Ranking',
   'tab.settings': 'Settings',
+  'tab.career': 'Career',
 
   // Career names
   'career.alba': 'Part-time',
@@ -89,6 +90,7 @@ export default {
   'msg.manualSave': '💾 Manual save completed!',
   'msg.cloudSaved': '☁️ Saved to cloud.',
   'msg.cloudApplied': '☁️ Cloud save applied. Refreshing page...',
+  'msg.cloudProgressLoaded': '☁️ Loaded progress from another device. Refreshing page...',
   'msg.unlocked': '🔓 {product} unlocked!',
 
   // Error messages (Toast notifications)
@@ -141,23 +143,22 @@ export default {
   'modal.error.noCloudSave.message': 'No cloud save found for this account.',
   'modal.error.cloudApplyFailed.title': 'Error',
   'modal.error.cloudApplyFailed.message': 'Failed to apply cloud save.\n{error}',
-  'modal.confirm.cloudRestore.title': 'Cloud Save Restore',
-  'modal.confirm.cloudRestore.message': 'Cloud save available.\n\nSave time: {time}\n\nLoad it?',
-  'modal.error.progressSwitchFailed.title': 'Error',
-  'modal.error.progressSwitchFailed.message': 'Failed to switch progress.\n{error}',
   'modal.error.cloudTableMissing.title': 'Cloud Table Missing',
   'modal.error.cloudTableMissing.message':
-    'The game_saves table does not exist in Supabase yet.\nPlease run supabase/game_saves.sql in Supabase SQL Editor.',
-  'achievement.status.unlocked': '✅ Unlocked!',
-  'achievement.status.locked': '🔒 Locked',
+    'The game save table does not exist in Supabase yet. Please contact the administrator.',
+  'modal.confirm.cloudRestore.title': 'Cloud Save Restore',
+  'modal.confirm.cloudRestore.message': 'Cloud save available.\n\nSave time: {time}\n\nLoad it?',
   'modal.confirm.cloudLoad.title': 'Cloud Load',
   'modal.confirm.cloudLoad.message':
     'Save time: {time}\n\nLoading will overwrite local save with cloud data and refresh the page.\nContinue?',
   'modal.confirm.cloudSaveFound.title': 'Cloud Save Found',
   'modal.confirm.cloudSaveFound.message': '{message}',
+  'modal.error.progressSwitchFailed.title': 'Error',
+  'modal.error.progressSwitchFailed.message': 'Failed to switch progress.\n{error}',
   'modal.confirm.progressSwitch.title': 'Progress Selection',
   'modal.confirm.progressSwitch.message': '{message}',
-  'msg.cloudProgressLoaded': '☁️ Loaded progress from another device. Refreshing page...',
+  'achievement.status.unlocked': '✅ Unlocked!',
+  'achievement.status.locked': '🔒 Locked',
 
   // Settings tab
   'settings.language.title': '🌐 Language',
@@ -202,6 +203,7 @@ export default {
   'work.button': '🛠️ Work',
   'work.button.ariaLabel': 'Work button, income per click',
   'work.clickIncome.ariaLabel': 'Income per click amount',
+  'work.autoWork.indicator': '🤖 AI working...',
 
   // Other UI text
   'ui.work': 'Labor',
@@ -244,6 +246,10 @@ export default {
   // Units
   'ui.unit.count': 'pcs',
   'ui.unit.property': 'units',
+
+  // Initial UI text
+  'ui.careerRemainingInitial': '40 clicks until next promotion',
+  'ui.diaryHeaderInitial': '----.--.--(-- days)',
 
   // Product description templates
   'product.desc.perUnit': 'Each {product} produces {amount} per second',
@@ -867,8 +873,6 @@ export default {
   'cp.permSlots.hint': 'Upgrades that persist through prestige',
   'cp.emptySlot': 'Empty Slot',
   'cp.removeSlot': 'Remove',
-  // CP Tab
-  'tab.career': 'Career',
 
   // Market Events
   'event.gangnamBoom.name': 'Gangnam Apartment Boom',
@@ -985,7 +989,12 @@ export default {
   'referral.rewards.bonus': 'Bonus',
   'referral.rewardsDesc':
     'Both parties receive bonuses when a friend joins.\nInvited friend: +5M starting cash (instant)\nInviter: +1 CP when referee plays 10 min (+2% permanent income, max 10 friends)',
-  'referral.loginRequired': 'Please log in to view your referral code.',
+  'referral.loginRequired': 'Login required',
+  'referral.codeLoadFailed': 'Failed to load referral code',
+  'referral.copySuccess': 'Copied!',
+  'referral.copyFailed': 'Copy failed',
+  'referral.codeGenerateFailed': 'Failed to generate referral code',
+  'referral.refereeCount': '{count} referrals',
   'referral.codeApplied': '✅ Referral code applied! +5M starting cash',
   'referral.invalidCode': '❌ Invalid referral code.',
   'referral.alreadyUsed': '❌ You have already used a referral code.',
@@ -994,6 +1003,4 @@ export default {
   'referral.copied': 'Copied!',
   'referral.bonusReceived': 'Referral bonus! +5M starting cash 💰',
   'referral.friendPlayed': '{name} reached 10 min playtime! +1 CP earned 🎉',
-  'referral.copySuccess': '✅ Referral code copied!',
-  'referral.copyFailed': '❌ Failed to copy.',
 }
