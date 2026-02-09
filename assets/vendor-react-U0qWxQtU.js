@@ -1,4 +1,4 @@
-import{g as et}from"./vendor-common-C9DGnjod.js";const G=s=>{let y;const i=new Set,l=(g,S)=>{const d=typeof g=="function"?g(y):g;if(!Object.is(d,y)){const O=y;y=S??(typeof d!="object"||d===null)?d:Object.assign({},y,d),i.forEach(b=>b(y,O))}},v=()=>y,E={setState:l,getState:v,getInitialState:()=>R,subscribe:g=>(i.add(g),()=>i.delete(g))},R=y=s(l,v,E);return E},nt=(s=>s?G(s):G);var U={exports:{}},n={};/**
+import{g as et}from"./vendor-common-B5r75hl2.js";const G=s=>{let y;const i=new Set,l=(g,S)=>{const d=typeof g=="function"?g(y):g;if(!Object.is(d,y)){const O=y;y=S??(typeof d!="object"||d===null)?d:Object.assign({},y,d),i.forEach(b=>b(y,O))}},v=()=>y,E={setState:l,getState:v,getInitialState:()=>R,subscribe:g=>(i.add(g),()=>i.delete(g))},R=y=s(l,v,E);return E},nt=(s=>s?G(s):G);var U={exports:{}},n={};/**
  * @license React
  * react.production.js
  *

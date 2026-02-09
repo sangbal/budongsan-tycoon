@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";import{d as t}from"./shared-common-DnqZ_H_t.js";import"./seoulsurvival-i18n-CHedcszT.js";import"./shared-auth-DnyEPl5k.js";import"./vendor-common-B5r75hl2.js";document.addEventListener("DOMContentLoaded",()=>{t()});
