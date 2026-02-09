@@ -103,6 +103,7 @@ npm run preview
    - [ ] 스탠드얼론 모드로 실행됨
 
 2. **Android (Chrome)**
+
    ```
    Menu → Install Seoul Survival
    ```
