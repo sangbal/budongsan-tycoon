@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createSaveLoadManager } from '../saveLoad.js'
+import LZString from 'lz-string'
 
 // localStorage 모킹
 const mockLocalStorage = (() => {
@@ -30,6 +31,13 @@ const mockLocalStorage = (() => {
 Object.defineProperty(global, 'localStorage', {
   value: mockLocalStorage,
 })
+
+// 압축 헬퍼 함수 (saveLoad.js와 동일한 로직)
+function compressTestData(data) {
+  const jsonStr = JSON.stringify(data)
+  const compressed = LZString.compressToUTF16(jsonStr)
+  return compressed || jsonStr // 폴백
+}
 
 describe('createSaveLoadManager', () => {
   const SAVE_KEY = 'test_save_key'
@@ -144,7 +152,9 @@ describe('createSaveLoadManager', () => {
       const manager = createSaveLoadManager(deps)
       manager.saveGame()
 
-      const savedData = JSON.parse(mockLocalStorage.setItem.mock.calls[0][1])
+      const compressedData = mockLocalStorage.setItem.mock.calls[0][1]
+      const jsonStr = LZString.decompressFromUTF16(compressedData) || compressedData
+      const savedData = JSON.parse(jsonStr)
 
       expect(savedData.cash).toBe(1000000)
       expect(savedData.totalClicks).toBe(500)
@@ -159,7 +169,9 @@ describe('createSaveLoadManager', () => {
       const manager = createSaveLoadManager(deps)
       manager.saveGame()
 
-      const savedData = JSON.parse(mockLocalStorage.setItem.mock.calls[0][1])
+      const compressedData = mockLocalStorage.setItem.mock.calls[0][1]
+      const jsonStr = LZString.decompressFromUTF16(compressedData) || compressedData
+      const savedData = JSON.parse(jsonStr)
 
       expect(savedData.upgradesV2).toBeDefined()
       expect(savedData.upgradesV2.click_boost_1.unlocked).toBe(true)
@@ -254,7 +266,7 @@ describe('createSaveLoadManager', () => {
         careerLevel: 5,
         deposits: 20,
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       const result = manager.loadGame()
@@ -273,7 +285,7 @@ describe('createSaveLoadManager', () => {
         towers_lifetime: 8,
         nickname: '로드테스트',
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -295,7 +307,7 @@ describe('createSaveLoadManager', () => {
           click_boost_2: { unlocked: true, purchased: true },
         },
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -309,7 +321,7 @@ describe('createSaveLoadManager', () => {
       const saveData = {
         achievements: [{ unlocked: true }, { unlocked: true }, { unlocked: true }],
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -322,7 +334,7 @@ describe('createSaveLoadManager', () => {
         towers: 10, // 기존 필드
         towers_run: 2,
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -333,7 +345,7 @@ describe('createSaveLoadManager', () => {
 
     it('로드 후 updateAutoWorkUI 호출', () => {
       const saveData = { cash: 1000 }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -343,7 +355,7 @@ describe('createSaveLoadManager', () => {
 
     it('로드 후 수익 테이블 업그레이드 효과 재적용', () => {
       const saveData = { cash: 1000 }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -365,7 +377,7 @@ describe('createSaveLoadManager', () => {
         cash: 5000,
         // 다른 필드 누락
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       manager.loadGame()
@@ -382,7 +394,7 @@ describe('createSaveLoadManager', () => {
         totalPlayTime: 3600000,
         sessionStartTime: 1000, // 과거 시간
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       const manager = createSaveLoadManager(deps)
       const beforeLoad = Date.now()
@@ -426,7 +438,7 @@ describe('createSaveLoadManager', () => {
 
     it('저장 데이터 있으면 Blob 생성 시도', () => {
       const saveData = { cash: 1000000 }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(saveData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(saveData))
 
       // exportSave는 브라우저 API(Blob, URL, anchor.click)에 의존
       // 단위 테스트보다 E2E 테스트가 더 적합
@@ -570,7 +582,7 @@ describe('createSaveLoadManager', () => {
         towers_run: 3,
         // towers_lifetime 없음
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(legacyData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(legacyData))
 
       manager.loadGame()
 
@@ -580,7 +592,7 @@ describe('createSaveLoadManager', () => {
 
     it('손상된 저장 데이터 복구: 빈 객체', () => {
       const manager = createSaveLoadManager(deps)
-      mockLocalStorage.getItem.mockReturnValue('{}')
+      mockLocalStorage.getItem.mockReturnValue(compressTestData({}))
 
       const result = manager.loadGame()
 
@@ -597,7 +609,7 @@ describe('createSaveLoadManager', () => {
         cash: 'not_a_number', // 잘못된 타입
         totalClicks: 100,
       }
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(corruptedData))
+      mockLocalStorage.getItem.mockReturnValue(compressTestData(corruptedData))
 
       const result = manager.loadGame()
 
