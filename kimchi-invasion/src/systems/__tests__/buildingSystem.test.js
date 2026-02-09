@@ -8,6 +8,19 @@ import { resourceSystem } from '../resourceSystem.js'
 import { useGameStore } from '../../state/stores/gameStore.js'
 import { BUILDINGS } from '../../data/buildings.js'
 
+// getTile 모킹 (테스트 환경에서는 DOM이 없으므로)
+vi.mock('../../core/tilemap.js', () => ({
+  getTile: vi.fn((x, y) => ({
+    x,
+    y,
+    type: 'ground',
+    buildable: true,
+    resource: null,
+  })),
+  getTileSize: vi.fn(() => 64),
+  getMapSize: vi.fn(() => ({ width: 50, height: 50 })),
+}))
+
 describe('BuildingSystem', () => {
   let system
 
@@ -15,15 +28,19 @@ describe('BuildingSystem', () => {
     // 상태 초기화 (먼저!)
     useGameStore.getState().reset()
 
+    // 튜토리얼 모드 비활성화 (정상 비용 적용)
+    useGameStore.getState().exitTutorialMode()
+
     // 새 시스템 인스턴스 생성
     system = new BuildingSystem()
     system.init()
 
     // 자원 초기화 (건물 건설용)
     resourceSystem.add('dollars', 10000)
-    resourceSystem.add('iron', 1000)
+    resourceSystem.add('ironPlate', 1000)
     resourceSystem.add('sand', 500)
     resourceSystem.add('regolith', 500)
+    resourceSystem.add('water', 500)
     resourceSystem.add('energy', 100)
   })
 
@@ -41,7 +58,8 @@ describe('BuildingSystem', () => {
     it('자원이 부족하면 배치에 실패해야 함', () => {
       // 자원 초기화 (부족하게)
       useGameStore.getState().reset()
-      resourceSystem.add('dollars', 10) // extractor는 100 필요
+      useGameStore.getState().exitTutorialMode()
+      resourceSystem.add('ironPlate', 10) // extractor는 ironPlate 30 필요
 
       const building = system.place('extractor', 0, 0)
       expect(building).toBeNull()
@@ -57,13 +75,13 @@ describe('BuildingSystem', () => {
     })
 
     it('배치 후 자원이 소비되어야 함', () => {
-      const initialDollars = resourceSystem.get('dollars')
-      const cost = BUILDINGS.extractor.cost.dollars
+      const initialIronPlate = resourceSystem.get('ironPlate')
+      const cost = BUILDINGS.extractor.cost.ironPlate
 
       system.place('extractor', 0, 0)
 
-      const finalDollars = resourceSystem.get('dollars')
-      expect(finalDollars).toBe(initialDollars - cost)
+      const finalIronPlate = resourceSystem.get('ironPlate')
+      expect(finalIronPlate).toBe(initialIronPlate - cost)
     })
   })
 
@@ -96,16 +114,16 @@ describe('BuildingSystem', () => {
     })
 
     it('제거 시 50% 자원을 환불해야 함', () => {
-      const initialDollars = resourceSystem.get('dollars')
-      const cost = BUILDINGS.extractor.cost.dollars
+      const initialIronPlate = resourceSystem.get('ironPlate')
+      const cost = BUILDINGS.extractor.cost.ironPlate
 
       const building = system.place('extractor', 0, 0)
       system.remove(building.id)
 
-      const finalDollars = resourceSystem.get('dollars')
+      const finalIronPlate = resourceSystem.get('ironPlate')
       const expectedRefund = Math.floor(cost * 0.5)
 
-      expect(finalDollars).toBe(initialDollars - cost + expectedRefund)
+      expect(finalIronPlate).toBe(initialIronPlate - cost + expectedRefund)
     })
 
     it('제거 후 타일이 해제되어야 함', () => {
@@ -145,15 +163,15 @@ describe('BuildingSystem', () => {
     it('업그레이드 비용이 증가해야 함', () => {
       const building = system.place('extractor', 0, 0)
 
-      const dollarsBeforeUpgrade1 = resourceSystem.get('dollars')
+      const ironPlateBeforeUpgrade1 = resourceSystem.get('ironPlate')
       system.upgrade(building.id) // Level 1 → 2
-      const dollarsAfterUpgrade1 = resourceSystem.get('dollars')
-      const cost1 = dollarsBeforeUpgrade1 - dollarsAfterUpgrade1
+      const ironPlateAfterUpgrade1 = resourceSystem.get('ironPlate')
+      const cost1 = ironPlateBeforeUpgrade1 - ironPlateAfterUpgrade1
 
-      const dollarsBeforeUpgrade2 = resourceSystem.get('dollars')
+      const ironPlateBeforeUpgrade2 = resourceSystem.get('ironPlate')
       system.upgrade(building.id) // Level 2 → 3
-      const dollarsAfterUpgrade2 = resourceSystem.get('dollars')
-      const cost2 = dollarsBeforeUpgrade2 - dollarsAfterUpgrade2
+      const ironPlateAfterUpgrade2 = resourceSystem.get('ironPlate')
+      const cost2 = ironPlateBeforeUpgrade2 - ironPlateAfterUpgrade2
 
       expect(cost2).toBeGreaterThan(cost1)
     })
@@ -180,13 +198,13 @@ describe('BuildingSystem', () => {
       resourceSystem.consume('energy', energy)
 
       const building = system.place('extractor', 0, 0)
-      const initialIron = resourceSystem.get('iron')
+      const initialIronOre = resourceSystem.get('ironOre')
 
       // 1초 업데이트 (에너지 부족으로 생산 안 됨)
       system.update([], 1)
 
-      const finalIron = resourceSystem.get('iron')
-      expect(finalIron).toBe(initialIron) // 변화 없음
+      const finalIronOre = resourceSystem.get('ironOre')
+      expect(finalIronOre).toBe(initialIronOre) // 변화 없음
     })
 
     it.skip('레벨이 높을수록 생산량이 증가해야 함 - TODO: 생산 루프 검증 필요', () => {
