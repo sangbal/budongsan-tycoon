@@ -809,6 +809,10 @@ export function initLeaderboardRefreshButton() {
     refreshBtn.classList.add('loading')
     refreshBtn.disabled = true
 
+    // 캐시 무효화 (새로고침 버튼은 항상 최신 데이터 가져오기)
+    __lbCachedData = null
+    __lbCacheTimestamp = 0
+
     try {
       // 강제 업데이트 실행
       await updateLeaderboardUI(true)
@@ -820,4 +824,143 @@ export function initLeaderboardRefreshButton() {
       refreshBtn.disabled = false
     }
   })
+}
+
+/**
+ * 캐시된 데이터로 리더보드 렌더링
+ * @param {Array} entries - 캐시된 리더보드 엔트리
+ */
+function renderLeaderboardFromCache(entries) {
+  const container = document.getElementById('leaderboardContainer')
+  if (!container) return
+
+  // 리더보드 테이블 생성
+  const table = document.createElement('table')
+  table.className = 'leaderboard-table'
+
+  const thead = document.createElement('thead')
+  thead.innerHTML = `
+    <tr>
+      <th class="col-rank">${t('ranking.table.rank')}</th>
+      <th class="col-nickname">${t('ranking.table.nickname')}</th>
+      <th class="col-tower" aria-label="${t('product.tower') || 'Seoul Tower'}"></th>
+      <th class="col-assets">${t('ranking.table.assets')}</th>
+      <th class="col-playtime" aria-label="${t('ranking.table.lastActive.full')}">${t('ranking.table.lastActive')}</th>
+    </tr>
+  `
+  table.appendChild(thead)
+
+  const tbody = document.createElement('tbody')
+
+  let myEntry = null
+  const currentNickLower = (gameStateRef().playerNickname || '').trim().toLowerCase()
+
+  entries.forEach((entry, index) => {
+    const tr = document.createElement('tr')
+
+    // 순위 셀
+    const rankTd = document.createElement('td')
+    rankTd.className = 'col-rank'
+    rankTd.textContent = String(index + 1)
+
+    // 닉네임 셀
+    const nickTd = document.createElement('td')
+    nickTd.className = 'col-nickname'
+    nickTd.textContent = entry.nickname || t('ui.anonymous') || 'Anonymous'
+
+    // 타워 셀
+    const towerTd = document.createElement('td')
+    towerTd.className = 'col-tower'
+    const towerCount = entry.tower_count || 0
+    towerTd.textContent = towerCount > 0 ? `🗼${towerCount > 1 ? `x${towerCount}` : ''}` : '-'
+
+    // 자산 셀
+    const assetsTd = document.createElement('td')
+    assetsTd.className = 'col-assets'
+    assetsTd.textContent = NumberFormat.formatLeaderboardAssets(entry.total_assets || 0)
+
+    // 플레이타임 셀
+    const playtimeTd = document.createElement('td')
+    playtimeTd.className = 'col-playtime'
+    playtimeTd.textContent = NumberFormat.formatRelativeTime(entry.updated_at)
+
+    // 내 닉네임 하이라이트
+    const entryNickLower = (entry.nickname || '').trim().toLowerCase()
+    if (currentNickLower && currentNickLower === entryNickLower) {
+      tr.classList.add('is-me')
+      myEntry = {
+        rank: index + 1,
+        ...entry,
+      }
+    }
+
+    tr.appendChild(rankTd)
+    tr.appendChild(nickTd)
+    tr.appendChild(towerTd)
+    tr.appendChild(assetsTd)
+    tr.appendChild(playtimeTd)
+    tbody.appendChild(tr)
+  })
+
+  table.appendChild(tbody)
+
+  container.innerHTML = ''
+  container.appendChild(table)
+
+  // 캐시 사용 표시
+  const lastUpdatedEl = document.getElementById('leaderboardLastUpdated')
+  if (lastUpdatedEl) {
+    const d = new Date(__lbCacheTimestamp)
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    const ss = String(d.getSeconds()).padStart(2, '0')
+    const timeStr = `${hh}:${mm}:${ss}`
+    lastUpdatedEl.textContent =
+      t('ranking.lastUpdated', { time: timeStr }) + ' ' + t('ranking.cached', '(캐시됨)')
+  }
+
+  // 내 순위 영역 업데이트 (간단 버전 - Top10만 처리)
+  const myRankContent = document.getElementById('myRankContent')
+  if (myRankContent) {
+    if (!currentNickLower) {
+      myRankContent.innerHTML = `
+        <div class="leaderboard-my-rank-empty">
+          ${t('ranking.nicknameRequired') || 'Set a nickname to see your rank and record here.'}
+        </div>
+      `
+    } else if (myEntry) {
+      const playTimeText = NumberFormat.formatPlaytimeMs(myEntry.play_time_ms || 0)
+      const towerCount = myEntry.tower_count || 0
+      const safeNickname = escapeHTML(
+        myEntry.nickname || gameStateRef().playerNickname || t('ui.anonymous') || 'Anonymous'
+      )
+      const displayName =
+        towerCount > 0
+          ? `${safeNickname} 🗼${towerCount > 1 ? `x${towerCount}` : ''}`
+          : safeNickname
+      myRankContent.innerHTML = `
+        <div class="my-rank-card">
+          <div class="my-rank-header">
+            <span class="my-rank-label">${t('ranking.myRecord') || 'My Record'}</span>
+            <span class="my-rank-rank-badge">${myEntry.rank}${t('ranking.rankSuffix') || ''}</span>
+          </div>
+          <div class="my-rank-main">
+            <div class="my-rank-name">${displayName}</div>
+            <div class="my-rank-assets">💰 ${NumberFormat.formatLeaderboardAssets(myEntry.total_assets || 0)}</div>
+          </div>
+          <div class="my-rank-meta">
+            <span class="my-rank-playtime">⏱️ ${t('ranking.table.playtime.full')}: ${playTimeText}</span>
+            <span class="my-rank-note">${t('ranking.top10Rank') || 'Top 10 Rank'}</span>
+          </div>
+        </div>
+      `
+    } else {
+      // Top10 밖인 경우: 캐시에서는 처리하지 않음 (새로고침 유도)
+      myRankContent.innerHTML = `
+        <div class="leaderboard-my-rank-empty">
+          ${t('ranking.refreshRequired') || 'Click refresh to see your rank.'}
+        </div>
+      `
+    }
+  }
 }
