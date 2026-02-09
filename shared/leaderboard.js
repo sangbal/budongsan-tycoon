@@ -353,7 +353,7 @@ const ERROR_LOG_INTERVAL = 5000 // 5초마다 한 번만 로그
 let __lastUpdatePayload = null
 let __lastUpdateTime = 0
 let __lastUpdateSuccess = false
-const UPDATE_THROTTLE_MS = 15000 // 15초 스로틀 (일반 업데이트)
+const UPDATE_THROTTLE_MS = 60000 // 60초 스로틀 (일반 업데이트, 최적화)
 const UPDATE_THROTTLE_IMMEDIATE_MS = 0 // 즉시 허용 (중요 이벤트)
 
 function logLeaderboardError(error, context = '') {
