@@ -22,6 +22,7 @@
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
     "check:structure": "node scripts/check-structure.js",
+    "validate:i18n": "node scripts/validate-i18n.js",
     "prepare": "husky"
   },
   "devDependencies": {

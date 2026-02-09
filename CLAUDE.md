@@ -234,6 +234,7 @@ npm test      # 테스트 실행
 | 업그레이드  | systems/upgradeManager.js, data/upgrades/              |
 | 숫자 포맷   | utils/numberFormat.js                                  |
 | 다국어      | i18n/index.js, i18n/translations/                      |
+| 번역 검증   | scripts/validate-i18n.js                               |
 | 추천 시스템 | systems/referralSystem.js, shared/referral.js          |
 
 ## 코드 구조 규칙 (자동 강제)

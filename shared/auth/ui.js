@@ -3,6 +3,7 @@
 // deleteUserData와 deleteAccount도 동적 import로 변경 (config.js 로드 지연)
 // import { deleteUserData } from './deleteUserData.js';
 // import { deleteAccount } from './deleteAccount.js';
+import { t } from '@shared/i18n/lang.js'
 
 function pickDisplayName(user) {
   if (!user) return null
@@ -258,79 +259,54 @@ export async function initAuthUI(opts) {
  * Handle delete user data with 2-step confirmation
  */
 async function handleDeleteData(scope, toast, doLogout, deleteUserData) {
-  const t = typeof toast === 'function' ? toast : () => {}
+  const toastFn = typeof toast === 'function' ? toast : () => {}
 
   // 1단계 확인
-  const confirm1 =
-    scope === 'hub'
-      ? '모든 클라우드 데이터(저장, 리더보드)와 로컬 게임 저장을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.'
-      : '모든 클라우드 데이터(저장, 리더보드)와 로컬 게임 저장을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.'
+  const confirm1 = t('auth.data.delete.confirm1')
 
   if (!confirm(confirm1)) {
     return
   }
 
   // 2단계 확인
-  const confirm2 =
-    scope === 'hub'
-      ? '정말로 삭제하시겠습니까?\n\n삭제될 데이터:\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.'
-      : '정말로 삭제하시겠습니까?\n\n삭제될 데이터:\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.'
+  const confirm2 = t('auth.data.delete.confirm2')
 
   if (!confirm(confirm2)) {
     return
   }
 
-  t(scope === 'hub' ? 'Deleting data…' : '데이터 삭제 중…')
+  toastFn(t('auth.data.delete.deleting'))
 
   let result
   try {
     result = await deleteUserData()
   } catch (error) {
     console.error('Delete user data exception:', error)
-    const errorMsg =
-      scope === 'hub'
-        ? '데이터 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
-        : '데이터 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
-    t(errorMsg)
+    toastFn(t('auth.data.delete.error.network'))
     return
   }
 
   if (!result.ok) {
     let errorMsg
     if (result.reason === 'not_configured') {
-      errorMsg =
-        scope === 'hub'
-          ? '데이터 삭제 기능이 설정되지 않았습니다.'
-          : '데이터 삭제 기능이 설정되지 않았습니다.'
+      errorMsg = t('auth.data.delete.error.notConfigured')
     } else if (result.reason === 'not_signed_in') {
-      errorMsg =
-        scope === 'hub'
-          ? '로그인 상태가 아닙니다. 다시 로그인해주세요.'
-          : '로그인 상태가 아닙니다. 다시 로그인해주세요.'
+      errorMsg = t('auth.data.delete.error.notSignedIn')
     } else if (
       result.reason === 'delete_saves_failed' ||
       result.reason === 'delete_leaderboard_failed'
     ) {
       const errorCode = result.error?.code || result.error?.status || ''
       if (errorCode === 401 || errorCode === 403) {
-        errorMsg =
-          scope === 'hub'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
-            : '권한이 없습니다. 다시 로그인해주세요.'
+        errorMsg = t('auth.data.delete.error.permission')
       } else {
-        errorMsg =
-          scope === 'hub'
-            ? `데이터 삭제 실패: ${result.reason}. 네트워크 연결을 확인하고 다시 시도해주세요.`
-            : `데이터 삭제 실패: ${result.reason}. 네트워크 연결을 확인하고 다시 시도해주세요.`
+        errorMsg = t('auth.data.delete.error.network')
       }
     } else {
-      errorMsg =
-        scope === 'hub'
-          ? `데이터 삭제 실패: ${result.reason || '알 수 없는 오류'}. 다시 시도해주세요.`
-          : `데이터 삭제 실패: ${result.reason || '알 수 없는 오류'}. 다시 시도해주세요.`
+      errorMsg = t('auth.data.delete.error.unknown')
     }
 
-    t(errorMsg)
+    toastFn(errorMsg)
     console.error('Delete user data failed:', result)
 
     // 권한 오류나 로그인 상태 오류인 경우 로그아웃 유도
@@ -340,7 +316,7 @@ async function handleDeleteData(scope, toast, doLogout, deleteUserData) {
       result.error?.code === 403
     ) {
       setTimeout(() => {
-        if (confirm(scope === 'hub' ? '로그아웃하시겠습니까?' : '로그아웃하시겠습니까?')) {
+        if (confirm(t('auth.data.delete.confirmLogout'))) {
           doLogout()
         }
       }, 1000)
@@ -393,83 +369,52 @@ async function handleDeleteData(scope, toast, doLogout, deleteUserData) {
  * Handle delete account (회원 탈퇴) with 2-step confirmation
  */
 async function handleDeleteAccount(scope, toast, doLogout, deleteAccount) {
-  const t = typeof toast === 'function' ? toast : () => {}
+  const toastFn = typeof toast === 'function' ? toast : () => {}
 
   // 1단계 확인
-  const confirm1 =
-    scope === 'hub'
-      ? '계정과 모든 데이터를 영구적으로 삭제하시겠습니까?\n\n⚠️ 삭제될 내용:\n• 계정 정보 (이메일, 로그인 정보)\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.'
-      : '계정과 모든 데이터를 영구적으로 삭제하시겠습니까?\n\n⚠️ 삭제될 내용:\n• 계정 정보 (이메일, 로그인 정보)\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.'
+  const confirm1 = t('auth.account.delete.confirm1')
 
   if (!confirm(confirm1)) {
     return
   }
 
   // 2단계 확인
-  const confirm2 =
-    scope === 'hub'
-      ? '정말로 계정을 삭제하시겠습니까?\n\n이 작업은 다음을 포함합니다:\n• 계정 정보 완전 삭제\n• 모든 클라우드 데이터 삭제\n• 모든 로컬 게임 저장 삭제\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.\n\n이 작업은 되돌릴 수 없습니다.'
-      : '정말로 계정을 삭제하시겠습니까?\n\n이 작업은 다음을 포함합니다:\n• 계정 정보 완전 삭제\n• 모든 클라우드 데이터 삭제\n• 모든 로컬 게임 저장 삭제\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.\n\n이 작업은 되돌릴 수 없습니다.'
+  const confirm2 = t('auth.account.delete.confirm2')
 
   if (!confirm(confirm2)) {
     return
   }
 
-  t(scope === 'hub' ? 'Deleting account…' : '계정 삭제 중…')
+  toastFn(t('auth.account.delete.deleting'))
 
   let result
   try {
     result = await deleteAccount()
   } catch (error) {
     console.error('Delete account exception:', error)
-    const errorMsg =
-      scope === 'hub'
-        ? '계정 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
-        : '계정 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
-    t(errorMsg)
+    toastFn(t('auth.account.delete.error.network'))
     return
   }
 
   if (!result.ok) {
     let errorMsg
     if (result.status === 'NOT_CONFIGURED') {
-      errorMsg =
-        scope === 'hub'
-          ? '계정 삭제 기능이 설정되지 않았습니다. 고객지원에 문의해주세요.'
-          : '계정 삭제 기능이 설정되지 않았습니다. 고객지원에 문의해주세요.'
+      errorMsg = t('auth.account.delete.error.notConfigured')
     } else if (result.status === 'AUTH_FAILED') {
-      errorMsg =
-        scope === 'hub'
-          ? '로그인 상태가 만료되었습니다. 다시 로그인해주세요.'
-          : '로그인 상태가 만료되었습니다. 다시 로그인해주세요.'
+      errorMsg = t('auth.account.delete.error.notSignedIn')
     } else if (result.status === 'DATA_DELETED_BUT_AUTH_DELETE_FAILED') {
-      errorMsg =
-        scope === 'hub'
-          ? '데이터는 삭제되었지만 계정 삭제에 실패했습니다. 고객지원에 문의해주세요.'
-          : '데이터는 삭제되었지만 계정 삭제에 실패했습니다. 고객지원에 문의해주세요.'
+      errorMsg = t('auth.account.delete.error.dataDeletedButAuthFailed')
     } else if (result.reason === 'timeout') {
-      errorMsg =
-        scope === 'hub'
-          ? '요청 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
-          : '요청 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.'
+      errorMsg = t('auth.account.delete.error.timeout')
     } else if (result.reason === 'network_error') {
-      errorMsg =
-        scope === 'hub'
-          ? '네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.'
-          : '네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.'
+      errorMsg = t('auth.account.delete.error.networkError')
     } else if (result.httpStatus === 404) {
-      errorMsg =
-        scope === 'hub'
-          ? '계정 삭제 기능이 아직 준비되지 않았습니다. 고객지원에 문의해주세요.'
-          : '계정 삭제 기능이 아직 준비되지 않았습니다. 고객지원에 문의해주세요.'
+      errorMsg = t('auth.account.delete.error.notReady')
     } else {
-      errorMsg =
-        scope === 'hub'
-          ? `계정 삭제 실패: ${result.reason || '알 수 없는 오류'}. 다시 시도해주세요.`
-          : `계정 삭제 실패: ${result.reason || '알 수 없는 오류'}. 다시 시도해주세요.`
+      errorMsg = t('auth.account.delete.error.unknown')
     }
 
-    t(errorMsg)
+    toastFn(errorMsg)
     console.error('Delete account failed:', result)
     return
   }

@@ -180,6 +180,29 @@ Phase H: initializePrestigeAndNickname(deps)
 - `t('key')` 함수, HTML: `data-i18n` 속성
 - 언어 동기화: `localStorage.clicksurvivor_lang` 또는 `?lang=ko|en`
 
+### 번역 검증 자동화
+
+**검증 스크립트**: `scripts/validate-i18n.js`
+
+**실행 방법**:
+
+```bash
+npm run validate:i18n
+```
+
+**검증 항목**:
+
+1. **키 일치** - ko.js 및 en.js의 모든 키가 일치하는지 확인
+2. **중복 키 검출** - 각 번역 파일에서 중복된 키가 있는지 검사
+3. **파라미터 일치** - `{param}` 형식의 파라미터가 모든 언어에서 일치하는지 검증
+4. **HTML `data-i18n` 참조** - HTML에서 사용되는 모든 `data-i18n` 속성이 번역 파일에 존재하는지 확인
+5. **JS `t()` 호출 유효성** - JavaScript 코드에서 `t('key')` 호출이 유효한 키를 사용하는지 검증
+
+**CI/CD 통합** (예정):
+
+- GitHub Actions에서 빌드 시 자동 검증 실행
+- Pre-commit hook에서 번역 파일 수정 시 검증
+
 ## 주요 패턴
 
 ### 레거시 코드 주의

@@ -187,18 +187,34 @@ export default {
     'Delete all cloud data (saves, leaderboard) and local game saves?\n\n⚠️ This action cannot be undone and you will be logged out after deletion.\n\nLanguage settings will be preserved.',
   'auth.data.delete.confirm2':
     'Are you sure you want to delete?\n\nData to be deleted:\n• Cloud saves\n• Leaderboard records\n• Local game saves\n\nYou will be logged out and the page will refresh after deletion.',
+  'auth.data.delete.deleting': 'Deleting data…',
   'auth.data.delete.error.network':
     'An error occurred while deleting data. Please check your network connection and try again.',
   'auth.data.delete.error.notConfigured': 'Data deletion feature is not configured.',
+  'auth.data.delete.error.notSignedIn': 'You are not signed in. Please sign in again.',
+  'auth.data.delete.error.permission': 'Permission denied. Please sign in again.',
   'auth.data.delete.error.unknown': 'An unknown error occurred while deleting data.',
+  'auth.data.delete.confirmLogout': 'Do you want to log out?',
 
   // Auth - Account deletion
   'auth.account.delete.confirm1':
-    'Permanently delete your account and all data?\n\n⚠️ This action cannot be undone.',
+    'Permanently delete your account and all data?\n\n⚠️ Items to be deleted:\n• Account information (email, login info)\n• Cloud saves\n• Leaderboard records\n• Local game saves\n\nThis action cannot be undone and you will be logged out after deletion.\n\nLanguage settings will be preserved.',
   'auth.account.delete.confirm2':
-    'Are you sure you want to delete your account?\n\nItems to be deleted:\n• Account information\n• All cloud saves\n• Leaderboard records',
+    'Are you sure you want to delete your account?\n\nThis includes:\n• Complete deletion of account information\n• Deletion of all cloud data\n• Deletion of all local game saves\n\nYou will be logged out and the page will refresh after deletion.\n\nThis action cannot be undone.',
+  'auth.account.delete.deleting': 'Deleting account…',
   'auth.account.delete.error.network':
     'An error occurred while deleting account. Please check your network connection and try again.',
-  'auth.account.delete.error.notConfigured': 'Account deletion feature is not configured.',
+  'auth.account.delete.error.notConfigured':
+    'Account deletion feature is not configured. Please contact support.',
+  'auth.account.delete.error.notSignedIn': 'Your login session has expired. Please sign in again.',
+  'auth.account.delete.error.dataDeletedButAuthFailed':
+    'Data was deleted but account deletion failed. Please contact support.',
+  'auth.account.delete.error.timeout':
+    'Request timed out. Please check your network connection and try again.',
+  'auth.account.delete.error.networkError':
+    'A network error occurred. Please check your connection and try again.',
+  'auth.account.delete.error.notReady':
+    'Account deletion feature is not yet ready. Please contact support.',
   'auth.account.delete.error.unknown': 'An unknown error occurred while deleting account.',
+  'auth.account.delete.confirmLogout': 'Do you want to log out?',
 }

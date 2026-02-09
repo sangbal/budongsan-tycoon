@@ -188,18 +188,34 @@ export default {
     '모든 클라우드 데이터(저장, 리더보드)와 로컬 게임 저장을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.',
   'auth.data.delete.confirm2':
     '정말로 삭제하시겠습니까?\n\n삭제될 데이터:\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.',
+  'auth.data.delete.deleting': '데이터 삭제 중…',
   'auth.data.delete.error.network':
     '데이터 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
   'auth.data.delete.error.notConfigured': '데이터 삭제 기능이 설정되지 않았습니다.',
+  'auth.data.delete.error.notSignedIn': '로그인 상태가 아닙니다. 다시 로그인해주세요.',
+  'auth.data.delete.error.permission': '권한이 없습니다. 다시 로그인해주세요.',
   'auth.data.delete.error.unknown': '데이터 삭제 중 알 수 없는 오류가 발생했습니다.',
+  'auth.data.delete.confirmLogout': '로그아웃하시겠습니까?',
 
   // Auth - Account deletion
   'auth.account.delete.confirm1':
-    '계정과 모든 데이터를 영구적으로 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.',
+    '계정과 모든 데이터를 영구적으로 삭제하시겠습니까?\n\n⚠️ 삭제될 내용:\n• 계정 정보 (이메일, 로그인 정보)\n• 클라우드 저장\n• 리더보드 기록\n• 로컬 게임 저장\n\n이 작업은 되돌릴 수 없으며, 삭제 후에는 로그아웃됩니다.\n\n언어 설정은 유지됩니다.',
   'auth.account.delete.confirm2':
-    '정말로 계정을 삭제하시겠습니까?\n\n삭제될 항목:\n• 계정 정보\n• 모든 클라우드 저장\n• 리더보드 기록',
+    '정말로 계정을 삭제하시겠습니까?\n\n이 작업은 다음을 포함합니다:\n• 계정 정보 완전 삭제\n• 모든 클라우드 데이터 삭제\n• 모든 로컬 게임 저장 삭제\n\n삭제 후에는 로그아웃되고 페이지가 새로고침됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
+  'auth.account.delete.deleting': '계정 삭제 중…',
   'auth.account.delete.error.network':
     '계정 삭제 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
-  'auth.account.delete.error.notConfigured': '계정 삭제 기능이 설정되지 않았습니다.',
+  'auth.account.delete.error.notConfigured':
+    '계정 삭제 기능이 설정되지 않았습니다. 고객지원에 문의해주세요.',
+  'auth.account.delete.error.notSignedIn': '로그인 상태가 만료되었습니다. 다시 로그인해주세요.',
+  'auth.account.delete.error.dataDeletedButAuthFailed':
+    '데이터는 삭제되었지만 계정 삭제에 실패했습니다. 고객지원에 문의해주세요.',
+  'auth.account.delete.error.timeout':
+    '요청 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
+  'auth.account.delete.error.networkError':
+    '네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.',
+  'auth.account.delete.error.notReady':
+    '계정 삭제 기능이 아직 준비되지 않았습니다. 고객지원에 문의해주세요.',
   'auth.account.delete.error.unknown': '계정 삭제 중 알 수 없는 오류가 발생했습니다.',
+  'auth.account.delete.confirmLogout': '로그아웃하시겠습니까?',
 }

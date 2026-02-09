@@ -265,6 +265,7 @@ export default {
   'product.desc.total': '{count}{unit} {product}이 초당 {amount} 생산 (총 수익의 {percent}%)',
   'product.desc.lifetime': '지금까지 {amount} 생산',
   'product.desc.currentPrice': '현재가: {price}',
+  'product.tower.desc': '서울타워를 구매하면 프레스티지를 진행합니다.',
 
   // 기타
   'ui.noUpgrades': '해금된 업그레이드가 없습니다',
@@ -310,6 +311,7 @@ export default {
   'ranking.lastUpdated': '마지막 갱신: {time}',
   'ranking.refreshNote': '기록은 주기적으로 갱신됩니다.',
   'ranking.refreshBtn': '리더보드 새로고침',
+  'ranking.refreshRequired': '새로고침 버튼을 눌러 내 순위를 확인하세요.',
   'ranking.nicknameRequired': '닉네임을 설정하면 내 순위와 기록이 여기 표시됩니다.',
   'ranking.loginRequired': '로그인 후에 내 순위를 볼 수 있습니다.',
   'ranking.achievements': '업적',
@@ -904,6 +906,8 @@ export default {
   'event.cryptoRegulation.desc': '규제 강화로 코인 수익이 감소합니다.',
 
   // 공유/즐겨찾기
+  'share.button': '자랑하기',
+  'share.brag': '🏆 자랑하기',
   'share.description':
     '💰 부동산과 금융 투자로 부자가 되는 게임!\n현재 자산: {assets}\n초당 수익: {rps}',
   'share.context.referral':

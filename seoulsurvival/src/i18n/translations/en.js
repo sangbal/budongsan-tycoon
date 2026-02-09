@@ -163,6 +163,8 @@ export default {
   // Settings tab
   'settings.language.title': '🌐 Language',
   'settings.language': 'Language',
+  'settings.language.korean': 'Korean',
+  'settings.language.english': 'English',
   'settings.modal.close': 'Close Settings',
   'settings.gameInfo.title': '📋 Game Info',
   'settings.visualEffects.title': '🎨 Visual Effects',
@@ -257,6 +259,7 @@ export default {
     '{count} {unit} {product} producing {amount} per second ({percent}% of total)',
   'product.desc.lifetime': 'Lifetime production: {amount}',
   'product.desc.currentPrice': 'Current price: {price}',
+  'product.tower.desc': 'Purchasing Seoul Tower triggers a prestige.',
 
   // Other
   'ui.noUpgrades': 'No upgrades unlocked',
@@ -302,6 +305,7 @@ export default {
   'ranking.lastUpdated': 'Last updated: {time}',
   'ranking.refreshNote': 'Records are updated periodically.',
   'ranking.refreshBtn': 'Refresh Leaderboard',
+  'ranking.refreshRequired': 'Click refresh to see your rank.',
   'ranking.nicknameRequired': 'Set a nickname to see your rank and record here.',
   'ranking.loginRequired': 'Please log in to see your rank.',
   'ranking.achievements': 'Achievements',
@@ -331,7 +335,6 @@ export default {
   'settings.guest': 'Guest',
   'settings.notLoggedIn': 'Not Logged In',
   'settings.loginGoogle': 'Login with Google',
-  'settings.language.korean': 'Korean',
   'settings.logout': 'Logout',
   'settings.resetWarning':
     'Resets current run. Lifetime records (🗼 towers, CP) and play time are preserved.',
@@ -903,6 +906,8 @@ export default {
   'event.cryptoRegulation.desc': 'Regulatory crackdown decreases crypto income.',
 
   // Share/Favorite
+  'share.button': 'Show Off',
+  'share.brag': '🏆 Show Off',
   'share.description':
     '💰 A game about getting rich through real estate and financial investments!\nCurrent Assets: {assets}\nPer Second: {rps}',
   'share.context.referral':
