@@ -16,6 +16,7 @@ import { isSupabaseConfigured } from '@shared/auth/config.js'
 // ======= 상수 =======
 const LEADERBOARD_UPDATE_INTERVAL = 30000 // 30초
 const LEADERBOARD_TIMEOUT = 7000 // 7초
+const LEADERBOARD_CACHE_TTL_MS = 300000 // 5분 캐시 TTL
 
 // ======= XSS 방지 헬퍼 함수 =======
 /**
@@ -71,6 +72,8 @@ let __lbObserver = null
 let __lbFirstLoad = true // 페이지 로드 후 첫 랭킹 탭 진입 플래그
 let __lbObserverDebounceTimer = null // IntersectionObserver 디바운스 타이머
 let __lbObserverLastState = null // IntersectionObserver 마지막 상태
+let __lbCachedData = null // 캐시된 리더보드 데이터
+let __lbCacheTimestamp = 0 // 캐시 저장 시간
 
 // ======= 게임 상태 참조 (main.js에서 설정) =======
 let gameStateRef = null
@@ -141,13 +144,22 @@ export async function updateLeaderboardUI(force = false) {
     return
   }
 
+  // 캐시 확인 (force가 아닐 때만)
+  const now = Date.now()
+  if (!force && __lbCachedData && now - __lbCacheTimestamp < LEADERBOARD_CACHE_TTL_MS) {
+    if (__IS_DEV__) {
+      console.debug('[LB] Using cached data (TTL not expired)')
+    }
+    renderLeaderboardFromCache(__lbCachedData)
+    return
+  }
+
   // 이미 로딩 중이면 스킵 (force일 때는 강제 실행)
   if (__leaderboardLoading && !force) {
     return
   }
 
   // 최근 업데이트로부터 충분한 시간이 지나지 않았으면 스킵 (force가 아닐 때만, 첫 호출 제외)
-  const now = Date.now()
   if (
     !force &&
     __leaderboardLastUpdate > 0 &&
@@ -221,6 +233,13 @@ export async function updateLeaderboardUI(force = false) {
         }
 
         const entries = result.data || []
+
+        // 캐시 저장 (성공 시에만)
+        if (result.success && entries.length > 0) {
+          __lbCachedData = entries
+          __lbCacheTimestamp = Date.now()
+        }
+
         if (entries.length === 0) {
           // XSS 방지: DOM API 사용
           container.innerHTML = ''
