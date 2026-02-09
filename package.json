@@ -23,6 +23,8 @@
     "type-check:watch": "tsc --noEmit --watch",
     "check:structure": "node scripts/check-structure.js",
     "validate:i18n": "node scripts/validate-i18n.js",
+    "validate:build-output": "node scripts/validate-build-output.js",
+    "predeploy": "npm run validate:i18n && npm run build && npm run validate:build-output",
     "prepare": "husky"
   },
   "devDependencies": {
