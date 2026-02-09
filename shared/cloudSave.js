@@ -1,8 +1,50 @@
 import { getSupabaseClient } from './auth/supabaseClient.js'
 import { getUser } from './auth/core.js'
+import LZString from 'lz-string'
 // isAuthEnabled는 동적 import로 변경 (config.js 로드 지연)
 
 const TABLE = 'game_saves'
+
+/**
+ * 클라우드 데이터 압축 (LZ-String Base64)
+ * @param {Object} data - 저장할 데이터 객체
+ * @returns {string} 압축된 문자열 (실패 시 원본 JSON)
+ */
+function compressCloudData(data) {
+  try {
+    const jsonStr = JSON.stringify(data)
+    const compressed = LZString.compressToBase64(jsonStr)
+    if (!compressed) return jsonStr
+
+    if (import.meta?.env?.DEV) {
+      const originalSize = new Blob([jsonStr]).size
+      const compressedSize = new Blob([compressed]).size
+      const ratio = ((1 - compressedSize / originalSize) * 100).toFixed(1)
+      console.log(`☁️ 클라우드 압축: ${originalSize}B → ${compressedSize}B (${ratio}% 절감)`)
+    }
+
+    return compressed
+  } catch (error) {
+    console.error('클라우드 압축 중 오류:', error)
+    return JSON.stringify(data)
+  }
+}
+
+/**
+ * 클라우드 데이터 압축 해제 (LZ-String Base64)
+ * @param {string} compressedStr - 압축된 문자열
+ * @returns {Object|null} 복원된 데이터 객체 (실패 시 null)
+ */
+function decompressCloudData(compressedStr) {
+  try {
+    let jsonStr = LZString.decompressFromBase64(compressedStr)
+    if (!jsonStr) jsonStr = compressedStr // 하위 호환성
+    return JSON.parse(jsonStr)
+  } catch (error) {
+    console.error('클라우드 압축 해제 중 오류:', error)
+    return null
+  }
+}
 
 function normalizeError(err) {
   if (!err) return null
@@ -40,10 +82,22 @@ export async function fetchCloudSave(gameSlug) {
   }
 
   if (!data) return { ok: true, found: false }
+
+  // 압축 해제
+  const compressedStr = typeof data.save === 'string' ? data.save : data.save.compressed
+  const decompressed = decompressCloudData(compressedStr)
+  if (!decompressed) {
+    return {
+      ok: false,
+      reason: 'decompression_failed',
+      error: { message: 'Failed to decompress cloud save data' },
+    }
+  }
+
   return {
     ok: true,
     found: true,
-    save: data.save,
+    save: decompressed,
     save_ts: data.save_ts,
     updated_at: data.updated_at,
   }
@@ -59,10 +113,14 @@ export async function upsertCloudSave(gameSlug, saveObj) {
   if (!user) return { ok: false, reason: 'not_signed_in' }
 
   const saveTs = Number(saveObj?.ts || Date.now()) || Date.now()
+
+  // 저장 전 압축
+  const compressed = compressCloudData(saveObj)
+
   const payload = {
     user_id: user.id,
     game_slug: gameSlug,
-    save: saveObj,
+    save: { compressed: compressed }, // JSONB로 감싸서 저장
     save_ts: saveTs,
   }
 

@@ -10,6 +10,8 @@
  * - 저장 상태 UI 업데이트
  */
 
+import LZString from 'lz-string'
+
 // 리더보드 업데이트 쓰로틀링 (모듈 스코프)
 let _lastLeaderboardUpdate = 0
 
@@ -63,6 +65,48 @@ export function createSaveLoadManager(deps) {
   let __saveWarningShown = false
   const MAX_RETRY_ATTEMPTS = 3
   const RETRY_DELAYS = [1000, 2000, 4000] // 지수 백오프 (1초, 2초, 4초)
+
+  /**
+   * 세이브 데이터 압축 (LZ-String UTF16)
+   * @param {Object} data - 저장할 데이터 객체
+   * @returns {string} 압축된 문자열 (실패 시 원본 JSON)
+   */
+  function compressSaveData(data) {
+    try {
+      const jsonStr = JSON.stringify(data)
+      const compressed = LZString.compressToUTF16(jsonStr)
+      if (!compressed) return jsonStr // 폴백
+
+      // 압축률 로깅 (개발 모드)
+      if (__IS_DEV__) {
+        const originalSize = new Blob([jsonStr]).size
+        const compressedSize = new Blob([compressed]).size
+        const ratio = ((1 - compressedSize / originalSize) * 100).toFixed(1)
+        console.log(`💾 저장 압축: ${originalSize}B → ${compressedSize}B (${ratio}% 절감)`)
+      }
+
+      return compressed
+    } catch (error) {
+      console.error('압축 중 오류:', error)
+      return JSON.stringify(data) // 폴백
+    }
+  }
+
+  /**
+   * 세이브 데이터 압축 해제 (LZ-String UTF16)
+   * @param {string} compressedStr - 압축된 문자열
+   * @returns {Object|null} 복원된 데이터 객체 (실패 시 null)
+   */
+  function decompressSaveData(compressedStr) {
+    try {
+      let jsonStr = LZString.decompressFromUTF16(compressedStr)
+      if (!jsonStr) jsonStr = compressedStr // 하위 호환성 (원본 JSON)
+      return JSON.parse(jsonStr)
+    } catch (error) {
+      console.error('압축 해제 중 오류:', error)
+      return null
+    }
+  }
 
   /**
    * 게임 데이터 저장 함수 (재시도 메커니즘 포함)
@@ -146,7 +190,8 @@ export function createSaveLoadManager(deps) {
     }
 
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
+      const compressed = compressSaveData(saveData)
+      localStorage.setItem(SAVE_KEY, compressed)
       gameVars.lastSaveTime = new Date()
       updateSaveStatus() // 저장 상태 UI 업데이트
 
@@ -259,7 +304,11 @@ export function createSaveLoadManager(deps) {
         return false
       }
 
-      const data = JSON.parse(saveData)
+      const data = decompressSaveData(saveData)
+      if (!data) {
+        console.error('저장 데이터 복원 실패')
+        return false
+      }
 
       // 게임 상태 복원 (타입 검증 포함)
       gameVars.cash = toNumber(data.cash, 0)
