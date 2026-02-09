@@ -11,6 +11,7 @@ import { safeText, safeHTML } from './domUtils.js'
 import { t, getLang } from '../i18n/index.js'
 import { getDomRefs } from './domRefs.js'
 import { getActiveTab } from './tabNavigation.js'
+import { updateSynergyDisplay } from './synergyDisplay.js'
 
 /**
  * createGameUI - Factory 패턴으로 UI 업데이트 시스템 생성
@@ -641,6 +642,9 @@ export function createGameUI(deps) {
         if (typeof updateProductLockStates === 'function') {
           updateProductLockStates()
         }
+
+        // 시너지 디스플레이 업데이트 (투자 탭)
+        updateSynergyDisplay()
       } // end investmentTab
 
       // 통계 탭 업데이트 (statsTab이 보일 때만)

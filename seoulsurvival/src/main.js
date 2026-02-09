@@ -290,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ACHIEVEMENTS,
       now: () => Date.now(),
     })
-    updateSynergyDisplay()
   }
 
   function updateAchievementGrid() {
