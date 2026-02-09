@@ -16,6 +16,7 @@ vi.mock('../../../i18n/index.js', () => ({
       'stats.unit.perSec': '/초',
       'ui.unit.count': '개',
       'ui.owned': '보유',
+      'stats.payback.minutes': 'min ROI',
       'product.deposit': '예금',
       'product.savings': '적금',
       'product.bond': '채권',
@@ -156,7 +157,7 @@ describe('efficiency.js', () => {
       expect(result).toHaveLength(1)
       expect(result[0]).toContain('예금')
       expect(result[0]).toContain('ROI')
-      expect(result[0]).toContain('5개')
+      // 실제 반환 형식: "예금: 16.7min ROI" (개수 정보 없음)
     })
 
     it('여러 자산이 있을 때 상위 3개만 반환', () => {

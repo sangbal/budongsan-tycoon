@@ -61,7 +61,8 @@ describe('createAchievementsSystem', () => {
       system.checkAchievements()
 
       expect(achievements[0].unlocked).toBe(true)
-      expect(deps.notify).toHaveBeenCalledWith(achievements[0])
+      // notify는 (achievement, shareCallback)으로 호출됨
+      expect(deps.notify).toHaveBeenCalledWith(achievements[0], undefined)
       expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('Achievement unlocked'))
       expect(deps.addLog).toHaveBeenCalledWith(expect.stringContaining('테스트 업적 1'))
     })

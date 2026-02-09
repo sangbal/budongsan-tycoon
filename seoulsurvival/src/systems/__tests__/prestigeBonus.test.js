@@ -280,8 +280,8 @@ describe('Prestige Bonus System v2.0', () => {
 
       expect(earnedCP).toBeGreaterThan(0)
       expect(gameState.careerPoints).toBe(earnedCP)
-      // 구매 업그레이드는 리셋됨 (F 카테고리 제외)
-      expect(gameState.purchasedUpgrades).toHaveLength(0)
+      // CP 상품은 영구 유지 정책으로 리셋되지 않음
+      expect(gameState.purchasedUpgrades).toContain('A1_mentor')
     })
 
     it('F 카테고리 업그레이드 유지', () => {
@@ -531,8 +531,8 @@ describe('Prestige Bonus System v2.0', () => {
       // F 카테고리는 유지
       expect(gameState.purchasedUpgrades).toContain('F1_preserve_1')
       expect(gameState.purchasedUpgrades).toContain('F2_preserve_2')
-      // 일반 업그레이드는 리셋
-      expect(gameState.purchasedUpgrades).not.toContain('A1_mentor')
+      // CP 상품은 영구 유지 정책으로 A1_mentor도 유지됨
+      expect(gameState.purchasedUpgrades).toContain('A1_mentor')
     })
   })
 })

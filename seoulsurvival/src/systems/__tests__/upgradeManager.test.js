@@ -19,6 +19,11 @@ vi.mock('../diary.js', () => ({
 
 vi.mock('../synergy.js', () => ({
   updateCompletionistSynergy: vi.fn(),
+  invalidateSynergyCache: vi.fn(),
+}))
+
+vi.mock('../prestigeBonus.js', () => ({
+  invalidatePrestigeCache: vi.fn(),
 }))
 
 describe('createUpgradeManager', () => {

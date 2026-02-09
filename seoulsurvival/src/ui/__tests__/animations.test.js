@@ -45,10 +45,16 @@ describe('animations.js', () => {
   })
 
   describe('createFallingCookie', () => {
+    beforeEach(() => {
+      // 애니메이션 풀 초기화
+      const workElement = document.createElement('button')
+      initAnimations(workElement)
+    })
+
     it('지폐 이모지 요소 생성', () => {
       createFallingCookie(100, 200)
 
-      const cookie = document.querySelector('.falling-cookie')
+      const cookie = document.querySelector('.falling-cookie[style*="display: block"]')
       expect(cookie).not.toBeNull()
       expect(cookie.textContent).toBe('💵')
     })
@@ -56,7 +62,7 @@ describe('animations.js', () => {
     it('클릭 위치 기준으로 스타일 설정', () => {
       createFallingCookie(100, 200)
 
-      const cookie = document.querySelector('.falling-cookie')
+      const cookie = document.querySelector('.falling-cookie[style*="display: block"]')
       expect(cookie.style.left).toContain('px')
       expect(cookie.style.top).toBe('100px') // 200 - 100
     })
@@ -64,22 +70,30 @@ describe('animations.js', () => {
     it('2초 후 요소 제거', () => {
       createFallingCookie(100, 200)
 
-      expect(document.querySelector('.falling-cookie')).not.toBeNull()
+      const cookie = document.querySelector('.falling-cookie[style*="display: block"]')
+      expect(cookie).not.toBeNull()
 
       // 2초 경과
       vi.advanceTimersByTime(2000)
 
-      expect(document.querySelector('.falling-cookie')).toBeNull()
+      const hiddenCookie = document.querySelector('.falling-cookie[style*="display: block"]')
+      expect(hiddenCookie).toBeNull()
     })
   })
 
   describe('createFallingBuilding', () => {
+    beforeEach(() => {
+      // 애니메이션 풀 초기화
+      const workElement = document.createElement('button')
+      initAnimations(workElement)
+    })
+
     it('지정된 아이콘으로 요소 생성', () => {
       createFallingBuilding('🏠', 1)
 
       vi.advanceTimersByTime(100) // setTimeout 0 * 200 = 0ms 대기
 
-      const building = document.querySelector('.falling-cookie')
+      const building = document.querySelector('.falling-cookie[style*="display: block"]')
       expect(building).not.toBeNull()
       expect(building.textContent).toBe('🏠')
     })
@@ -90,7 +104,7 @@ describe('animations.js', () => {
       // 모든 타이머 실행 (5 * 200ms 간격)
       vi.advanceTimersByTime(1000)
 
-      const buildings = document.querySelectorAll('.falling-cookie')
+      const buildings = document.querySelectorAll('.falling-cookie[style*="display: block"]')
       expect(buildings.length).toBe(5)
     })
 
@@ -99,15 +113,15 @@ describe('animations.js', () => {
 
       // 0ms - 첫 번째 생성
       vi.advanceTimersByTime(0)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(1)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(1)
 
       // 200ms - 두 번째 생성
       vi.advanceTimersByTime(200)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(2)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(2)
 
       // 400ms - 세 번째 생성
       vi.advanceTimersByTime(200)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(3)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(3)
     })
 
     it('2초 후 각 요소 제거', () => {
@@ -115,17 +129,17 @@ describe('animations.js', () => {
 
       // 200ms까지 진행 (두 요소 모두 생성됨)
       vi.advanceTimersByTime(200)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(2)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(2)
 
       // 첫 번째 요소가 0ms에 생성되어 2000ms에 제거됨
       // 현재 시점은 200ms이므로 1800ms 더 경과하면 첫 번째 제거
       vi.advanceTimersByTime(1800)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(1)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(1)
 
       // 두 번째 요소가 200ms에 생성되어 2200ms에 제거됨
       // 현재 시점은 2000ms이므로 200ms 더 경과하면 두 번째 제거
       vi.advanceTimersByTime(200)
-      expect(document.querySelectorAll('.falling-cookie').length).toBe(0)
+      expect(document.querySelectorAll('.falling-cookie[style*="display: block"]').length).toBe(0)
     })
   })
 
@@ -163,21 +177,21 @@ describe('animations.js', () => {
     it('수익 애니메이션 요소 생성', () => {
       showIncomeAnimation(1000)
 
-      const animation = document.querySelector('.income-increase')
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
       expect(animation).not.toBeNull()
     })
 
     it('포맷된 금액 표시', () => {
       showIncomeAnimation(5000)
 
-      const animation = document.querySelector('.income-increase')
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
       expect(animation.textContent).toContain('5000원')
     })
 
     it('위치 스타일 설정', () => {
       showIncomeAnimation(1000)
 
-      const animation = document.querySelector('.income-increase')
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
       expect(animation.style.position).toBe('absolute')
       expect(animation.style.zIndex).toBe('1000')
       expect(animation.style.pointerEvents).toBe('none')
@@ -193,7 +207,7 @@ describe('animations.js', () => {
     it('100ms 후 트랜지션 시작', () => {
       showIncomeAnimation(1000)
 
-      const animation = document.querySelector('.income-increase')
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
       expect(animation.style.transition).toBe('')
 
       vi.advanceTimersByTime(100)
@@ -205,11 +219,13 @@ describe('animations.js', () => {
     it('1.6초 후 요소 제거', () => {
       showIncomeAnimation(1000)
 
-      expect(document.querySelector('.income-increase')).not.toBeNull()
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
+      expect(animation).not.toBeNull()
 
       vi.advanceTimersByTime(1600)
 
-      expect(document.querySelector('.income-increase')).toBeNull()
+      const hiddenAnimation = document.querySelector('.income-increase[style*="display: block"]')
+      expect(hiddenAnimation).toBeNull()
     })
 
     it('elWork 미초기화 시 스킵', () => {
@@ -218,7 +234,8 @@ describe('animations.js', () => {
       initAnimations(null)
 
       expect(() => showIncomeAnimation(1000)).not.toThrow()
-      expect(document.querySelector('.income-increase')).toBeNull()
+      const animation = document.querySelector('.income-increase[style*="display: block"]')
+      expect(animation).toBeNull()
     })
   })
 
@@ -226,6 +243,10 @@ describe('animations.js', () => {
     let matchMediaMock
 
     beforeEach(() => {
+      // 애니메이션 풀 초기화
+      const workElement = document.createElement('button')
+      initAnimations(workElement)
+
       // matchMedia mock
       matchMediaMock = vi.fn().mockReturnValue({
         matches: false,
@@ -236,22 +257,22 @@ describe('animations.js', () => {
       })
     })
 
-    it('30개의 타워 이모지 생성', () => {
+    it('10개의 타워 이모지 생성', () => {
       createTowerFallEffect()
 
-      // 모든 타이머 실행 (30 * 40ms)
-      vi.advanceTimersByTime(1200)
+      // 모든 타이머 실행 (10 * 80ms)
+      vi.advanceTimersByTime(800)
 
-      const towers = document.querySelectorAll('.falling-tower')
-      expect(towers.length).toBe(30)
+      const towers = document.querySelectorAll('.falling-tower[style*="display: block"]')
+      expect(towers.length).toBe(10)
     })
 
     it('타워 이모지 텍스트', () => {
       createTowerFallEffect()
 
-      vi.advanceTimersByTime(40)
+      vi.advanceTimersByTime(80)
 
-      const tower = document.querySelector('.falling-tower')
+      const tower = document.querySelector('.falling-tower[style*="display: block"]')
       expect(tower.textContent).toBe('🗼')
     })
 
@@ -261,7 +282,7 @@ describe('animations.js', () => {
       // 첫 번째 요소는 0ms에 생성
       vi.advanceTimersByTime(0)
 
-      const tower = document.querySelector('.falling-tower')
+      const tower = document.querySelector('.falling-tower[style*="display: block"]')
       expect(tower).not.toBeNull()
       // jsdom에서 style.top이 빈 문자열일 수 있으므로 요소 존재만 확인
       expect(tower.classList.contains('falling-tower')).toBe(true)
@@ -272,14 +293,14 @@ describe('animations.js', () => {
 
       // 0ms에 첫 번째 생성
       vi.advanceTimersByTime(0)
-      expect(document.querySelectorAll('.falling-tower').length).toBe(1)
+      expect(document.querySelectorAll('.falling-tower[style*="display: block"]').length).toBe(1)
 
       // 2000ms 경과 후 첫 번째 제거
       vi.advanceTimersByTime(2000)
-      // 40ms 간격으로 생성되므로 2000/40 = 50개가 생성됐다가 첫 번째 하나만 제거됨
-      // 하지만 총 30개만 생성되므로 30 - 1 = 29개 남음
-      const towers = document.querySelectorAll('.falling-tower')
-      expect(towers.length).toBeLessThan(30)
+      // 80ms 간격으로 생성되므로 2000/80 = 25개가 생성됐으나 총 10개만 생성됨
+      // 첫 번째는 제거되어 9개 남음
+      const towers = document.querySelectorAll('.falling-tower[style*="display: block"]')
+      expect(towers.length).toBeLessThan(10)
     })
 
     it('prefers-reduced-motion 시 애니메이션 생략', () => {
@@ -287,25 +308,26 @@ describe('animations.js', () => {
 
       createTowerFallEffect()
 
-      vi.advanceTimersByTime(1200)
+      vi.advanceTimersByTime(800)
 
-      expect(document.querySelector('.falling-tower')).toBeNull()
+      const tower = document.querySelector('.falling-tower[style*="display: block"]')
+      expect(tower).toBeNull()
     })
 
-    it('순차적으로 40ms 간격 생성', () => {
+    it('순차적으로 80ms 간격 생성', () => {
       createTowerFallEffect()
 
       // 0ms - 첫 번째
       vi.advanceTimersByTime(0)
-      expect(document.querySelectorAll('.falling-tower').length).toBe(1)
+      expect(document.querySelectorAll('.falling-tower[style*="display: block"]').length).toBe(1)
 
-      // 40ms - 두 번째
-      vi.advanceTimersByTime(40)
-      expect(document.querySelectorAll('.falling-tower').length).toBe(2)
+      // 80ms - 두 번째
+      vi.advanceTimersByTime(80)
+      expect(document.querySelectorAll('.falling-tower[style*="display: block"]').length).toBe(2)
 
-      // 80ms - 세 번째
-      vi.advanceTimersByTime(40)
-      expect(document.querySelectorAll('.falling-tower').length).toBe(3)
+      // 160ms - 세 번째
+      vi.advanceTimersByTime(80)
+      expect(document.querySelectorAll('.falling-tower[style*="display: block"]').length).toBe(3)
     })
   })
 })

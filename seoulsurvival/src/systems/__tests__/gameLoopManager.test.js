@@ -56,6 +56,12 @@ describe('createGameLoopManager', () => {
       return 1
     })
 
+    // requestIdleCallback mock (Safari 폴백 테스트)
+    globalThis.requestIdleCallback = vi.fn(callback => {
+      callback()
+      return 1
+    })
+
     // 의존성 mock
     mockDeps = {
       gameState: {
@@ -172,8 +178,8 @@ describe('createGameLoopManager', () => {
       expect(tickCallback).toBeDefined()
 
       const initialCash = mockDeps.gameState.cash
-      // 슬로우 틱(10틱마다) 체크 로직 실행을 위해 10번 호출
-      for (let i = 0; i < 10; i++) {
+      // 슬로우 틱(SLOW_TICK_INTERVAL=20틱마다) 체크 로직 실행을 위해 20번 호출
+      for (let i = 0; i < 20; i++) {
         tickCallback()
       }
 
@@ -423,13 +429,13 @@ describe('createGameLoopManager', () => {
       expect(mockDeps.getPropertyIncome).toHaveBeenCalled()
     })
 
-    it('슬로우 틱(10틱마다)에서 체크 함수들 호출', () => {
+    it('슬로우 틱(20틱마다)에서 체크 함수들 호출', () => {
       manager.startTickLoop(50)
 
       const tickCallback = intervalCallbacks.get(1)?.callback
 
-      // 10틱 실행
-      for (let i = 0; i < 10; i++) {
+      // 20틱 실행 (SLOW_TICK_INTERVAL=20)
+      for (let i = 0; i < 20; i++) {
         tickCallback()
       }
 
