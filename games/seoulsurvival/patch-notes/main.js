@@ -1,8 +1,8 @@
 // games/seoulsurvival/patch-notes/main.js
 import { getPatchNotesByGame } from '../../../hub/patchnotes.registry.js'
-import { applyLang } from '../../../shared/i18n/lang.js'
-import { renderHeader } from '../../../shared/shell/header.js'
-import { renderFooter } from '../../../shared/shell/footer.js'
+import { applyLang } from '@shared/i18n/lang.js'
+import { renderHeader } from '@shared/shell/header.js'
+import { renderFooter } from '@shared/shell/footer.js'
 
 /**
  * 카테고리별 CSS 클래스 매핑
