@@ -131,6 +131,12 @@
     </div>
   </main>
   <div id="footer-mount"></div>
+  <script type="module">
+    import { applyLang } from './shared/i18n/lang.js'
+    document.addEventListener('DOMContentLoaded', () => {
+      applyLang()
+    })
+  </script>
   <script type="module" src="./shared/shell/header.js"></script>
   <script type="module" src="./shared/shell/footer.js"></script>
 </body>
