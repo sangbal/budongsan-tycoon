@@ -9,6 +9,7 @@ import * as NumberFormat from '../utils/numberFormat.js'
 import * as Diary from '../systems/diary.js'
 import * as Animations from './animations.js'
 import * as Modal from './modal.js'
+import { invalidateSynergyCache } from '../systems/synergy.js'
 
 // 개발 모드 체크 (디버깅 로그 제어용)
 const __IS_DEV__ = !!import.meta?.env?.DEV
@@ -69,6 +70,9 @@ export function createInvestmentTab(deps) {
 
     // 프레스티지 시스템 (타워 구매 후 호출)
     performAutoPrestige,
+
+    // 공유 콜백 (타워 구매 엔딩 모달용)
+    shareCallback,
   } = deps
 
   /**
@@ -179,6 +183,7 @@ export function createInvestmentTab(deps) {
 
       setCash(cash - cost)
       const newCount = currentCount + qty
+      invalidateSynergyCache() // 보유 수량 변경 → 시너지 재계산 필요
       const unit = category === 'financial' ? t('ui.unit.count') : t('ui.unit.property')
       const productName = getProductName(type)
       Diary.addLog(t('msg.purchased', { product: productName, qty, unit, count: newCount }))
@@ -215,6 +220,7 @@ export function createInvestmentTab(deps) {
 
       setCash(cash + sellPrice)
       const newCount = currentCount - qty
+      invalidateSynergyCache() // 보유 수량 변경 → 시너지 재계산 필요
       const unit = category === 'financial' ? t('ui.unit.count') : t('ui.unit.property')
       const productName = getProductName(type)
       Diary.addLog(
@@ -553,13 +559,17 @@ export function createInvestmentTab(deps) {
 
     // 2. 약간의 딜레이 후 엔딩 모달 표시 (이펙트가 충분히 보이도록)
     setTimeout(() => {
-      Modal.showEndingModal(gameState.towers_lifetime, async () => {
-        // 확인 시 프레스티지 실행
-        if (typeof performAutoPrestige === 'function') {
-          await performAutoPrestige('tower_purchase')
-          Diary.addLog(t('msg.prestigeComplete'))
-        }
-      })
+      Modal.showEndingModal(
+        gameState.towers_lifetime,
+        async () => {
+          // 확인 시 프레스티지 실행
+          if (typeof performAutoPrestige === 'function') {
+            await performAutoPrestige('tower_purchase')
+            Diary.addLog(t('msg.prestigeComplete'))
+          }
+        },
+        shareCallback // 공유 콜백 전달
+      )
     }, 500)
   }
 

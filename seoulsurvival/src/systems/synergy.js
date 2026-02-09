@@ -13,6 +13,22 @@
 
 import { gameState } from '../state/gameState.js'
 
+// 시너지 캐싱 (틱마다 재계산 방지)
+let _synergyCache = null
+let _synergyCacheKey = ''
+
+function buildSynergyCacheKey(state) {
+  return `${state.deposits},${state.savings},${state.bonds},${state.usStocks},${state.cryptos},${state.villas},${state.officetels},${state.apartments},${state.shops},${state.buildings},${state.__completionistUnlocked || false}`
+}
+
+/**
+ * 시너지 캐시 무효화 (상품 구매/판매/로드 시 호출)
+ */
+export function invalidateSynergyCache() {
+  _synergyCache = null
+  _synergyCacheKey = ''
+}
+
 /**
  * 시너지 정의
  * @type {Array<Object>}
@@ -123,7 +139,13 @@ export const SYNERGIES = [
  * @returns {Array<Object>} 활성화된 시너지 배열
  */
 export function getActiveSynergies(state = gameState) {
-  return SYNERGIES.filter(synergy => synergy.check(state))
+  const key = buildSynergyCacheKey(state)
+  if (_synergyCache && _synergyCacheKey === key) {
+    return _synergyCache
+  }
+  _synergyCache = SYNERGIES.filter(synergy => synergy.check(state))
+  _synergyCacheKey = key
+  return _synergyCache
 }
 
 /**

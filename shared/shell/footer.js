@@ -6,8 +6,10 @@ export function renderFooter(container) {
     <footer class="footer">
       <div class="footer-inner">
         <div class="footer-links">
-          <a href="./terms.html">Terms</a>
-          <a href="./privacy.html">Privacy</a>
+          <a href="/about.html" data-i18n="hub.footer.about">About</a>
+          <a href="/faq.html" data-i18n="hub.footer.faq">FAQ</a>
+          <a href="/terms.html" data-i18n="hub.footer.terms">Terms</a>
+          <a href="/privacy.html" data-i18n="hub.footer.privacy">Privacy</a>
         </div>
         <div class="footer-social">
           <a href="https://x.com/ClickSurvivor" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">

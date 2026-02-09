@@ -1,6 +1,8 @@
 // shared/shell/headerActions.js
 // 헤더 공유하기, 즐겨찾기 기능
 
+import { translate } from '../i18n/lang.js'
+
 /**
  * 공유하기 버튼 이벤트를 초기화합니다.
  * @param {HTMLElement} container - 헤더가 렌더링된 컨테이너
@@ -13,11 +15,11 @@ export function initShareButton(container) {
 
   shareBtn.addEventListener('click', async () => {
     const pageUrl = window.location.href
-    const pageTitle = document.title || 'ClickSurvivor Hub'
-    const pageDescription = '게임 허브 - 여러 게임을 한 곳에서 플레이하세요'
+    const pageTitle = document.title || translate('header.share.defaultTitle')
+    const pageDescription = translate('header.share.description')
 
     if (!navigator.share) {
-      alert('이 기기/브라우저에서는 공유하기를 지원하지 않습니다.')
+      alert(translate('header.share.unsupported'))
       return
     }
 
@@ -47,7 +49,7 @@ export function initFavoriteButton(container) {
 
   favoriteBtn.addEventListener('click', () => {
     const url = window.location.href
-    const title = document.title || 'ClickSurvivor Hub'
+    const title = document.title || translate('header.share.defaultTitle')
     const ua = navigator.userAgent.toLowerCase()
     const isMobileDevice = /iphone|ipad|ipod|android/.test(ua)
     const isIOS = /iphone|ipad|ipod/.test(ua)
@@ -65,27 +67,21 @@ export function initFavoriteButton(container) {
     }
 
     let message = ''
-    const modalTitle = '즐겨찾기 / 홈 화면에 추가'
-    const icon = '⭐'
 
     if (isMobileDevice) {
       if (isIOS) {
-        message =
-          'iPhone/iPad에서는 Safari 하단의 공유 버튼(□↑)을 누른 뒤\n' +
-          '"홈 화면에 추가"를 선택하면 바탕화면에 아이콘이 만들어집니다.'
+        message = translate('header.favorite.ios')
       } else if (isAndroid) {
-        message =
-          'Android에서는 브라우저 오른쪽 위 메뉴(⋮)에서\n' +
-          '"홈 화면에 추가" 또는 "앱 설치"를 선택하면 바탕화면에 아이콘이 만들어집니다.'
+        message = translate('header.favorite.android')
       } else {
-        message = '이 기기에서는 브라우저의 메뉴에서 "홈 화면에 추가" 기능을 사용해 주세요.'
+        message = translate('header.favorite.mobileGeneric')
       }
     } else {
       const shortcut = isMac ? '⌘ + D' : 'Ctrl + D'
-      message = `${shortcut} 를 눌러 이 페이지를 브라우저 즐겨찾기에 추가할 수 있습니다.`
+      message = translate('header.favorite.desktop').replace('{shortcut}', shortcut)
     }
 
-    alert(`${icon} ${modalTitle}\n\n${message}`)
+    alert(message)
   })
 }
 

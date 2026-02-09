@@ -140,7 +140,7 @@ export function setupResetButtons(deps) {
  * @param {Object} deps - 의존성 객체
  */
 export function setupToggleSwitches(deps) {
-  const { settings, saveSettings, updateUI } = deps
+  const { settings, saveSettings, updateUI, notificationManager, t } = deps
 
   const elToggleParticles = document.getElementById('toggleParticles')
   const elToggleFancyGraphics = document.getElementById('toggleFancyGraphics')
@@ -159,6 +159,50 @@ export function setupToggleSwitches(deps) {
   setupToggle(elToggleParticles, 'particles')
   setupToggle(elToggleFancyGraphics, 'fancyGraphics')
   setupToggle(elToggleShortNumbers, 'shortNumbers', updateUI)
+
+  // 브라우저 알림 토글
+  const elToggleBrowserNotifications = document.getElementById('toggleBrowserNotifications')
+  const elNotificationStatus = document.getElementById('notificationStatus')
+
+  const STATUS_FALLBACK = {
+    granted: '허용됨',
+    denied: '차단됨',
+    default: '미설정',
+    unsupported: '미지원',
+  }
+
+  function updateNotificationStatus() {
+    if (!elNotificationStatus || !notificationManager) return
+    const status = notificationManager.getPermissionStatus()
+    const statusKey = `settings.notifications.status.${status}`
+    const fallback = STATUS_FALLBACK[status] || status
+    elNotificationStatus.textContent = t ? t(statusKey, {}, fallback) : fallback
+  }
+
+  if (elToggleBrowserNotifications) {
+    elToggleBrowserNotifications.checked = settings.browserNotifications || false
+    updateNotificationStatus()
+
+    elToggleBrowserNotifications.addEventListener('change', async e => {
+      if (e.target.checked && notificationManager) {
+        const result = await notificationManager.requestPermission()
+        if (result === 'denied') {
+          e.target.checked = false
+          settings.browserNotifications = false
+          saveSettings()
+          updateNotificationStatus()
+          const msg = t
+            ? t('settings.notifications.deniedMessage')
+            : 'Please allow notifications in browser settings'
+          if (window.toast?.warning) window.toast.warning(msg)
+          return
+        }
+      }
+      settings.browserNotifications = e.target.checked
+      saveSettings()
+      updateNotificationStatus()
+    })
+  }
 }
 
 /**

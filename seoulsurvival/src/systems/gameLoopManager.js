@@ -15,6 +15,7 @@ export function createGameLoopManager(deps) {
     // State
     gameState,
     UPGRADES,
+    settings,
     // Timing constants
     TIMING,
     MARKET_EVENT_TIMING,
@@ -33,8 +34,13 @@ export function createGameLoopManager(deps) {
     saveGame,
     // Modules
     Animations,
+    notificationManager,
+    formatNumber,
+    t,
     // DOM
     elWork,
+    // Referral system (optional)
+    referralSystem,
   } = deps
 
   // 타이머 ID 저장
@@ -42,6 +48,11 @@ export function createGameLoopManager(deps) {
   let saveInterval = null
   let autoClickInterval = null
   let marketEventInterval = null
+  let milestoneCheckInterval = null
+
+  // visibilitychange 중복 등록 방지
+  let visibilityHandlerRegistered = false
+  let visibilityHandler = null
 
   // 정확한 deltaTime 계산을 위한 타임스탬프
   let lastTickTime = performance.now()
@@ -51,7 +62,12 @@ export function createGameLoopManager(deps) {
 
   // 슬로우 틱 카운터 (업적/업그레이드 체크 빈도 감소)
   let slowTickCounter = 0
-  const SLOW_TICK_INTERVAL = 10 // 50ms × 10 = 500ms
+  const SLOW_TICK_INTERVAL = 20 // 50ms × 20 = 1000ms (Phase 4: 업적/업그레이드 체크 빈도 완화)
+
+  // 마일스톤 체크 플래그 (중복 방지)
+  let _milestones = {
+    played_10min: false,
+  }
 
   /**
    * 수익 틱 루프 시작
@@ -64,17 +80,20 @@ export function createGameLoopManager(deps) {
     slowTickCounter = 0
 
     tickInterval = setInterval(() => {
-      // 슬로우 틱 (500ms) - 무거운 체크 로직
+      const isHidden = document.hidden
+
+      // 슬로우 틱 (1000ms) - 무거운 체크 로직 (비활성 탭에서는 스킵)
       slowTickCounter++
       if (slowTickCounter >= SLOW_TICK_INTERVAL) {
         slowTickCounter = 0
-        checkMarketEvent() // 시장 이벤트 체크
-        checkAchievements() // 업적 체크
-        checkUpgradeUnlocks() // 업그레이드 해금 체크
+        if (!isHidden) {
+          checkMarketEvent() // 시장 이벤트 체크
+          checkAchievements() // 업적 체크
+          checkUpgradeUnlocks() // 업그레이드 해금 체크
+        }
       }
 
-      // 패스트 틱 (50ms) - 수익 계산
-      // 실제 경과 시간 계산 (탭 백그라운드/CPU 부하 시 정확도 보장)
+      // 패스트 틱 (50ms) - 수익 계산 (비활성 탭에서도 유지, 오프라인 수익 정확성)
       const now = performance.now()
       const deltaTime = Math.min((now - lastTickTime) / 1000, 1) // 최대 1초 제한 (비정상 지연 방지)
       lastTickTime = now
@@ -97,8 +116,7 @@ export function createGameLoopManager(deps) {
       gameState.buildingsLifetime += getPropertyIncome('building', gameState.buildings) * deltaTime
 
       // 비활성 탭에서는 UI 업데이트 스킵 (성능 최적화)
-      // 데이터는 계속 계산되므로 탭 복귀 시 최신 상태 표시
-      if (document.hidden) {
+      if (isHidden) {
         pendingUIUpdate = true
         return
       }
@@ -120,9 +138,16 @@ export function createGameLoopManager(deps) {
   function startAutoSave() {
     if (saveInterval) return // 이미 실행 중
 
+    // requestIdleCallback 사용 가능 여부 체크 (Safari 폴백)
+    const scheduleIdle =
+      typeof requestIdleCallback === 'function' ? requestIdleCallback : fn => setTimeout(fn, 0)
+
     saveInterval = setInterval(() => {
       if (saveGame) {
-        saveGame()
+        // 유휴 시간에 저장 (프레임 드롭 방지)
+        scheduleIdle(() => {
+          saveGame()
+        })
       }
     }, TIMING.AUTO_SAVE_INTERVAL_MS)
   }
@@ -141,7 +166,9 @@ export function createGameLoopManager(deps) {
 
     // 노동 버튼에 자동 클릭 이펙트 적용 (펄스 + 수익 텍스트)
     if (showAnimation && elWork) {
-      elWork.classList.remove('auto-click-pulse')
+      if (elWork.classList.contains('auto-click-pulse')) {
+        elWork.classList.remove('auto-click-pulse')
+      }
       // double rAF 패턴으로 강제 리플로우 없이 애니메이션 재생
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -182,6 +209,7 @@ export function createGameLoopManager(deps) {
 
     autoClickInterval = setInterval(() => {
       tickCounter++
+      const showAnim = !document.hidden // 비활성 탭에서는 애니메이션 스킵
       const prestigeSpeed = getPrestigeAutoClickSpeed() // 0, 1, 2, 4
 
       // 프레스티지 자동 클릭 처리
@@ -192,13 +220,13 @@ export function createGameLoopManager(deps) {
         // - 1회/초: 4틱마다 1회 (tickCounter % 4 === 0)
         const interval = 4 / prestigeSpeed // 4, 2, 1
         if (tickCounter % interval === 0) {
-          processAutoClick(true)
+          processAutoClick(showAnim)
         }
       }
 
       // 기존 AI 시스템 (1회/초, 4틱마다)
       if (tickCounter % 4 === 0 && gameState.autoClickEnabled) {
-        processAutoClick(true)
+        processAutoClick(showAnim)
       }
 
       // 카운터 리셋 (오버플로우 방지)
@@ -230,16 +258,105 @@ export function createGameLoopManager(deps) {
   }
 
   /**
+   * 추천 마일스톤 체커 시작
+   * - 30초마다 플레이 시간 체크
+   * - 10분 달성 시 마일스톤 기록
+   */
+  function startReferralMilestoneChecker() {
+    if (!referralSystem) return // referralSystem이 없으면 스킵
+    if (milestoneCheckInterval) return // 이미 실행 중
+
+    milestoneCheckInterval = setInterval(() => {
+      checkReferralPlaytimeMilestone()
+    }, 30000) // 30초마다 체크
+  }
+
+  /**
+   * 플레이 시간 마일스톤 체크
+   * - 10분 플레이 달성 시 추천인에게 +1 CP
+   */
+  function checkReferralPlaytimeMilestone() {
+    if (!referralSystem) return
+
+    const TEN_MINUTES_MS = 600000 // 10분 = 600,000ms
+
+    // 10분 마일스톤 체크
+    if (!_milestones.played_10min && gameState.totalPlayTime >= TEN_MINUTES_MS) {
+      _milestones.played_10min = true
+
+      // 추천 시스템에 마일스톤 기록
+      referralSystem.checkReferralMilestones('played_10min', TEN_MINUTES_MS)
+    }
+  }
+
+  /**
    * 탭 활성화 시 즉시 UI 업데이트
    */
   function setupVisibilityHandler() {
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && pendingUIUpdate) {
-        // 탭 복귀 시 즉시 UI 업데이트
-        updateUI()
-        pendingUIUpdate = false
+    if (visibilityHandlerRegistered) return
+
+    visibilityHandler = () => {
+      if (document.hidden) {
+        // 탭 비활성화: 마지막 활성 시간 기록
+        gameState.lastActiveTime = Date.now()
+      } else {
+        // 탭 복귀: 오프라인 수익 계산
+        const deltaMs = Date.now() - (gameState.lastActiveTime || Date.now())
+        const MIN_OFFLINE_MS = 5 * 60 * 1000 // 5분
+        const MAX_OFFLINE_S = 7200 // 2시간
+
+        if (deltaMs >= MIN_OFFLINE_MS && settings?.browserNotifications) {
+          const deltaSeconds = Math.min(deltaMs / 1000, MAX_OFFLINE_S)
+          const offlineIncome = getRps() * deltaSeconds
+
+          if (offlineIncome > 0) {
+            gameState.cash += offlineIncome
+            gameState.lifetimeEarnings += offlineIncome
+
+            // 시간 포맷
+            const minutes = Math.floor(deltaMs / 60000)
+            const hours = Math.floor(minutes / 60)
+            const remainMinutes = minutes % 60
+            const timeStr =
+              hours > 0
+                ? t
+                  ? t('notification.offlineIncome.body', {
+                      time: `${hours}h ${remainMinutes}m`,
+                      income: formatNumber
+                        ? formatNumber(offlineIncome)
+                        : Math.floor(offlineIncome).toLocaleString(),
+                    })
+                  : `${hours}h ${remainMinutes}m`
+                : t
+                  ? t('notification.offlineIncome.body', {
+                      time: `${minutes}m`,
+                      income: formatNumber
+                        ? formatNumber(offlineIncome)
+                        : Math.floor(offlineIncome).toLocaleString(),
+                    })
+                  : `${minutes}m`
+
+            const title = t ? t('notification.offlineIncome.title') : 'Offline Income'
+
+            if (notificationManager) {
+              notificationManager.showNotification(title, timeStr, { tag: 'offline-income' })
+            }
+          }
+        }
+
+        // 탭 복귀 시 lastTickTime 리셋 (오프라인 수익과 틱 수익 이중 계산 방지)
+        lastTickTime = performance.now()
+
+        // 기존 로직: 탭 복귀 시 즉시 UI 업데이트
+        if (pendingUIUpdate) {
+          updateUI()
+          pendingUIUpdate = false
+        }
       }
-    })
+    }
+
+    document.addEventListener('visibilitychange', visibilityHandler)
+    visibilityHandlerRegistered = true
   }
 
   /**
@@ -251,6 +368,7 @@ export function createGameLoopManager(deps) {
     startAutoSave()
     startAutoClick()
     startMarketEventChecker()
+    startReferralMilestoneChecker()
   }
 
   /**
@@ -272,6 +390,15 @@ export function createGameLoopManager(deps) {
     if (marketEventInterval) {
       clearTimeout(marketEventInterval)
       marketEventInterval = null
+    }
+    if (milestoneCheckInterval) {
+      clearInterval(milestoneCheckInterval)
+      milestoneCheckInterval = null
+    }
+    if (visibilityHandler) {
+      document.removeEventListener('visibilitychange', visibilityHandler)
+      visibilityHandler = null
+      visibilityHandlerRegistered = false
     }
   }
 
@@ -301,6 +428,7 @@ export function createGameLoopManager(deps) {
     startAutoSave,
     startAutoClick,
     startMarketEventChecker,
+    startReferralMilestoneChecker,
     pauseTickLoop,
     resumeTickLoop,
   }

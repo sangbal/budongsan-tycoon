@@ -14,6 +14,9 @@ export const translations = {
 
 export const SUPPORTED_LANGS = Object.keys(translations)
 
+// 모듈 레벨 캐시
+let _cachedLang = null
+
 export function resolveLang(input) {
   const v = String(input || '').toLowerCase()
   return SUPPORTED_LANGS.includes(v) ? v : null
@@ -35,15 +38,16 @@ export function getInitialLang() {
     const nav = String(navigator.language || '').toLowerCase()
     if (nav.startsWith('ko')) return 'ko'
     return 'en'
-  } catch (error) {
-    // localStorage 접근 실패 시 기본값 반환
-    console.warn('[lang] Failed to access localStorage, using default:', error)
-    return 'ko'
+  } catch (e) {
+    console.warn('[lang] localStorage access failed, using navigator language:', e.message)
+    return navigator?.language?.split('-')[0] || 'ko'
   }
 }
 
 export function getActiveLang() {
-  return getInitialLang()
+  if (_cachedLang) return _cachedLang
+  _cachedLang = getInitialLang()
+  return _cachedLang
 }
 
 /**
@@ -59,7 +63,19 @@ export function t(dict) {
  */
 export function applyLang(lang) {
   if (typeof document === 'undefined') return lang
-  const resolved = resolveLang(lang) || 'ko'
+
+  // lang이 명시되지 않았다면 저장된 언어 또는 초기 언어 사용
+  let resolved
+  if (lang === undefined || lang === null) {
+    resolved = getInitialLang() // URL → localStorage → navigator 순서
+  } else {
+    resolved = resolveLang(lang)
+    if (!resolved) {
+      console.warn(`[lang] Invalid language "${lang}", falling back to saved/default`)
+      resolved = getInitialLang()
+    }
+  }
+
   document.documentElement.lang = resolved
 
   const table = translations[resolved] || translations.ko
@@ -78,40 +94,41 @@ export function applyLang(lang) {
     if (typeof v === 'string') el.setAttribute('alt', v)
   })
 
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria-label')
+    if (!key) return
+    const v = table[key]
+    if (typeof v === 'string') el.setAttribute('aria-label', v)
+  })
+
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title')
+    if (!key) return
+    const v = table[key]
+    if (typeof v === 'string') el.setAttribute('title', v)
+  })
+
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEY, resolved)
-    } catch (error) {
-      console.warn('[lang] Failed to save to localStorage:', error)
+    } catch (e) {
+      console.warn('[lang] Failed to persist language to localStorage:', e.message)
     }
   }
 
-  // URL에서 lang 파라미터 처리 비활성화 (무한 루프 방지)
-  // 필요시 나중에 다시 활성화할 수 있지만, 현재는 블로킹 문제를 방지하기 위해 비활성화
-  // if (typeof window !== 'undefined' && typeof URL !== 'undefined' && typeof history !== 'undefined') {
-  //   try {
-  //     const u = new URL(window.location.href);
-  //     const currentLang = u.searchParams.get('lang');
-  //
-  //     if (currentLang === resolved) {
-  //       return resolved;
-  //     }
-  //
-  //     if (!window._langUpdating) {
-  //       window._langUpdating = true;
-  //       u.searchParams.delete('lang');
-  //       const newUrl = u.toString();
-  //       if (newUrl !== window.location.href) {
-  //         history.replaceState(null, '', newUrl);
-  //       }
-  //       setTimeout(() => {
-  //         window._langUpdating = false;
-  //       }, 100);
-  //     }
-  //   } catch (error) {
-  //     console.warn('[lang] Failed to update URL:', error);
-  //   }
-  // }
+  // 캐시 갱신
+  _cachedLang = resolved
 
+  // Note: URL lang parameter handling disabled to prevent infinite loops
   return resolved
+}
+
+/**
+ * 번역 키로부터 번역된 텍스트를 반환합니다.
+ * alert() 등 동적 메시지에서 사용하세요.
+ */
+export function translate(key, fallback = '') {
+  const lang = getActiveLang()
+  const table = translations[lang] || translations.ko || {}
+  return table[key] ?? fallback
 }

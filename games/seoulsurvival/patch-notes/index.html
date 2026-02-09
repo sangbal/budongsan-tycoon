@@ -32,6 +32,28 @@
   <link rel="stylesheet" href="/shared/styles/header.css" />
   <link rel="stylesheet" href="/shared/styles/footer.css" />
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Seoul Survival Patch Notes",
+    "description": "Complete changelog and update history for Seoul Survival, a prestige-based incremental idle game.",
+    "url": "https://clicksurvivor.com/games/seoulsurvival/patch-notes/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "ClickSurvivor",
+      "url": "https://clicksurvivor.com"
+    },
+    "about": {
+      "@type": "VideoGame",
+      "name": "Seoul Survival",
+      "url": "https://clicksurvivor.com/seoulsurvival/",
+      "genre": ["Incremental", "Idle", "Clicker"],
+      "operatingSystem": "Web browser"
+    }
+  }
+  </script>
+
   <style>
     :root {
       --space-1: 4px;
@@ -212,6 +234,47 @@
     <div id="patchnotes-container">
       <!-- Patch notes will be dynamically rendered -->
     </div>
+
+    <noscript>
+      <div class="release-note">
+        <div class="release-note-header">
+          <span class="release-note-version">v0.8.7</span>
+          <span class="release-note-title">Seoul Survival Major Update</span>
+          <span class="release-note-date">2026-02-01</span>
+        </div>
+        <div class="release-note-content">
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Notification system with toast messages and queue management</div>
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Settings tab with language, sound, and display options</div>
+          <div class="patch-item"><span class="patch-category category-balance">Balance</span> Prestige bonus calculation improvements</div>
+          <div class="patch-item"><span class="patch-category category-ui">UI</span> Investment tab redesign with better data visualization</div>
+          <div class="patch-item"><span class="patch-category category-performance">Performance</span> Game loop optimization and memory management</div>
+        </div>
+      </div>
+      <div class="release-note">
+        <div class="release-note-header">
+          <span class="release-note-version">v0.8.0</span>
+          <span class="release-note-title">Synergy System & Career Balance</span>
+          <span class="release-note-date">2026-01-15</span>
+        </div>
+        <div class="release-note-content">
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Synergy bonus system for investment combinations</div>
+          <div class="patch-item"><span class="patch-category category-balance">Balance</span> Career progression rebalanced with new click thresholds</div>
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Cloud save with Google sign-in</div>
+        </div>
+      </div>
+      <div class="release-note">
+        <div class="release-note-header">
+          <span class="release-note-version">v0.7.0</span>
+          <span class="release-note-title">Real Estate & Prestige</span>
+          <span class="release-note-date">2025-12-20</span>
+        </div>
+        <div class="release-note-content">
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Real estate investment system (Villa to Building)</div>
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Prestige system with Seoul Tower (₩1 trillion)</div>
+          <div class="patch-item"><span class="patch-category category-feature">Feature</span> Career Points (CP) permanent multiplier</div>
+        </div>
+      </div>
+    </noscript>
   </main>
 
   <!-- Footer mount point -->

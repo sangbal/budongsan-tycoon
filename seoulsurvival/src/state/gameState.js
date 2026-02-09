@@ -107,6 +107,10 @@ export const gameState = {
   playerNickname: '',
   __nicknameModalShown: false, // 닉네임 모달 세션 플래그
 
+  // 추천 시스템
+  referralBonusApplied: false, // 피추천인 보너스 중복 방지
+  referralCode: null, // 내 추천 코드 캐시
+
   // 해금 상태 추적 (순차 해금 시스템)
   unlockedProducts: {
     deposit: true,
@@ -149,7 +153,11 @@ export const gameState = {
     particles: true, // 파티클 애니메이션
     fancyGraphics: true, // 화려한 그래픽
     shortNumbers: false, // 짧은 숫자 표시 (기본값: 끔)
+    browserNotifications: false, // 브라우저 알림 (기본값: 끔)
   },
+
+  // 오프라인 수익 계산용
+  lastActiveTime: Date.now(),
 }
 
 // ======= 수익 테이블 (업그레이드로 변경 가능) =======
@@ -269,6 +277,10 @@ export function getSerializableState() {
 
     // 닉네임
     nickname: gameState.playerNickname,
+
+    // 추천 시스템
+    referralBonusApplied: gameState.referralBonusApplied,
+    referralCode: gameState.referralCode,
   }
 }
 
@@ -342,8 +354,13 @@ export function restoreState(data) {
   // 닉네임
   gameState.playerNickname = data.nickname || ''
 
+  // 추천 시스템 (마이그레이션: 기존 세이브 호환성)
+  gameState.referralBonusApplied = data.referralBonusApplied ?? false
+  gameState.referralCode = data.referralCode ?? null
+
   // 새 세션 시작
   gameState.sessionStartTime = Date.now()
+  gameState.lastActiveTime = Date.now()
 }
 
 /**
@@ -419,6 +436,7 @@ export { BASE_CLICK_GAIN }
 
 // ======= 개발 모드 디버그 헬퍼 =======
 // gameState를 전역으로 노출 (테스트용)
-// 프로덕션 빌드에서는 Vite tree-shaking이 import.meta.env.DEV 체크를 최적화함
-window.gameState = gameState
-console.log('[DEV] gameState가 window.gameState로 노출됨')
+if (import.meta.env.DEV) {
+  window.gameState = gameState
+  console.log('[DEV] gameState가 window.gameState로 노출됨')
+}

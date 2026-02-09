@@ -4,10 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClickSurvivor Hub</title>
+
+  <!-- Meta Tags -->
+  <meta name="description" content="ClickSurvivor Hub - 증분/클리커 게임 멀티 게임 웹 플랫폼. 서울 생존기, 김치 인베이전 등 무료 브라우저 게임." />
+  <meta name="description" lang="en" content="ClickSurvivor Hub - A multi-game web platform for incremental and clicker games. Play Seoul Survival, Kimchi Invasion, and more free browser games." />
+
+  <!-- Canonical & hreflang -->
+  <link rel="canonical" href="https://clicksurvivor.com/" />
+  <link rel="alternate" hreflang="ko" href="https://clicksurvivor.com/" />
+  <link rel="alternate" hreflang="en" href="https://clicksurvivor.com/" />
+  <link rel="alternate" hreflang="x-default" href="https://clicksurvivor.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="ClickSurvivor Hub" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://clicksurvivor.com/" />
+  <meta property="og:title" content="ClickSurvivor Hub - Free Browser Games" />
+  <meta property="og:description" content="Play free incremental, idle, and clicker games in your browser. Seoul Survival, Kimchi Invasion, and more." />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale:alternate" content="en_US" />
   <link rel="stylesheet" href="./shared/styles/uniform-core.css">
   <link rel="stylesheet" href="./shared/styles/header.css">
   <link rel="stylesheet" href="./shared/styles/footer.css">
   <link rel="stylesheet" href="./shared/styles/hub.css">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ClickSurvivor Hub",
+    "alternateName": "클릭서바이버 허브",
+    "url": "https://clicksurvivor.com/",
+    "description": "A multi-game web platform for incremental and clicker games. Play Seoul Survival, Kimchi Invasion, and more free browser games.",
+    "inLanguage": ["ko", "en"],
+    "publisher": {
+      "@type": "Organization",
+      "name": "ClickSurvivor",
+      "url": "https://clicksurvivor.com/"
+    },
+    "hasPart": [
+      {
+        "@type": "VideoGame",
+        "name": "서울 생존기 : 흙수저 탈출",
+        "alternateName": "Seoul Survival",
+        "url": "https://clicksurvivor.com/seoulsurvival/",
+        "genre": ["Incremental", "Idle", "Clicker", "Economy"],
+        "gamePlatform": "Web Browser",
+        "isAccessibleForFree": true
+      },
+      {
+        "@type": "VideoGame",
+        "name": "KIMCHI INVASION",
+        "alternateName": "The Red Planet Protocol",
+        "url": "https://clicksurvivor.com/kimchi-invasion/",
+        "genre": ["Factory", "Idle", "Simulation", "Sci-Fi"],
+        "gamePlatform": "Web Browser",
+        "isAccessibleForFree": true
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="hub-layout" data-theme="seoulsurvival">
   <div id="header-mount"></div>

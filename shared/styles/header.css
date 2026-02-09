@@ -110,6 +110,57 @@ body:not(.app) header {
   transform: translateY(0);
 }
 
+/* 언어 선택 영역 */
+.site-header .language-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.site-header .language-icon {
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.site-header .language-select {
+  padding: 6px 10px;
+  background: rgba(18, 26, 43, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.site-header .language-select:hover {
+  background: rgba(18, 26, 43, 0.8);
+  border-color: rgba(94, 234, 212, 0.4);
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 16px rgba(94, 234, 212, 0.15);
+}
+
+.site-header .language-select:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.site-header .language-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(94, 234, 212, 0.25);
+}
+
 .share-btn .share-icon {
   width: 16px;
   height: 16px;
@@ -341,6 +392,25 @@ body:not(.app) header {
   .favorite-btn,
   .login-btn {
     padding: 6px 10px;
+  }
+
+  /* 모바일: 언어 드롭다운 컴팩트 스타일 */
+  .site-header .language-select {
+    width: 36px;
+    padding: 6px 8px;
+    appearance: none;
+    background-image: none;
+    /* 텍스트는 스크린 리더를 위해 유지, 시각적으로만 숨김 */
+    color: transparent;
+  }
+
+  /* 터치 기기에서 호버 효과 비활성화 (성능 개선) */
+  .site-header .language-select:hover {
+    transform: none;
+  }
+
+  .site-header .language-select option {
+    color: var(--text); /* 드롭다운 열릴 때는 정상 표시 */
   }
 }
 

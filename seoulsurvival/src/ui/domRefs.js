@@ -129,6 +129,28 @@ export function getDomRefs() {
     elCareerProgress: document.getElementById('careerProgress'),
     elCareerProgressText: document.getElementById('careerProgressText'),
     elCareerRemaining: document.getElementById('careerRemaining'),
+
+    // ======= 헤더/메타 =======
+    elGameVersionDisplay: document.getElementById('gameVersionDisplay'),
+    elDiaryHeaderMeta: document.getElementById('diaryHeaderMeta'),
+
+    // ======= 닉네임 =======
+    elPlayerNicknameLabel: document.getElementById('playerNicknameLabel'),
+    elNicknameInfoItem: document.getElementById('nicknameInfoItem'),
+    elNicknameChangeButtonContainer: document.getElementById('nicknameChangeButtonContainer'),
+    elNicknameConflictBanner: document.getElementById('nicknameConflictBanner'),
+
+    // ======= 헤더 칩/배지 =======
+    elFinancialChip: document.getElementById('financialChip'),
+    elPropertyChip: document.getElementById('propertyChip'),
+    elTowerBadge: document.getElementById('towerBadge'),
+    elTowerCountHeader: document.getElementById('towerCountHeader'),
+    elRpsChip: document.getElementById('rpsChip'),
+
+    // ======= 탭 컨테이너 =======
+    elWorkTab: document.getElementById('workTab'),
+    elShopTab: document.getElementById('shopTab'),
+    elStatsTab: document.getElementById('statsTab'),
   }
 
   return _cachedRefs

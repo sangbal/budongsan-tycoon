@@ -1,12 +1,16 @@
 export function safeText(element, text) {
   if (element && element.textContent !== undefined) {
-    element.textContent = text
+    if (element.textContent !== text) {
+      element.textContent = text
+    }
   }
 }
 
 export function safeHTML(element, html) {
   if (element && element.innerHTML !== undefined) {
-    element.innerHTML = html
+    if (element.innerHTML !== html) {
+      element.innerHTML = html
+    }
   }
 }
 

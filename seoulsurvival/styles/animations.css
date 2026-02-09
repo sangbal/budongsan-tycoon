@@ -155,23 +155,6 @@
   }
 }
 
-/* ---------- Button Pulse (Affordable) ---------- */
-.btn.affordable {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
 /* ---------- Button Pulse (Sell Mode) ---------- */
 /* GPU 가속: pseudo-element + opacity 사용 */
 .btn.affordable-sell {
@@ -187,7 +170,6 @@
   opacity: 0;
   animation: glowPulseSell 2s infinite;
   pointer-events: none;
-  will-change: opacity;
 }
 
 @keyframes glowPulseSell {
@@ -217,7 +199,6 @@
   opacity: 0;
   animation: glowPulseAffordable 2s infinite;
   pointer-events: none;
-  will-change: opacity;
 }
 
 @keyframes glowPulseAffordable {
@@ -243,7 +224,6 @@
   opacity: 0;
   animation: glowPulseSell 2s infinite;
   pointer-events: none;
-  will-change: opacity;
 }
 
 /* ---------- Career Promotion ---------- */
@@ -268,7 +248,6 @@
   position: relative;
   z-index: 100;
   isolation: isolate;
-  will-change: box-shadow, border-color;
 }
 
 @keyframes unlockGlow {
@@ -309,7 +288,6 @@
   position: relative !important;
   z-index: 1000 !important;
   isolation: isolate !important;
-  will-change: background-color, box-shadow !important;
 }
 
 @keyframes sparkle {
@@ -346,7 +324,6 @@
 /* GPU 가속: transform 사용 (left 대신) */
 .income-segment::before {
   animation: shimmer 2s infinite;
-  will-change: transform;
   left: 0;
 }
 
@@ -421,7 +398,6 @@
 /* ---------- Reduced Motion Support ---------- */
 /* 시스템 설정에서 애니메이션 줄이기 활성화 시 무거운 애니메이션 비활성화 */
 @media (prefers-reduced-motion: reduce) {
-  .btn.affordable,
   .building-item.affordable,
   .upgrade-item.affordable,
   .building-item.affordable-sell,

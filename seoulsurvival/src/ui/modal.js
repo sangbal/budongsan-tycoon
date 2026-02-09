@@ -18,6 +18,7 @@ let elModalRoot = null
 // ======= 이벤트 핸들러 저장소 (메모리 누수 방지) =======
 // window 전역 객체 대신 Map 사용
 const modalKeyHandlers = new Map()
+let focusTrapCleanup = null
 let elModalTitle = null
 let elModalMessage = null
 let elModalPrimary = null
@@ -80,6 +81,12 @@ export function closeModal() {
   elModalRoot.classList.add('game-modal-hidden')
   modalOnConfirm = null
 
+  // 포커스 트랩 리스너 정리
+  if (focusTrapCleanup) {
+    focusTrapCleanup()
+    focusTrapCleanup = null
+  }
+
   // 이전 포커스 복원
   if (previousFocusElement && typeof previousFocusElement.focus === 'function') {
     previousFocusElement.focus()
@@ -119,8 +126,9 @@ export function openInfoModal(title, message, icon = 'ℹ️') {
     closeModal()
   }
 
-  // 포커스 트랩 설정 및 첫 번째 버튼에 포커스
-  createFocusTrap(elModalRoot)
+  // 기존 포커스 트랩 정리 후 새로 설정
+  if (focusTrapCleanup) focusTrapCleanup()
+  focusTrapCleanup = createFocusTrap(elModalRoot)
   setTimeout(() => elModalPrimary.focus(), 100)
 }
 
@@ -171,8 +179,9 @@ export function openConfirmModal(title, message, onConfirm, options = {}) {
     }
   }
 
-  // 포커스 트랩 설정 및 Primary 버튼에 포커스
-  createFocusTrap(elModalRoot)
+  // 기존 포커스 트랩 정리 후 새로 설정
+  if (focusTrapCleanup) focusTrapCleanup()
+  focusTrapCleanup = createFocusTrap(elModalRoot)
   setTimeout(() => elModalPrimary.focus(), 100)
 }
 
@@ -320,8 +329,9 @@ export function openInputModal(title, message, onConfirm, options = {}) {
     elModalSecondary.onclick = null
   }
 
-  // 포커스 트랩 설정
-  createFocusTrap(elModalRoot)
+  // 기존 포커스 트랩 정리 후 새로 설정
+  if (focusTrapCleanup) focusTrapCleanup()
+  focusTrapCleanup = createFocusTrap(elModalRoot)
 }
 
 /**
@@ -330,7 +340,7 @@ export function openInputModal(title, message, onConfirm, options = {}) {
  * @param {number} towerCount - 누적 타워 개수
  * @param {Function} onConfirm - 확인 버튼 클릭 시 실행할 콜백 (프레스티지 실행)
  */
-export function showEndingModal(towerCount, onConfirm) {
+export function showEndingModal(towerCount, onConfirm, shareCallback = null) {
   // CP 획득 예정량 계산
   const earnedCP = calculateCP(towerCount, gameState.lifetimeEarnings || 0)
   const currentTotalCP = getTotalCPForBonus()
@@ -349,6 +359,21 @@ export function showEndingModal(towerCount, onConfirm) {
   if (elModalMessage) {
     elModalMessage.style.whiteSpace = 'pre-wrap'
     elModalMessage.style.textAlign = 'left'
+  }
+
+  // Secondary 버튼을 "자랑하기" 버튼으로 활용
+  if (elModalSecondary && shareCallback && typeof shareCallback === 'function') {
+    elModalSecondary.textContent = t('share.button')
+    elModalSecondary.style.display = 'inline-block'
+    elModalSecondary.onclick = () => {
+      shareCallback({
+        type: 'tower',
+        towerCount: towerCount,
+        earnedCP: earnedCP,
+      })
+    }
+  } else if (elModalSecondary) {
+    elModalSecondary.style.display = 'none'
   }
 
   // 모달 확인 버튼 클릭 시 자동 프레스티지 실행 (타이머 없음, 버튼 클릭만)

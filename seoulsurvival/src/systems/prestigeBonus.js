@@ -10,6 +10,33 @@
 
 import { gameState } from '../state/gameState.js'
 
+// 프레스티지 효과 캐싱
+let _prestigeEffectsCache = null
+let _prestigeEffectsCacheKey = ''
+let _cpBonusCache = null
+let _cpBonusCacheKey = ''
+
+function buildPrestigeCacheKey() {
+  const purchased = gameState.purchasedUpgrades || []
+  return purchased.join(',')
+}
+
+function buildCPBonusCacheKey() {
+  const cp = gameState.careerPoints || 0
+  const purchased = gameState.purchasedUpgrades || []
+  return `${cp},${purchased.length}`
+}
+
+/**
+ * 프레스티지 캐시 무효화 (CP 업그레이드 구매/프레스티지/로드 시 호출)
+ */
+export function invalidatePrestigeCache() {
+  _prestigeEffectsCache = null
+  _prestigeEffectsCacheKey = ''
+  _cpBonusCache = null
+  _cpBonusCacheKey = ''
+}
+
 /**
  * CP 계산 공식
  * CP = floor(sqrt(towers_lifetime) × 2) × (1 + log10(lifetime_earnings / 1조)) + 첫타워보너스
@@ -56,10 +83,16 @@ export function getTotalSpentCP() {
  * @returns {number} 보너스 배수 (예: 1.2 = +20%)
  */
 export function getCPBonusMultiplier() {
+  const key = buildCPBonusCacheKey()
+  if (_cpBonusCache !== null && _cpBonusCacheKey === key) {
+    return _cpBonusCache
+  }
   const cp = gameState.careerPoints || 0
   const spentCP = getTotalSpentCP()
   const totalCP = cp + spentCP
-  return 1 + totalCP * 0.02 // 1 CP = +2%
+  _cpBonusCache = 1 + totalCP * 0.02 // 1 CP = +2%
+  _cpBonusCacheKey = key
+  return _cpBonusCache
 }
 
 /**
@@ -540,6 +573,9 @@ export function purchaseUpgrade(upgradeId) {
   }
   gameState.purchasedUpgrades.push(upgradeId)
 
+  // 캐시 무효화 (구매로 인해 효과가 변경됨)
+  invalidatePrestigeCache()
+
   return true
 }
 
@@ -579,6 +615,11 @@ export function getUpgradeEffect(effectType) {
  * @returns {Object} 효과 타입별 값 맵
  */
 export function getAllPrestigeEffects() {
+  const key = buildPrestigeCacheKey()
+  if (_prestigeEffectsCache && _prestigeEffectsCacheKey === key) {
+    return _prestigeEffectsCache
+  }
+
   const effects = {
     // 배수 (기본값 1.0)
     click_multiplier: 1.0,
@@ -644,6 +685,8 @@ export function getAllPrestigeEffects() {
     }
   }
 
+  _prestigeEffectsCache = effects
+  _prestigeEffectsCacheKey = key
   return effects
 }
 
@@ -759,6 +802,9 @@ export function processPrestige() {
 
   // 구매 업그레이드 리셋 (영구 슬롯/F카테고리 제외)
   resetPurchasedUpgrades()
+
+  // 캐시 무효화 (프레스티지로 인해 상태 변경)
+  invalidatePrestigeCache()
 
   return earnedCP
 }

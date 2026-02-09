@@ -4,6 +4,8 @@
  */
 
 import { safeGetJSON, safeSetJSON } from '../persist/storage.js'
+import { getOrCreateReferralCode, getReferralStats } from '@shared/referral.js'
+import { getUser } from '@shared/auth/core.js'
 
 /**
  * 설정 탭 관리자 팩토리
@@ -42,6 +44,7 @@ export function createSettingsTabManager(deps) {
     getCareerName,
     getCareerLevel,
     safeText,
+    notificationManager,
   } = deps
 
   /**
@@ -127,6 +130,121 @@ export function createSettingsTabManager(deps) {
   }
 
   /**
+   * 추천 링크 섹션 초기화 (로그인 사용자만)
+   */
+  async function initReferralSection() {
+    const referralSection = document.getElementById('referralSection')
+    const referralLinkInput = document.getElementById('referralLinkInput')
+    const copyReferralLinkBtn = document.getElementById('copyReferralLinkBtn')
+    const referralCountEl = document.getElementById('referralCount')
+    const referralRewardEl = document.getElementById('referralReward')
+
+    if (!referralSection) {
+      console.warn('[Referral] referralSection 요소를 찾을 수 없습니다')
+      return
+    }
+
+    // 섹션을 항상 표시 (로그인 여부와 관계없이)
+    referralSection.style.display = 'block'
+    referralSection.classList.remove('collapsed')
+    console.log('[Referral] 섹션 표시됨')
+
+    // 로그인 여부 확인
+    let user = null
+    try {
+      user = await getUser()
+      console.log('[Referral] 로그인 상태:', user ? '로그인됨' : '비로그인')
+    } catch (err) {
+      console.error('[Referral] 로그인 상태 확인 실패:', err)
+    }
+
+    if (!user) {
+      if (referralLinkInput) {
+        referralLinkInput.value = '로그인이 필요합니다'
+      }
+      if (referralCountEl) referralCountEl.textContent = '-'
+      if (referralRewardEl) referralRewardEl.textContent = '-'
+      return
+    }
+
+    // 추천 코드 조회
+    let codeResult
+    try {
+      codeResult = await getOrCreateReferralCode()
+      console.log('[Referral] 추천 코드 조회 결과:', codeResult)
+    } catch (err) {
+      console.error('[Referral] 추천 코드 조회 실패:', err)
+      if (referralLinkInput) {
+        referralLinkInput.value = '추천 코드 로드 실패'
+      }
+      return
+    }
+    if (codeResult && codeResult.success && codeResult.code) {
+      const referralLink = `https://clicksurvivor.com/seoulsurvival/?ref=${codeResult.code}`
+      if (referralLinkInput) {
+        referralLinkInput.value = referralLink
+      }
+
+      // 복사 버튼 이벤트 (기존 이벤트 제거 후 추가)
+      if (copyReferralLinkBtn) {
+        const newBtn = copyReferralLinkBtn.cloneNode(true)
+        copyReferralLinkBtn.parentNode.replaceChild(newBtn, copyReferralLinkBtn)
+
+        newBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(referralLink)
+            const successMsg = t('referral.copySuccess') || '복사됨!'
+            if (notificationManager?.toastSuccess) {
+              notificationManager.toastSuccess(successMsg)
+            } else if (window.toast?.success) {
+              window.toast.success(successMsg)
+            } else {
+              alert(successMsg)
+            }
+          } catch (err) {
+            console.error('[Referral] 클립보드 복사 실패:', err)
+            const failMsg = t('referral.copyFailed') || '복사 실패'
+            if (notificationManager?.toastError) {
+              notificationManager.toastError(failMsg)
+            } else if (window.toast?.error) {
+              window.toast.error(failMsg)
+            } else {
+              alert(failMsg)
+            }
+          }
+        })
+      }
+    } else {
+      if (referralLinkInput) {
+        referralLinkInput.value = '추천 코드 생성 실패'
+      }
+    }
+
+    // 추천 통계 조회
+    try {
+      const statsResult = await getReferralStats()
+      console.log('[Referral] 통계 조회 결과:', statsResult)
+
+      if (statsResult && statsResult.success) {
+        const refereeCount = statsResult.refereeCount || 0
+        const milestoneCount = statsResult.milestoneCount || 0
+
+        if (referralCountEl) {
+          referralCountEl.textContent = `${refereeCount}명`
+        }
+
+        // 보너스 계산: 마일스톤당 +2%
+        const bonusPercent = milestoneCount * 2
+        if (referralRewardEl) {
+          referralRewardEl.textContent = `+${bonusPercent}%`
+        }
+      }
+    } catch (err) {
+      console.error('[Referral] 통계 조회 실패:', err)
+    }
+  }
+
+  /**
    * 설정 탭 초기화
    */
   function initSettingsTab() {
@@ -146,6 +264,40 @@ export function createSettingsTabManager(deps) {
     setupToggle(elToggleParticles, 'particles')
     setupToggle(elToggleFancyGraphics, 'fancyGraphics')
     setupToggle(elToggleShortNumbers, 'shortNumbers', updateUI)
+
+    // 브라우저 알림 토글
+    const elToggleBrowserNotifications = document.getElementById('toggleBrowserNotifications')
+    const elNotificationStatus = document.getElementById('notificationStatus')
+
+    function updateNotificationStatus() {
+      if (!elNotificationStatus || !notificationManager) return
+      const status = notificationManager.getPermissionStatus()
+      const statusKey = `settings.notifications.status.${status}`
+      elNotificationStatus.textContent = t(statusKey)
+    }
+
+    if (elToggleBrowserNotifications) {
+      elToggleBrowserNotifications.checked = settings.browserNotifications || false
+      updateNotificationStatus()
+
+      elToggleBrowserNotifications.addEventListener('change', async e => {
+        if (e.target.checked && notificationManager) {
+          const result = await notificationManager.requestPermission()
+          if (result === 'denied') {
+            e.target.checked = false
+            settings.browserNotifications = false
+            saveSettings()
+            updateNotificationStatus()
+            const msg = t('settings.notifications.deniedMessage')
+            if (window.toast?.warning) window.toast.warning(msg)
+            return
+          }
+        }
+        settings.browserNotifications = e.target.checked
+        saveSettings()
+        updateNotificationStatus()
+      })
+    }
 
     // 언어 선택 핸들러
     const elLanguageSelect = document.getElementById('languageSelect')
@@ -204,6 +356,11 @@ export function createSettingsTabManager(deps) {
 
     // 토글 클릭 영역 확대 설정
     setupToggleClickExpansion()
+
+    // 추천 링크 섹션 초기화
+    initReferralSection().catch(err => {
+      console.error('추천 링크 섹션 초기화 실패:', err)
+    })
   }
 
   return {
@@ -211,5 +368,6 @@ export function createSettingsTabManager(deps) {
     loadSettings,
     updateAllUIForLanguage,
     initSettingsTab,
+    initReferralSection,
   }
 }

@@ -2,6 +2,8 @@
 // 헤더 인증 UI 초기화 통합 모듈
 // 이 모듈은 hub/main.js, account/*.js, header.js 등에서 공통으로 사용됩니다.
 
+import { translate } from '../i18n/lang.js'
+
 /**
  * 헤더의 인증 UI를 초기화합니다.
  * @param {Object} options
@@ -29,7 +31,7 @@ export async function initHeaderAuth(options = {}) {
     // 닉네임 업데이트 함수
     async function updateNickname(user) {
       if (!nicknameMobile || !user) {
-        if (nicknameMobile) nicknameMobile.textContent = 'Guest'
+        if (nicknameMobile) nicknameMobile.textContent = translate('header.account.guest', 'Guest')
         return
       }
 
@@ -53,7 +55,7 @@ export async function initHeaderAuth(options = {}) {
         user?.user_metadata?.name ||
         user?.user_metadata?.preferred_username ||
         user?.email?.split('@')[0] ||
-        'Guest'
+        translate('header.account.guest', 'Guest')
       )
     }
 

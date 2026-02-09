@@ -4,6 +4,9 @@
  * 공유하기 및 즐겨찾기 기능
  */
 
+import { getOrCreateReferralCode } from '@shared/referral.js'
+import { getUser } from '@shared/auth/core.js'
+
 /**
  * 소셜 기능 시스템 생성
  * @param {Object} deps - 의존성
@@ -21,14 +24,64 @@ export function createSocialFeatures(deps) {
 
   /**
    * 게임 공유 (Web Share API)
+   * @param {Object} context - 공유 맥락 (선택)
+   * @param {string} context.type - 맥락 타입 ('tower', 'achievement', 'career', null)
+   * @param {string} context.name - 업적/직업명 (type='achievement'/'career' 시)
+   * @param {number} context.count - 타워 구매 횟수 (type='tower' 시)
    */
-  async function shareGame() {
-    const gameUrl = window.location.href
+  async function shareGame(context = null) {
+    // 게임 URL 생성 (로그인 시 추천 코드 자동 포함)
+    let gameUrl = window.location.origin + window.location.pathname
+
+    // 로그인 여부 확인 및 추천 코드 가져오기
+    try {
+      const user = await getUser()
+      if (user) {
+        const { success, code } = await getOrCreateReferralCode()
+        if (success && code) {
+          gameUrl += `?ref=${code}`
+        }
+      }
+    } catch (err) {
+      // 추천 코드 가져오기 실패 시 일반 URL 사용
+      console.warn('Failed to get referral code for share:', err)
+    }
+
     const gameTitle = t('game.title')
-    const gameDescription = t('share.description', {
-      assets: NumberFormat.formatCashDisplay(getCash(), settings),
-      rps: NumberFormat.formatCashDisplay(getRps(), settings),
-    })
+    let gameDescription = ''
+
+    // 맥락별 메시지 생성
+    if (context && context.type) {
+      switch (context.type) {
+        case 'tower':
+          gameDescription = t('share.context.tower', {
+            towerCount: context.count || 1,
+          })
+          break
+        case 'achievement':
+          gameDescription = t('share.context.achievement', {
+            achievementName: context.name || '',
+          })
+          break
+        case 'career':
+          gameDescription = t('share.context.career', {
+            career: context.name || '',
+          })
+          break
+        default:
+          // 기본 메시지 (역호환)
+          gameDescription = t('share.description', {
+            assets: NumberFormat.formatCashDisplay(getCash(), settings),
+            rps: NumberFormat.formatCashDisplay(getRps(), settings),
+          })
+      }
+    } else {
+      // 역호환: context 미제공 시 기본 메시지
+      gameDescription = t('share.description', {
+        assets: NumberFormat.formatCashDisplay(getCash(), settings),
+        rps: NumberFormat.formatCashDisplay(getRps(), settings),
+      })
+    }
 
     // Web Share API만 사용 (링크 복사 fallback 제거)
     if (!navigator.share) {

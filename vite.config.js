@@ -108,7 +108,16 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
+  server: {
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+    },
+  },
   assetsInclude: [],
+  esbuild: {
+    pure: ['console.log', 'console.debug', 'console.info'],
+  },
   build: {
     rollupOptions: {
       input: {
@@ -121,11 +130,14 @@ export default defineConfig({
         'auth-callback': resolve(__dirname, 'auth/callback/index.html'),
         terms: resolve(__dirname, 'terms.html'),
         privacy: resolve(__dirname, 'privacy.html'),
+        about: resolve(__dirname, 'about.html'),
+        faq: resolve(__dirname, 'faq.html'),
         'games-seoulsurvival': resolve(__dirname, 'games/seoulsurvival/index.html'),
         'games-seoulsurvival-patchnotes': resolve(
           __dirname,
           'games/seoulsurvival/patch-notes/index.html'
         ),
+        'games-seoulsurvival-guide': resolve(__dirname, 'games/seoulsurvival/guide/index.html'),
         seoulsurvival: resolve(__dirname, 'seoulsurvival/index.html'),
         'kimchi-invasion': resolve(__dirname, 'kimchi-invasion/index.html'),
       },

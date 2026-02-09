@@ -87,6 +87,7 @@ import { createInAppBrowserHandler } from '../ui/inAppBrowserHandler.js'
 import { createHeaderResponsiveManager } from '../ui/headerResponsiveManager.js'
 import { createSettingsTabManager } from '../ui/settingsTabManager.js'
 import { createAuthUIManager } from '../ui/authUIManager.js'
+import { createNotificationManager } from '../ui/notificationManager.js'
 // devCheatSystem은 DEV 모드에서만 동적 로드 (main.js에서 처리)
 import {
   setupPurchaseModeButtons,
@@ -136,6 +137,19 @@ const __IS_DEV__ = !!import.meta?.env?.DEV
  * - Sentry, 에러 바운더리, i18n, 모달
  */
 export function initializeFoundation() {
+  // URL 파라미터 파싱 및 추천 코드 저장
+  const urlParams = new URLSearchParams(window.location.search)
+  const referralCode = urlParams.get('ref')
+
+  if (referralCode) {
+    // sessionStorage에 추천 코드 저장 (세션 동안 유지)
+    sessionStorage.setItem('referralCode', referralCode)
+
+    // URL에서 파라미터 제거 (사용자에게 깔끔한 URL 표시)
+    const cleanUrl = window.location.pathname + window.location.hash
+    window.history.replaceState({}, '', cleanUrl)
+  }
+
   // Sentry 초기화 (프로덕션 전용)
   if (import.meta.env.PROD) {
     initSentry()
@@ -177,6 +191,7 @@ export function initializeState() {
     particles: true,
     fancyGraphics: true,
     shortNumbers: false,
+    browserNotifications: false,
   }
 
   // 설정 불러오기
@@ -298,7 +313,7 @@ export function initializeUpgradesAndAchievements(deps) {
  * Phase E: 투자 탭 및 버튼 상태 관리자 초기화
  */
 export function initializeInvestmentSystem(deps) {
-  const { settings, updateUI, performAutoPrestige } = deps
+  const { settings, updateUI, performAutoPrestige, shareCallback } = deps
 
   const investmentTab = createInvestmentTab({
     getCash: () => gameState.cash,
@@ -370,6 +385,7 @@ export function initializeInvestmentSystem(deps) {
     MARKET_EVENTS,
     gameState,
     performAutoPrestige,
+    shareCallback, // 엔딩 모달 공유 버튼용
   })
 
   // incomeCalculator에 시장 이벤트 배수 함수 주입
@@ -651,6 +667,8 @@ export {
   createI18nUIManager,
   createAuthUIManager,
   createAchievementGrid,
+  createNotificationManager,
+  createSettingsTabManager,
   setupPurchaseModeButtons,
   setupPurchaseQuantityButtons,
   setupWorkClickHandler,

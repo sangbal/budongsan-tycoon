@@ -7,8 +7,9 @@
  * 업적 알림 표시
  * @param {Object} achievement - 업적 객체
  * @param {Function} t - 번역 함수
+ * @param {Function} shareCallback - 공유 콜백 함수 (선택)
  */
-export function showAchievementNotification(achievement, t) {
+export function showAchievementNotification(achievement, t, shareCallback = null) {
   const notification = document.createElement('div')
   notification.style.cssText = `
     position: fixed;
@@ -47,13 +48,50 @@ export function showAchievementNotification(achievement, t) {
   notification.appendChild(nameDiv)
   notification.appendChild(descDiv)
 
+  // 공유 버튼 추가 (shareCallback 제공 시)
+  if (shareCallback && typeof shareCallback === 'function') {
+    const shareBtn = document.createElement('button')
+    shareBtn.style.cssText = `
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: bold;
+    `
+    shareBtn.textContent = t('share.brag')
+
+    // 호버 효과 (인라인 스타일로 처리)
+    shareBtn.addEventListener('mouseenter', () => {
+      shareBtn.style.background = 'rgba(255, 255, 255, 0.5)'
+    })
+    shareBtn.addEventListener('mouseleave', () => {
+      shareBtn.style.background = 'rgba(255, 255, 255, 0.3)'
+    })
+
+    // 클릭 이벤트
+    shareBtn.addEventListener('click', () => {
+      shareCallback({
+        type: 'achievement',
+        name: achievementName,
+        achievementId: achievement.id,
+      })
+    })
+
+    notification.appendChild(shareBtn)
+  }
+
   document.body.appendChild(notification)
 
+  // 팝업 지속 시간: 3초 → 5초로 연장
   setTimeout(() => {
     if (notification.parentElement) {
       notification.parentElement.removeChild(notification)
     }
-  }, 3000)
+  }, 5000)
 }
 
 /**
@@ -62,13 +100,13 @@ export function showAchievementNotification(achievement, t) {
  * @returns {Function} checkAchievements 함수
  */
 export function createAchievementChecker(deps) {
-  const { ACHIEVEMENTS, t, Diary } = deps
+  const { ACHIEVEMENTS, t, Diary, shareCallback } = deps
 
   return function checkAchievements() {
     ACHIEVEMENTS.forEach(achievement => {
       if (!achievement.unlocked && achievement.condition()) {
         achievement.unlocked = true
-        showAchievementNotification(achievement, t)
+        showAchievementNotification(achievement, t, shareCallback)
 
         // 업적 번역 키가 없으면 원본 한글 사용 (fallback)
         const achievementName = t(`achievement.${achievement.id}.name`, {}, achievement.name)

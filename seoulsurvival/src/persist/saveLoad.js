@@ -134,6 +134,9 @@ export function createSaveLoadManager(deps) {
       sessionStartTime: gameVars.sessionStartTime,
       // 닉네임 (리더보드용)
       nickname: gameVars.playerNickname,
+      // 추천 시스템
+      referralBonusApplied: gameVars.referralBonusApplied,
+      referralCode: gameVars.referralCode,
     }
 
     // 디버깅: 닉네임 저장 확인
@@ -359,6 +362,9 @@ export function createSaveLoadManager(deps) {
       gameVars.totalPlayTime = toNumber(data.totalPlayTime, 0)
       // 닉네임 복원
       gameVars.playerNickname = data.nickname || ''
+      // 추천 시스템 복원 (마이그레이션: 기존 세이브 호환성)
+      gameVars.referralBonusApplied = data.referralBonusApplied ?? false
+      gameVars.referralCode = data.referralCode ?? null
       // 새 세션 시작 (이전 세션 시간은 이미 저장 시 totalPlayTime에 포함되어 있음)
       gameVars.sessionStartTime = Date.now()
 

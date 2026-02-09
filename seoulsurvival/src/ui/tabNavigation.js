@@ -6,6 +6,17 @@
  * - 탭별 특수 동작 (경력탭 새로고침, 설정탭 닉네임 동기화, 랭킹탭 폴링)
  */
 
+// 활성 탭 상태 추적 (성능 최적화: updateUI에서 현재 탭만 렌더링)
+let _activeTab = 'workTab'
+
+/**
+ * 현재 활성 탭 ID 반환
+ * @returns {string} 활성 탭 ID (예: 'workTab', 'investmentTab', 'statsTab')
+ */
+export function getActiveTab() {
+  return _activeTab
+}
+
 /**
  * 탭 네비게이션 시스템 생성
  * @param {Object} deps - 의존성
@@ -27,6 +38,9 @@ export function createTabNavigation(deps) {
     navBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const targetTab = btn.getAttribute('data-tab')
+
+        // 활성 탭 상태 업데이트 (성능 최적화용)
+        _activeTab = targetTab
 
         // 모든 탭 비활성화
         tabContents.forEach(tab => tab.classList.remove('active'))

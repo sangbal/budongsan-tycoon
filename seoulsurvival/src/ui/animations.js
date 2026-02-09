@@ -22,6 +22,17 @@ const RECT_CACHE_TTL = 1000 // 1초 유효
 let resizeHandler = null
 let isInitialized = false
 
+// ======= 수익 애니메이션 풀링 (DOM 생성/제거 최소화) =======
+const INCOME_POOL_SIZE = 10
+let incomePool = []
+let poolIndex = 0
+let poolParent = null
+
+// ======= 떨어지는 애니메이션 풀링 =======
+const FALLING_POOL_SIZE = 8
+let fallingPool = []
+let fallingPoolIndex = 0
+
 /**
  * 캐시된 위치 정보 반환 (getBoundingClientRect 호출 최소화)
  * @returns {Object} { workRect, containerRect }
@@ -58,6 +69,31 @@ export function initAnimations(workElement) {
     rectCache.workRect = null
   }
   window.addEventListener('resize', resizeHandler, { passive: true })
+
+  // 수익 애니메이션 풀 초기화
+  if (workElement && workElement.parentElement) {
+    poolParent = workElement.parentElement
+    poolParent.style.position = 'relative'
+    for (let i = 0; i < INCOME_POOL_SIZE; i++) {
+      const el = document.createElement('div')
+      el.className = 'income-increase'
+      el.style.position = 'absolute'
+      el.style.zIndex = '1000'
+      el.style.pointerEvents = 'none'
+      el.style.display = 'none'
+      poolParent.appendChild(el)
+      incomePool.push(el)
+    }
+  }
+
+  // 떨어지는 애니메이션 풀 초기화
+  for (let i = 0; i < FALLING_POOL_SIZE; i++) {
+    const el = document.createElement('div')
+    el.className = 'falling-cookie'
+    el.style.display = 'none'
+    document.body.appendChild(el)
+    fallingPool.push(el)
+  }
 }
 
 /**
@@ -71,6 +107,21 @@ export function cleanupAnimations() {
     resizeHandler = null
   }
 
+  // 수익 애니메이션 풀 정리
+  incomePool.forEach(el => {
+    if (el.parentNode) el.parentNode.removeChild(el)
+  })
+  incomePool = []
+  poolIndex = 0
+  poolParent = null
+
+  // 떨어지는 애니메이션 풀 정리
+  fallingPool.forEach(el => {
+    if (el.parentNode) el.parentNode.removeChild(el)
+  })
+  fallingPool = []
+  fallingPoolIndex = 0
+
   elWork = null
   rectCache = { workRect: null, containerRect: null, timestamp: 0 }
   isInitialized = false
@@ -82,21 +133,24 @@ export function cleanupAnimations() {
  * @param {number} clickY - 클릭 Y 좌표
  */
 export function createFallingCookie(clickX, clickY) {
-  const cookie = document.createElement('div')
-  cookie.className = 'falling-cookie'
-  cookie.textContent = '💵' // 지폐만 떨어뜨리기
+  if (fallingPool.length === 0) return
 
-  // 클릭 위치 기준으로 설정
+  const cookie = fallingPool[fallingPoolIndex]
+  fallingPoolIndex = (fallingPoolIndex + 1) % FALLING_POOL_SIZE
+
+  cookie.className = 'falling-cookie'
+  cookie.textContent = '💵'
   cookie.style.left = clickX + Math.random() * 100 - 50 + 'px'
   cookie.style.top = clickY - 100 + 'px'
+  cookie.style.display = 'block'
+  cookie.style.animation = 'none'
 
-  document.body.appendChild(cookie)
+  requestAnimationFrame(() => {
+    cookie.style.animation = 'fallDown 2s ease-in forwards'
+  })
 
-  // 애니메이션 완료 후 요소 제거
   setTimeout(() => {
-    if (cookie.parentNode) {
-      cookie.parentNode.removeChild(cookie)
-    }
+    cookie.style.display = 'none'
   }, 2000)
 }
 
@@ -106,71 +160,71 @@ export function createFallingCookie(clickX, clickY) {
  * @param {number} count - 떨어뜨릴 개수
  */
 export function createFallingBuilding(icon, count) {
+  if (fallingPool.length === 0) return
+
   for (let i = 0; i < Math.min(count, 5); i++) {
-    // 최대 5개까지만 애니메이션
     setTimeout(() => {
-      const building = document.createElement('div')
+      const building = fallingPool[fallingPoolIndex]
+      fallingPoolIndex = (fallingPoolIndex + 1) % FALLING_POOL_SIZE
+
       building.className = 'falling-cookie'
       building.textContent = icon
-
-      // 화면 상단에서 랜덤하게 떨어뜨리기
       building.style.left = Math.random() * window.innerWidth + 'px'
       building.style.top = '-100px'
+      building.style.display = 'block'
+      building.style.animation = 'none'
 
-      document.body.appendChild(building)
+      requestAnimationFrame(() => {
+        building.style.animation = 'fallDown 2s ease-in forwards'
+      })
 
-      // 애니메이션 완료 후 요소 제거
       setTimeout(() => {
-        if (building.parentNode) {
-          building.parentNode.removeChild(building)
-        }
+        building.style.display = 'none'
       }, 2000)
-    }, i * 200) // 0.2초 간격으로 순차 생성
+    }, i * 200)
   }
 }
 
 /**
  * 수익 증가 애니메이션 (개선된 float-up 효과)
+ * 오브젝트 풀링 적용: DOM 생성/제거 비용 최소화
  * @param {number} amount - 표시할 수익 금액
  */
 export function showIncomeAnimation(amount) {
-  if (!elWork) return // elWork가 초기화되지 않았으면 스킵
-
-  const animation = document.createElement('div')
-  animation.className = 'income-increase'
-  const formattedAmount = NumberFormat.formatKoreanNumber(amount)
-  animation.textContent = t('ui.incomeFormat', { amount: formattedAmount })
+  if (!elWork || incomePool.length === 0) return // elWork 또는 풀이 초기화되지 않았으면 스킵
 
   // 노동 버튼 위치 기준으로 애니메이션 위치 설정 (캐시 사용)
   const { workRect, containerRect } = getCachedRects()
   if (!workRect || !containerRect) return
 
+  // 풀에서 다음 요소 가져오기
+  const animation = incomePool[poolIndex]
+  poolIndex = (poolIndex + 1) % INCOME_POOL_SIZE
+
+  // 텍스트 내용 업데이트
+  const formattedAmount = NumberFormat.formatKoreanNumber(amount)
+  animation.textContent = t('ui.incomeFormat', { amount: formattedAmount })
+
   // 노동 버튼 위쪽에 랜덤하게 표시
-  animation.style.position = 'absolute'
   animation.style.left = workRect.left - containerRect.left + Math.random() * 100 - 50 + 'px'
   animation.style.top = workRect.top - containerRect.top - 50 + 'px'
-  animation.style.zIndex = '1000'
-  animation.style.pointerEvents = 'none'
 
-  elWork.parentElement.style.position = 'relative'
-  elWork.parentElement.appendChild(animation)
-
-  // 애니메이션 효과
+  // 초기 상태 설정
+  animation.style.display = 'block'
   animation.style.opacity = '1'
   animation.style.transform = 'translateY(0px) scale(1)'
+  animation.style.transition = 'none'
 
-  // 떠오르는 애니메이션
-  setTimeout(() => {
+  // 다음 프레임에서 애니메이션 시작 (reflow 강제)
+  requestAnimationFrame(() => {
     animation.style.transition = 'all 1.5s ease-out'
     animation.style.opacity = '0'
     animation.style.transform = 'translateY(-80px) scale(1.2)'
-  }, 100)
+  })
 
-  // 애니메이션 완료 후 제거
+  // 애니메이션 완료 후 숨김 (제거 대신 display: none)
   setTimeout(() => {
-    if (animation.parentElement) {
-      animation.parentElement.removeChild(animation)
-    }
+    animation.style.display = 'none'
   }, 1600)
 }
 
@@ -184,28 +238,30 @@ export function createTowerFallEffect() {
     return // 애니메이션 생략
   }
 
-  const emojiCount = 30 // 이모지 개수 증가 (15 → 30)
-  const duration = 2000 // 2초
+  if (fallingPool.length === 0) return
+
+  const emojiCount = 10
+  const duration = 2000
 
   for (let i = 0; i < emojiCount; i++) {
     setTimeout(() => {
-      const tower = document.createElement('div')
+      const tower = fallingPool[fallingPoolIndex]
+      fallingPoolIndex = (fallingPoolIndex + 1) % FALLING_POOL_SIZE
+
       tower.className = 'falling-tower'
       tower.textContent = '🗼'
-
-      // 화면 상단에서 랜덤하게 떨어뜨리기
       tower.style.left = Math.random() * window.innerWidth + 'px'
       tower.style.top = '-100px'
+      tower.style.display = 'block'
+      tower.style.animation = 'none'
 
-      // body에 직접 추가하여 모달 오버레이 위에 표시
-      document.body.appendChild(tower)
+      requestAnimationFrame(() => {
+        tower.style.animation = 'fallDown 2s ease-in forwards'
+      })
 
-      // 애니메이션 완료 후 요소 제거
       setTimeout(() => {
-        if (tower.parentNode) {
-          tower.parentNode.removeChild(tower)
-        }
+        tower.style.display = 'none'
       }, duration)
-    }, i * 40) // 0.04초 간격으로 순차 생성 (더 빠르게)
+    }, i * 80)
   }
 }

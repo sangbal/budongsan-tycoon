@@ -1,0 +1,50 @@
+# ClickSurvivor Hub
+
+> A multi-game web platform for free incremental, idle, and clicker games. Play directly in your browser — no download required.
+
+## Games
+
+### Seoul Survival (서울 생존기 : 흙수저 탈출)
+
+- **URL**: https://clicksurvivor.com/seoulsurvival/
+- **Genre**: Incremental, Idle, Clicker, Economy Simulation
+- **Languages**: Korean, English
+
+Seoul Survival is a prestige-based incremental idle game set in modern Seoul. Start as a minimum-wage worker, click to earn wages, invest in financial products (savings, stocks, crypto), buy real estate (from studio apartments to skyscrapers), and prestige by purchasing the legendary Tower for ₩1 trillion. Each prestige cycle earns Career Points (CP) that permanently boost your income in the next run.
+
+**Core Mechanics:**
+- Click labor with a promotion system (part-timer → CEO)
+- Financial investments: savings accounts, stocks, cryptocurrency
+- Real estate: villas, apartments, officetels, buildings, towers
+- Prestige system: reset progress for permanent multipliers
+- Synergy bonuses between investment categories
+- Market events that affect prices and income
+- Achievements and global leaderboards
+- Cloud save via Google sign-in
+
+### Kimchi Invasion (The Red Planet Protocol)
+
+- **URL**: https://clicksurvivor.com/kimchi-invasion/
+- **Genre**: Factory Automation, Idle, Simulation, Sci-Fi
+- **Languages**: Korean, English
+
+Kimchi Invasion is a sci-fi factory automation game. Grow kimchi on Mars and export it to Earth. Manage production lines, optimize logistics, and scale your interplanetary kimchi empire.
+
+## Key Features
+
+- **100% Free**: No ads, no in-app purchases, no paywalls
+- **Browser-Based**: Instant play — no download or installation needed
+- **PWA Support**: Install as an app on mobile and desktop
+- **Cloud Save**: Save your progress with Google sign-in
+- **Multilingual**: Full Korean and English support
+- **Offline Progress**: Earn income even while away
+
+## Links
+
+- Hub: https://clicksurvivor.com/
+- Seoul Survival: https://clicksurvivor.com/seoulsurvival/
+- Kimchi Invasion: https://clicksurvivor.com/kimchi-invasion/
+- About: https://clicksurvivor.com/about.html
+- FAQ: https://clicksurvivor.com/faq.html
+- Seoul Survival Guide: https://clicksurvivor.com/games/seoulsurvival/guide/
+- Patch Notes: https://clicksurvivor.com/games/seoulsurvival/patch-notes/
