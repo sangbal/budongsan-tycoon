@@ -96,18 +96,18 @@
     }
   }
   </script>
-  <script type="module" crossorigin src="../assets/seoulsurvival-DeNBIZqr.js"></script>
+  <script type="module" crossorigin src="../assets/seoulsurvival-C8iAWjIM.js"></script>
   <link rel="modulepreload" crossorigin href="../assets/modulepreload-polyfill-B5Qt9EMX.js">
   <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-i18n-CkLsNTYn.js">
   <link rel="modulepreload" crossorigin href="../assets/shared-auth-CB4qT7cz.js">
   <link rel="modulepreload" crossorigin href="../assets/vendor-common-B5r75hl2.js">
   <link rel="modulepreload" crossorigin href="../assets/shared-common-B7j2wMZ8.js">
   <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-utils-Bq1PWtzF.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-systems-pmV6rvLL.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-core-DQ7XNaP6.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-ui-DbTVyLGo.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-systems-B4OSq01m.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-core-BKcrBt_5.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-ui-DVxt-t_N.js">
   <link rel="modulepreload" crossorigin href="../assets/vendor-sentry-GDmcRtJk.js">
-  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-monitoring-k6s1cQ2G.js">
+  <link rel="modulepreload" crossorigin href="../assets/seoulsurvival-monitoring-BluCjc2X.js">
   <link rel="stylesheet" crossorigin href="../assets/shared-common-CWv3kcCD.css">
   <link rel="stylesheet" crossorigin href="../assets/seoulsurvival-HbL6L545.css">
 </head>
@@ -201,7 +201,18 @@
         <div class="card">
           <h2><span class="tab-icon" aria-hidden="true">💰</span> <span data-i18n="tab.investment">투자</span></h2>
           <div id="marketEventBar" class="market-event-bar" aria-live="polite"></div>
-          
+
+          <!-- 빌드 시너지 -->
+          <div class="stats-section collapsible">
+            <h3 class="stats-toggle"><span data-i18n="synergy.title">🔗 빌드 시너지</span> <span class="toggle-icon">▼</span></h3>
+            <div class="stats-content">
+              <p class="muted" style="margin-bottom: 12px;" data-i18n="synergy.subtitle">특정 조합으로 보너스 수익 획득!</p>
+              <div id="synergy-display">
+                <!-- JavaScript로 동적 생성 (synergyDisplay.js) -->
+              </div>
+            </div>
+          </div>
+
           <!-- 업그레이드 리스트 - Cookie Clicker 스타일 -->
           <div class="stats-section collapsible" data-section-id="upgrades">
             <h3 class="stats-toggle" aria-expanded="true" role="button" tabindex="0">
@@ -492,18 +503,7 @@
           </div>
         </div>
 
-        <!-- 2. 빌드 시너지 -->
-        <div class="stats-section collapsible">
-          <h3 class="stats-toggle"><span data-i18n="synergy.title">🔗 빌드 시너지</span> <span class="toggle-icon">▼</span></h3>
-          <div class="stats-content">
-            <p class="muted" style="margin-bottom: 12px;" data-i18n="synergy.subtitle">특정 조합으로 보너스 수익 획득!</p>
-            <div id="synergy-display">
-              <!-- JavaScript로 동적 생성 (synergyDisplay.js) -->
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. 플레이 정보 -->
+        <!-- 2. 플레이 정보 -->
         <div class="stats-section collapsible">
           <h3 class="stats-toggle"><span data-i18n="stats.playInfo">⏱️ 플레이 정보</span> <span class="toggle-icon">▼</span></h3>
           <div class="stats-content">
